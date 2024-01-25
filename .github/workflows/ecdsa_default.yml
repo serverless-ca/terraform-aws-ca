@@ -6,6 +6,8 @@ on:
       - "**/*.py"
       - "**/*.tf"
       - ".github/workflows/ecdsa_default.yml"
+    branches:
+      - main
 
 jobs:
   terraform_validate:
@@ -47,7 +49,6 @@ jobs:
 
   terraform_plan_apply:
     name: Terraform plan & apply
-    environment: 'ecdsa'
     runs-on: ubuntu-latest
     needs:
       - terraform_validate
@@ -103,7 +104,6 @@ jobs:
   delete_dynamo_db_items:
     # deletes Certificate Authority - only use for testing
     name: Delete all DynamoDB items
-    environment: 'rsa'
     runs-on: ubuntu-latest
     needs:
       - terraform_plan_apply
@@ -139,7 +139,6 @@ jobs:
 
   start_ca:
     name: Start CA
-    environment: 'ecdsa'
     runs-on: ubuntu-latest
     needs:
       - delete_dynamo_db_items
@@ -175,7 +174,6 @@ jobs:
 
   integration_tests:
     name: Integration Tests
-    environment: 'ecdsa'
     runs-on: ubuntu-latest
     needs: start_ca
     permissions:
