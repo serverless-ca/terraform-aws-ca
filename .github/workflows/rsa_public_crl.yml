@@ -6,6 +6,8 @@ on:
       - "**/*.py"
       - "**/*.tf"
       - ".github/workflows/rsa_public.yml"
+    branches:
+      - main
 
 env:
   TF_VAR_hosted_zone_domain: ${{ secrets.HOSTED_ZONE_DOMAIN }}

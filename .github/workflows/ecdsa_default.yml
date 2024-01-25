@@ -6,6 +6,8 @@ on:
       - "**/*.py"
       - "**/*.tf"
       - ".github/workflows/ecdsa_default.yml"
+    branches:
+      - main
 
 jobs:
   terraform_validate:
