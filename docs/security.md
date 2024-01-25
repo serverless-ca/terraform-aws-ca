@@ -20,4 +20,9 @@ It's very important to implement your certificate authority (CA) in a secure way
 * run regular security scans on CA AWS accounts or link to a CSPM
 * consider an independent security review of the CA infrastructure and applications using certificates issued by the CA
 
-The above list is provided to assist you in securing your CA, however the authors accept no responsibility for ensuring your CA is implemented and being operated in a secure manner, in according with the [License](../LICENSE.md).
+
+The security of any CA is dependent on the protection of CA private keys. AWS KMS is used to generate and store the asymmetric key pair for each CA, with no export of the private key allowed. The hardware security modules (HSMs) used by the AWS KMS service are [FIPS 140-2 level 3 certified](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3/) in all AWS commercial regions except China, which uses OSCCA certified HSMs.
+
+Secure operation of AWS services such as KMS rely on AWS upholding its side of the [AWS Shared Responsibility Model](https://aws.amazon.com/compliance/shared-responsibility-model/).
+
+The above information is provided to assist you in assuring the security of your CA. However, the authors accept no responsibility for your CA being implemented and operated in a secure manner, in according with the [License](../LICENSE.md).
