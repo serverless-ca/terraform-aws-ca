@@ -4,6 +4,10 @@
 It's very important to implement your certificate authority (CA) in a secure way:
 
 * each CA should be in a dedicated AWS account
+* carefully select CA options for this module:
+    * use ECDSA algorithms rather than RSA (default)
+    * don't make CRL public unless needed (default)
+    * review other options from a security perspective
 * very carefully control AWS IAM principals and permissions 
 * restrict permissions allowing invocation of all Lambda functions
 * limit access to CA source code repository and CI/CD pipeline
