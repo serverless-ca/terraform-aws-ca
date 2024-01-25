@@ -70,6 +70,18 @@ def crypto_hash_algorithm(kms_signing_algorithm):
     raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
 
 
+def crypto_hash_class(kms_signing_algorithm):
+    """Returns arguments used to sign certificate"""
+    if kms_signing_algorithm in ["RSASSA_PKCS1_V1_5_SHA_256", "ECDSA_SHA_256"]:
+        return hashes.SHA256()
+    if kms_signing_algorithm == "ECDSA_SHA_384":
+        return hashes.SHA384()
+    if kms_signing_algorithm == "ECDSA_SHA_512":
+        return hashes.SHA512()
+
+    raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
+
+
 def crypto_kms_ca_cert_signing_request(common_name, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """CA certificate signing request created using private key in AWS KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
