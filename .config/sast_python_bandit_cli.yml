@@ -1,0 +1,4 @@
+[bandit]
+format: screen
+recursive: true
+skips: B101

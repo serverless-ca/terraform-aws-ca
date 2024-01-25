@@ -1,0 +1,56 @@
+name: Python tests
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/*.py"
+      - ".github/workflows/python.yml"
+
+jobs:
+  python_tests:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        run: |
+          pip install -r tests/requirements-dev.txt
+          
+      - name: Black
+        run: |
+          black --check --line-length 120 .
+
+      - name: Prospector
+        run: |
+          prospector --no-autodetect
+
+      - name: prepare reports dir
+        run: mkdir --parents ${{runner.temp}}/reports_sast_python/
+
+      - name: generate json report
+        run: >
+          bandit -r modules/terraform-aws-ca-lambda/lambda_code modules/terraform-aws-ca-lambda/utils scripts tests
+          --exit-zero
+          --ini .config/sast_python_bandit_json.yml
+          1> ${{runner.temp}}/reports_sast_python/${RANDOM}.json
+
+      - name: save json report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast_python
+          if-no-files-found: error
+          path: ${{runner.temp}}/reports_sast_python/
+
+      - name: Bandit
+        run: >
+          bandit -r src --ini .config/sast_python_bandit_cli.yml 

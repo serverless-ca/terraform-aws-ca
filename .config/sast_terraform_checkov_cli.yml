@@ -1,0 +1,8 @@
+download-external-modules: true
+skip-download: true
+evaluate-variables: true
+framework:
+  - terraform
+output:
+  - cli
+quiet: true

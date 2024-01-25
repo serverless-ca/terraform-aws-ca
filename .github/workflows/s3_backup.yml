@@ -1,0 +1,35 @@
+name: S3 Backup
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  s3_backup:
+    name: S3 Backup
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: get-name
+        run: |
+          echo "REPO_NAME=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+          echo "LOWER_REPO_NAME=$(basename ${{ github.repository }} | tr [:upper:] [:lower:])" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "${{ secrets.AWS_BACKUP_ROLE_PREFIX }}${{ env.LOWER_REPO_NAME }}"
+          aws-region: "${{ secrets.AWS_REGION }}"
+
+      - name: Back up repository to S3
+        run: |
+          aws s3 sync . s3://"${{ secrets.BACKUP_S3_BUCKET }}"/${{ env.REPO_NAME }} --delete

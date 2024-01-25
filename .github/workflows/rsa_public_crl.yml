@@ -1,0 +1,212 @@
+name: Deploy RSA CA with Public CRL
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/*.py"
+      - "**/*.tf"
+      - ".github/workflows/rsa_public.yml"
+
+env:
+  TF_VAR_hosted_zone_domain: ${{ secrets.HOSTED_ZONE_DOMAIN }}
+  TF_VAR_allow_client_keys_in_db: true  # don't copy this setting - feature will be removed in future release
+
+jobs:
+  terraform_validate:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    steps:
+      - name: Terraform setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.4
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Terraform validate
+        id: fmt
+        run: terraform fmt -check -recursive
+
+  secret_scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Install GitLeaks
+        run: |
+          wget https://github.com/gitleaks/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz && \
+          tar -xf gitleaks_8.16.1_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/gitleaks && \
+          sudo chmod +x /usr/local/bin/gitleaks
+      - name: Run GitLeaks Scan
+        run: |
+          gitleaks detect --source . -v
+
+  terraform_plan_apply:
+    name: Terraform plan & apply
+    environment: 'rsa'
+    runs-on: ubuntu-latest
+    needs:
+      - terraform_validate
+      - secret_scan
+    defaults:
+      run:
+        working-directory: ./examples/rsa-public-crl
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: write
+    steps:
+      - name: Terraform setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.1
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install virtualenv
+        run: pip install virtualenv
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform initialise
+        run: >
+          terraform init 
+          -backend-config=bucket=${{ secrets.TERRAFORM_STATE_BUCKET}} 
+          -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}} 
+          -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
+
+      - name: terraform plan
+        run: terraform plan -out tfplan
+
+      - name: terraform apply
+        run: terraform apply -auto-approve tfplan
+
+  delete_dynamo_db_items:
+    # deletes Certificate Authority - only use for testing
+    name: Delete all DynamoDB items
+    environment: 'rsa'
+    runs-on: ubuntu-latest
+    needs:
+      - terraform_plan_apply
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        run: |
+          pip install -r tests/scripts/requirements.txt
+
+      - name: Configure AWS Credentials - Dev
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Delete all DynamoDB items
+        run: |
+          python tests/scripts/delete_db_table_items.py
+
+  start_ca:
+    name: Start CA
+    environment: 'rsa'
+    runs-on: ubuntu-latest
+    needs:
+      - delete_dynamo_db_items
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Install dependencies
+        run: |
+          pip install -r tests/scripts/requirements.txt
+
+      - name: Configure AWS Credentials - Dev
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Start CA
+        run: |
+          python tests/scripts/start_ca_step_function.py
+  
+  integration_tests:
+    name: Integration Tests
+    environment: 'rsa'
+    runs-on: ubuntu-latest
+    needs: start_ca
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r tests/requirements-dev.txt
+
+      - name: Configure AWS Credentials - Dev
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Integration tests
+        run: |
+          pytest -v tests/test_tls_cert.py
+          pytest -v tests/test_tls_cert_deprecated.py

@@ -1,0 +1,5 @@
+[bandit]
+format: json
+recursive: true
+ignore-nosec: true
+skips: B101

@@ -1,0 +1,10 @@
+.terraform/
+*.code-workspace
+.idea
+.vs
+.venv
+__pycache__
+.terraform.lock.hcl
+.terraform.tfstate
+.terraform.tfstate.backup
+terraform.tfvars

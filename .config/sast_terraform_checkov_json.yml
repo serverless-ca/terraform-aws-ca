@@ -1,0 +1,5 @@
+skip-download: true
+evaluate-variables: true
+framework:
+  - terraform
+soft-fail: true

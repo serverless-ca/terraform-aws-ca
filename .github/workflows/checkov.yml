@@ -1,0 +1,54 @@
+name: Checkov security test
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/*.tf"
+      - ".github/workflows/checkov.yml"
+
+jobs:
+  checkov_security:
+    name: Checkov security tests
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+      checks: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: prepare reports dir
+        run: mkdir --parents ${{runner.temp}}/reports_sast_terraform/
+
+      - name: install checkov
+        run: |
+          pip3 install --upgrade checkov
+          echo $PATH
+          checkov --version
+          which checkov
+
+      - name: generate json report
+        run: >
+          checkov
+          --config-file .config/sast_terraform_checkov_json.yml
+          --directory .
+          --output cli
+          --output json
+          --output sarif
+          --output-file-path console,checkov-terraform-results.json,checkov-terraform-results.sarif
+
+      - name: Remove suppressed findings
+        run: >
+          jq '.runs[0].results |= map(select(.suppressions | length ==0 ))' checkov-terraform-results.sarif > checkov-terraform-results-no-suppressed.sarif
+
+      - name: Upload Checkov scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'checkov-terraform-results-no-suppressed.sarif'
+
