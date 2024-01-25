@@ -51,7 +51,6 @@ jobs:
 
   terraform_plan_apply:
     name: Terraform plan & apply
-    environment: 'rsa'
     runs-on: ubuntu-latest
     needs:
       - terraform_validate
@@ -88,13 +87,13 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform initialise
         run: >
           terraform init 
-          -backend-config=bucket=${{ secrets.TERRAFORM_STATE_BUCKET}} 
+          -backend-config=bucket=${{ secrets.RSA_TERRAFORM_STATE_BUCKET}} 
           -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}} 
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
@@ -107,7 +106,6 @@ jobs:
   delete_dynamo_db_items:
     # deletes Certificate Authority - only use for testing
     name: Delete all DynamoDB items
-    environment: 'rsa'
     runs-on: ubuntu-latest
     needs:
       - terraform_plan_apply
@@ -134,7 +132,7 @@ jobs:
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Delete all DynamoDB items
@@ -143,7 +141,6 @@ jobs:
 
   start_ca:
     name: Start CA
-    environment: 'rsa'
     runs-on: ubuntu-latest
     needs:
       - delete_dynamo_db_items
@@ -170,7 +167,7 @@ jobs:
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Start CA
@@ -179,7 +176,6 @@ jobs:
   
   integration_tests:
     name: Integration Tests
-    environment: 'rsa'
     runs-on: ubuntu-latest
     needs: start_ca
     permissions:
@@ -203,7 +199,7 @@ jobs:
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
+          role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
           
       - name: Integration tests
