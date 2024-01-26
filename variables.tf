@@ -154,10 +154,11 @@ variable "root_ca_key_spec" {
 
 variable "runtime" {
   description = "Lambda language runtime"
-  default     = "python3.11"
+  default     = "python3.12"
 
   validation {
     condition = contains([
+      "python3.12",
       "python3.11",
       "python3.10",
     ], var.runtime)
