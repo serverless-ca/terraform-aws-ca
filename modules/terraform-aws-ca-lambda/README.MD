@@ -2,13 +2,17 @@
 * Deploys AWS Lambda functions forming part of serverless CA solution
 * Submodule of terraform-aws-ca
 
-## Local Python development - Windows
+## Local Python development
 * create virtual environment
-```powershell
+```bash
 cd modules\terraform-aws-ca-lambda
 python -m venv .venv
 ```
-* activate virtual environment on Windows
+* activate virtual environment (Linux / MacOS)
+```bash
+source .venv/bin/activate
+```
+* activate virtual environment (Windows)
 ```powershell
 .venv\Scripts\Activate
 ```
