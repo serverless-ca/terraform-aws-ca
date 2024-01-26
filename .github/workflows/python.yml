@@ -32,7 +32,7 @@ jobs:
 
       - name: Prospector
         run: |
-          prospector --no-autodetect
+          prospector
 
       - name: prepare reports dir
         run: mkdir --parents ${{runner.temp}}/reports_sast_python/
