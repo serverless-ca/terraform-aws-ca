@@ -32,8 +32,6 @@ jobs:
 
       - name: Prospector
         run: |
-          prospector --no-autodetect tests
-          cd modules/terraform-aws-ca-lambda
           prospector --no-autodetect
 
       - name: prepare reports dir
