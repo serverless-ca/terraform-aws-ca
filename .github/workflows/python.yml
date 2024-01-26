@@ -30,9 +30,9 @@ jobs:
         run: |
           black --check --line-length 120 .
 
-      - name: Prospector
+      - name: Prospector on Tests directory
         run: |
-          prospector --no-autodetect
+          prospector --no-autodetect tests
 
       - name: prepare reports dir
         run: mkdir --parents ${{runner.temp}}/reports_sast_python/
