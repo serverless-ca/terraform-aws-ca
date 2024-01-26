@@ -30,9 +30,11 @@ jobs:
         run: |
           black --check --line-length 120 .
 
-      - name: Prospector on Tests directory
+      - name: Prospector
         run: |
           prospector --no-autodetect tests
+          cd modules/terraform-aws-ca-lambda
+          prospector --no-autodetect
 
       - name: prepare reports dir
         run: mkdir --parents ${{runner.temp}}/reports_sast_python/
