@@ -32,7 +32,10 @@ jobs:
 
       - name: Prospector
         run: |
-          prospector
+          prospector tests
+
+          # don't use pylint until prospector supports pylint 3.x, required for Python 3.12
+          prospector modules/terraform-aws-ca-lambda --without-tool pylint
 
       - name: prepare reports dir
         run: mkdir --parents ${{runner.temp}}/reports_sast_python/
