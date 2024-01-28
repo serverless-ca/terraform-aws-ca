@@ -14,10 +14,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.11 # update to 3.12 once Prospector includes Pylint v3.x
+        uses: actions/setup-python@v5 # update to 3.12 once Prospector includes Pylint v3.x
         with:
-          python-version: "3.12"
+          python-version: "3.11"
 
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
@@ -32,10 +32,7 @@ jobs:
 
       - name: Prospector
         run: |
-          prospector tests
-
-          # don't use pylint until prospector supports pylint 3.x, required for Python 3.12
-          prospector modules/terraform-aws-ca-lambda --without-tool pylint
+          prospector
 
       - name: prepare reports dir
         run: mkdir --parents ${{runner.temp}}/reports_sast_python/
