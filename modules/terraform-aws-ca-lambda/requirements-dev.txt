@@ -1,8 +1,7 @@
-boto3==1.20.24
+boto3==1.34.30
 black==22.10.0
 cryptography==41.0.6
 prospector==1.10.3
 bandit==1.7.5
-pyOpenSSL==23.2
 requests==2.31.0
 validators==0.22.0

@@ -1,7 +1,7 @@
 import os
-import datetime
 import json
 
+from datetime import datetime, timezone, timedelta
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.x509 import (
@@ -96,8 +96,8 @@ def ca_kms_sign_ca_certificate_request(
         .issuer_name(ca_cert.subject)
         .public_key(csr_cert.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=lifetime))
+        .not_valid_before(datetime.now(timezone.utc))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
         .add_extension(
@@ -234,8 +234,8 @@ def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKC
         .issuer_name(issuer)
         .public_key(public_key)
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=lifetime))
+        .not_valid_before(datetime.now(timezone.utc))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -283,7 +283,7 @@ def ca_get_ca_info(issuing_ca_info, root_ca_info):
 
 
 def ca_kms_publish_crl(  # pylint:disable=too-many-locals
-    ca_key_info, timedelta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    ca_key_info, time_delta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
     kms_key_id = ca_key_info["KmsKeyId"]
@@ -323,8 +323,8 @@ def ca_kms_publish_crl(  # pylint:disable=too-many-locals
 
     builder = x509.CertificateRevocationListBuilder()
     builder = builder.issuer_name(x509.Name(issuer))
-    builder = builder.last_update(datetime.datetime.today())
-    builder = builder.next_update(datetime.datetime.today() + timedelta)
+    builder = builder.last_update(datetime.today())
+    builder = builder.next_update(datetime.today() + time_delta)
     builder = builder.add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
     builder = builder.add_extension(x509.CRLNumber(crl_number), critical=False)
 
