@@ -97,7 +97,6 @@ def ca_kms_sign_ca_certificate_request(
         .public_key(csr_cert.public_key())
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(timezone.utc))
-        
         .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
