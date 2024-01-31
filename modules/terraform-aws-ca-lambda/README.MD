@@ -20,7 +20,7 @@ source .venv/bin/activate
 ```powershell
 pip install -r requirements-dev.txt
 ```
-* set environment variables for dev environment
+* set environment variables for dev environment (Windows)
 ```powershell
 $Env:DOMAIN="ca.example.com"
 $Env:ENVIRONMENT_NAME="dev"
@@ -31,6 +31,7 @@ $Env:PROJECT="serverless"
 $Env:ROOT_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 7300; locality = "London"; organization = "serverless"; organizationalUnit = "Security Operations"; commonName = "Serverless Development Root CA"; emailAddress = "secops@example.com"; pathLengthConstraint = 1} | ConvertTo-Json)
 ```
 * copy and paste AWS Powershell CLI variables to terminal
+
 * test Lambda function locally
 * enter `python`
 ```python
