@@ -6,6 +6,7 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.x509 import (
     AccessDescription,
+    ExtensionOID,
     UniformResourceIdentifier,
     PolicyInformation,
     ObjectIdentifier,
@@ -195,9 +196,9 @@ def ca_kms_sign_tls_certificate_request(
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
 
-    if csr_cert.extensions.get_extension_for_class(x509.SubjectAlternativeName):
+    if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
         cert = cert.add_extension(
-            csr_cert.extensions.get_extension_for_class(x509.SubjectAlternativeName), critical=False
+            csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME), critical=False
         )
 
     else:
