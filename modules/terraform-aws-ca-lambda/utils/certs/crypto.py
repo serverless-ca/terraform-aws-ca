@@ -152,6 +152,7 @@ def clear_variables():
         "cert_bundle",
         "cert_request_info",
         "common_name",
+        "csr",
         "csr_cert",
         "csr_file",
         "csr_info",
