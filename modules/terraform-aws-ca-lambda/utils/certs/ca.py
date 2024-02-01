@@ -197,8 +197,9 @@ def ca_kms_sign_tls_certificate_request(
     )
 
     if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
-        cert = cert.add_extension(x509.SubjectAlternativeName(
-            csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)), critical=False
+        cert = cert.add_extension(
+            csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value,
+            critical=False,
         )
 
     else:
