@@ -140,3 +140,37 @@ def certificate_metadata(common_name, csr, passphrase=False, lifetime=1):
     }
 
     return certificate_json
+
+
+def clear_variables():
+    """
+    Clear variables from memory to prevent reuse between successive lambda invocations
+    """
+    vars = [
+        "base64_csr_data",
+        "cert",
+        "cert_bundle",
+        "cert_request_info",
+        "common_name",
+        "csr_cert",
+        "csr_file",
+        "csr_info",
+        "domain_name",
+        "force_issue",
+        "generate_passphrase",
+        "issuing_ca_name",
+        "kms_key_id",
+        "kms_signing_algorithm",
+        "lifetime",
+        "locality",
+        "organization",
+        "organizational_unit",
+        "passphrase",
+        "private_key",
+        "sans",
+    ]
+
+    for var in vars:
+        del var
+
+    print("Variables cleared from memory")

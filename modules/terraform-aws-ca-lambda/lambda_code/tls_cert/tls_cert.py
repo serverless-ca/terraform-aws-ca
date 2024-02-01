@@ -3,6 +3,7 @@ import os
 from utils.certs.kms_ca import kms_ca_generate_key_pair
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
+    clear_variables,
     crypto_cert_request_info,
     crypto_encode_private_key,
     crypto_cert_info,
@@ -120,6 +121,11 @@ def create_csr_info(common_name, locality=None, organization=None, organizationa
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=too-many-locals
+
+    # clear variables from memory to prevent reuse between successive lambda invocations
+    clear_variables()
+
+    # get Issuing CA name
     issuing_ca_name = ca_name("issuing")
 
     # process input

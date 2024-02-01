@@ -67,6 +67,13 @@ def test_tls_cert_issued_csr_no_passphrase():
     # validate certificate
     assert_that(certificate_validated(cert_data, trust_roots)).is_true()
 
+    # check SAN extension includes common name if a valid domain, and no SANs specified
+    issued_san = cert_data.extensions.get_extension_for_oid(
+        ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+    ).value.get_values_for_type(DNSName)
+    print(f"Issued certificate SubjectAlternativeName: {issued_san}")
+    assert_that(issued_san).is_equal_to([common_name])
+
 
 def test_tls_cert_issued_csr_passphrase():
     """
@@ -119,6 +126,13 @@ def test_tls_cert_issued_csr_passphrase():
 
     # validate certificate
     assert_that(certificate_validated(cert_data, trust_roots)).is_true()
+
+    # check SAN extension includes common name if a valid domain, and no SANs specified
+    issued_san = cert_data.extensions.get_extension_for_oid(
+        ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+    ).value.get_values_for_type(DNSName)
+    print(f"Issued certificate SubjectAlternativeName: {issued_san}")
+    assert_that(issued_san).is_equal_to([common_name])
 
 
 def test_tls_cert_issued_csr_includes_specified_distinguished_name():
@@ -186,6 +200,13 @@ def test_tls_cert_issued_csr_includes_specified_distinguished_name():
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
     print(f"Issued certificate Subject: {issued_cert.subject.rfc4514_string()}")
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
+
+    # check SAN extension includes common name if a valid domain, and no SANs specified
+    issued_san = issued_cert.extensions.get_extension_for_oid(
+        ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+    ).value.get_values_for_type(DNSName)
+    print(f"Issued certificate SubjectAlternativeName: {issued_san}")
+    assert_that(issued_san).is_equal_to([common_name])
 
 
 def test_tls_cert_issued_csr_includes_correct_dns_names():
