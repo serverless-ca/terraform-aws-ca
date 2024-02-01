@@ -171,10 +171,6 @@ def ca_kms_sign_tls_certificate_request(
         .not_valid_before((datetime.now(timezone.utc)) - delta)
         .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
         .add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(domain_name)]),
-            critical=False,
-        )
-        .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
                 key_cert_sign=False,
@@ -198,6 +194,22 @@ def ca_kms_sign_tls_certificate_request(
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
+
+    if csr_cert.extensions.get_extension_for_class(x509.SubjectAlternativeName):
+        cert = cert.add_extension(
+            csr_cert.extensions.get_extension_for_class(x509.SubjectAlternativeName), critical=False
+        )
+
+    else:
+        if domain_validator(domain_name):
+            cert = cert.add_extension(
+                x509.SubjectAlternativeName(
+                    [
+                        x509.DNSName(domain_name),
+                    ]
+                ),
+                critical=False,
+            )
 
     if public_crl == "enabled":
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)

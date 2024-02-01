@@ -14,6 +14,7 @@ def main():  # pylint:disable=too-many-locals
     # set variables
     lifetime = 90
     common_name = "My Test Certificate"
+    sans = ["test1.example.com", "test2.example.com"]
     country = "GB"
     locality = "London"
     state = "England"
@@ -30,7 +31,7 @@ def main():  # pylint:disable=too-many-locals
     private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
     # create CSR
-    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
+    csr_info = create_csr_info(common_name, sans, country, locality, organization, organizational_unit, state)
     csr_pem = crypto_tls_cert_signing_request(private_key, csr_info)
 
     # Construct JSON data to pass to Lambda function

@@ -36,6 +36,7 @@ def certificate_validated(pem_cert, trust_roots, check_crl=True):
 
 def create_csr_info(  # pylint:disable=too-many-arguments
     common_name,
+    sans=[],
     country=None,
     locality=None,
     organization=None,
@@ -45,6 +46,7 @@ def create_csr_info(  # pylint:disable=too-many-arguments
 ):
     return {
         "commonName": common_name,
+        "subjectAlternativeNames": sans,
         "country": country,
         "emailAddress": email_address,
         "locality": locality,
@@ -88,21 +90,31 @@ def build_subject_dn(csr_info):
     return subject
 
 
+def build_x509_sans(sans):
+    sans = [s for s in sans if domain_validator(s)]
+
+    x509_sans = []
+    for san in sans:
+        x509_sans.append(x509.DNSName(san))
+
+    return x509_sans
+
+
 def crypto_tls_cert_signing_request(private_key, csr_info):
     common_name = csr_info["commonName"]
     subject = build_subject_dn(csr_info)
+    sans = csr_info.get("subjectAlternativeNames", [])
 
-    csr = x509.CertificateSigningRequestBuilder().subject_name(
-        x509.Name(subject),
-    )
+    if len(sans) == 0:
+        sans.append(common_name)
 
-    if domain_validator(common_name):
+    x509_sans = build_x509_sans(sans)
+
+    csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name(subject))
+
+    if len(x509_sans) > 0:
         csr = csr.add_extension(
-            x509.SubjectAlternativeName(
-                [
-                    x509.DNSName(common_name),
-                ]
-            ),
+            x509.SubjectAlternativeName(x509_sans),
             critical=False,
         )
 
