@@ -202,16 +202,15 @@ def ca_kms_sign_tls_certificate_request(
             critical=False,
         )
 
-    else:
-        if domain_validator(domain_name):
-            cert = cert.add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        x509.DNSName(domain_name),
-                    ]
-                ),
-                critical=False,
-            )
+    elif domain_validator(domain_name):
+        cert = cert.add_extension(
+            x509.SubjectAlternativeName(
+                [
+                    x509.DNSName(domain_name),
+                ]
+            ),
+            critical=False,
+        )
 
     if public_crl == "enabled":
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)

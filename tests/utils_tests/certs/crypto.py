@@ -36,12 +36,12 @@ def certificate_validated(pem_cert, trust_roots, check_crl=True):
 
 def create_csr_info(  # pylint:disable=too-many-arguments
     common_name,
-    sans=[],
     country=None,
     locality=None,
     organization=None,
     organizational_unit=None,
     state=None,
+    sans=[],
     email_address=None,
 ):
     return {
