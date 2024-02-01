@@ -144,7 +144,7 @@ def ca_kms_sign_tls_certificate_request(
     domain_name = cert_request_info["DomainName"]
     lifetime = cert_request_info["Lifetime"]
 
-    delta = datetime.timedelta(minutes=5)  # time delta to avoid clock skew issues
+    delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
     crl_dp = x509.DistributionPoint(
         [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
@@ -168,8 +168,8 @@ def ca_kms_sign_tls_certificate_request(
         .issuer_name(ca_cert.subject)
         .public_key(csr_cert.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow() - delta)
-        .not_valid_after(datetime.datetime.utcnow() + datetime.timedelta(days=lifetime))
+        .not_valid_before((datetime.now(timezone.utc)) - delta)
+        .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
         .add_extension(
             x509.SubjectAlternativeName([x509.DNSName(domain_name)]),
             critical=False,
