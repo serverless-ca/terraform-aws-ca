@@ -223,9 +223,6 @@ def ca_kms_sign_tls_certificate_request(
 
     print(f"certificate serial number {cert.serial_number} issued for {cert.subject}")
 
-    # clear memory to avoid reuse across lambda invocations
-    del ExtensionOID.SUBJECT_ALTERNATIVE_NAME, x509.SubjectAlternativeName, x509.DNSName
-
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
