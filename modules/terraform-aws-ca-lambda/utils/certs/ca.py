@@ -138,32 +138,8 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_kms_sign_tls_certificate_request(
-    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
-):
-    csr_cert = cert_request_info["CsrCert"]
-    domain_name = cert_request_info["DomainName"]
-    lifetime = cert_request_info["Lifetime"]
-
-    delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
-
-    crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
-        relative_name=None,
-        reasons=None,
-        crl_issuer=None,
-    )
-
-    aia = x509.AuthorityInformationAccess(
-        [
-            AccessDescription(
-                AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
-            )
-        ]
-    )
-
-    cert = (
+def build_cert_no_san(csr_cert, ca_cert, lifetime, delta):
+    return (
         x509.CertificateBuilder()
         .subject_name(csr_cert.subject)
         .issuer_name(ca_cert.subject)
@@ -196,23 +172,148 @@ def ca_kms_sign_tls_certificate_request(
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
 
-    if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
-        cert = cert.add_extension(
-            csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value,
+
+def build_cert_with_san(csr_cert, ca_cert, lifetime, delta, x509_dns_names):
+    return (
+        x509.CertificateBuilder()
+        .subject_name(csr_cert.subject)
+        .issuer_name(ca_cert.subject)
+        .public_key(csr_cert.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before((datetime.now(timezone.utc)) - delta)
+        .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
+        .add_extension(
+            x509.KeyUsage(
+                digital_signature=True,
+                key_cert_sign=False,
+                crl_sign=False,
+                content_commitment=False,
+                key_encipherment=True,
+                data_encipherment=False,
+                key_agreement=False,
+                encipher_only=False,
+                decipher_only=False,
+            ),
+            critical=True,
+        )
+        .add_extension(
+            x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]),
             critical=False,
         )
+        .add_extension(
+            x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
+            critical=False,
+        )
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.SubjectAlternativeName(x509_dns_names),
+            critical=False,
+        )
+    )
+
+
+def ca_kms_sign_tls_certificate_request(
+    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+):
+    csr_cert = cert_request_info["CsrCert"]
+    domain_name = cert_request_info["DomainName"]
+    lifetime = cert_request_info["Lifetime"]
+
+    delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
+
+    x509_dns_names = []
+
+    if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
+        x509_dns_names = csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
 
     elif domain_validator(domain_name):
-        cert = cert.add_extension(
-            x509.SubjectAlternativeName(
-                [
-                    x509.DNSName(domain_name),
-                ]
-            ),
-            critical=False,
-        )
+        x509_dns_names = [x509.DNSName(domain_name)]
+
+    if len(x509_dns_names) > 0:
+        cert = build_cert_with_san(csr_cert, ca_cert, lifetime, delta, x509_dns_names)
+
+    else:
+        cert = build_cert_no_san(csr_cert, ca_cert, lifetime, delta)
+    #    cert = cert.add_extension(
+    #        x509.SubjectAlternativeName(
+    #            [
+    #                x509.DNSName(domain_name),
+    #            ]
+    #        ),
+    #        critical=False,
+    #    )
+
+    # cert = (
+    #    x509.CertificateBuilder()
+    #    .subject_name(csr_cert.subject)
+    #    .issuer_name(ca_cert.subject)
+    #    .public_key(csr_cert.public_key())
+    #    .serial_number(x509.random_serial_number())
+    #    .not_valid_before((datetime.now(timezone.utc)) - delta)
+    #    .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
+    #    .add_extension(
+    #        x509.KeyUsage(
+    #            digital_signature=True,
+    #            key_cert_sign=False,
+    #            crl_sign=False,
+    #            content_commitment=False,
+    #            key_encipherment=True,
+    #            data_encipherment=False,
+    #            key_agreement=False,
+    #            encipher_only=False,
+    #            decipher_only=False,
+    #        ),
+    #        critical=True,
+    #    )
+    #    .add_extension(
+    #        x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]),
+    #        critical=False,
+    #    )
+    #    .add_extension(
+    #        x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
+    #        critical=False,
+    #    )
+    #    .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
+    # )
+
+    # if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
+    #    cert = cert.add_extension(
+    #        csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value,
+    #        critical=False,
+    #    )
+
+    # elif domain_validator(domain_name):
+    #    cert = cert.add_extension(
+    #        x509.SubjectAlternativeName(
+    #            [
+    #                x509.DNSName(domain_name),
+    #            ]
+    #        ),
+    #        critical=False,
+    #    )
 
     if public_crl == "enabled":
+
+        # construct CRL distribution point
+        crl_dp = x509.DistributionPoint(
+            [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
+            relative_name=None,
+            reasons=None,
+            crl_issuer=None,
+        )
+
+        # construct Authority Information Access
+        aia = x509.AuthorityInformationAccess(
+            [
+                AccessDescription(
+                    AuthorityInformationAccessOID.CA_ISSUERS,
+                    UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
+                )
+            ]
+        )
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
