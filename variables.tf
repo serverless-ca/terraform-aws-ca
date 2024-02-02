@@ -105,11 +105,6 @@ variable "memory_size" {
   default     = 128
 }
 
-variable "memory_size_medium" {
-  description = "Medium size memory for Lambda functions"
-  default     = 256
-}
-
 variable "project" {
   description = "abbreviation for the project, forms first part of resource names"
   default     = "serverless"
