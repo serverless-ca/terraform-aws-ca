@@ -184,4 +184,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
     if base64_passphrase:
         response_data["Base64Passphrase"] = base64_passphrase
 
+    # remove data from memory to prevent issues with Lambda container reuse
+    del base64_csr_data, common_name, csr, csr_file
+
     return response_data
