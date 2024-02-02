@@ -267,11 +267,11 @@ def test_tls_cert_issued_csr_with_no_san_includes_correct_dns_name(
     Test TLS certificate with no SAN in CSR includes correct DNS name in Subject Alternative Name extension
     """
     # common_name = "pipeline-test-common-name-in-san.example.com"
-    country = "GB"
-    locality = "London"
-    organization = "Acme Inc"
-    organizational_unit = "Animation Department"
-    state = "England"
+    country = "US"
+    locality = "New York"
+    organization = "Serverless Inc"
+    organizational_unit = "DevOps"
+    state = "New York"
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
     print(f"Generating key pair using KMS key {key_alias}")
