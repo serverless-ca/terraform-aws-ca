@@ -280,6 +280,7 @@ module "rsa_tls_cert_lambda" {
   lambda_role_arn                 = module.tls_keygen_iam.lambda_role_arn
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
+  memory_size                     = var.memory_size_medium
   public_crl                      = var.public_crl
   allow_client_keys_in_db         = var.allow_client_keys_in_db
   allowed_invocation_principals   = var.aws_principals
