@@ -298,12 +298,6 @@ def test_tls_cert_issued_csr_with_no_san_includes_correct_dns_name():
         "cert_bundle": True,
     }
 
-    # check SAN in CSR matches common name
-    csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
-    assert_that(
-        csr.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value.get_values_for_type(DNSName)
-    ).is_equal_to([common_name])
-
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
     print(f"Invoking Lambda function {function_name}")
