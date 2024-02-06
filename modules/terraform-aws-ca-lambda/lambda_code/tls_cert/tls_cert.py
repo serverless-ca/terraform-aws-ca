@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
 
 
-def sign_tls_certificate(csr, ca_name, common_name, lifetime):
+def sign_tls_certificate(csr, ca_name, common_name, lifetime, sans):
     # get CA cert from DynamoDB
     ca_cert = load_pem_x509_certificate(base64.b64decode(db_list_certificates(ca_name)[0]["Certificate"]["B"]))
 
@@ -27,7 +27,7 @@ def sign_tls_certificate(csr, ca_name, common_name, lifetime):
     issuing_ca_kms_key_id = kms_get_kms_key_id(ca_name)
 
     # collect Certificate Request info
-    cert_request_info = crypto_cert_request_info(csr, common_name, lifetime)
+    cert_request_info = crypto_cert_request_info(csr, common_name, lifetime, sans)
 
     # sign certificate
     return ca_kms_sign_tls_certificate_request(
@@ -69,9 +69,9 @@ def create_csr(csr_info, ca_slug, generate_passphrase):
     return (csr, base64_private_key, base64_passphrase)
 
 
-def sign_csr(csr, ca_name, common_name, lifetime):
+def sign_csr(csr, ca_name, common_name, lifetime, sans):
     # sign certificate
-    pem_certificate = sign_tls_certificate(csr, ca_name, common_name, lifetime)
+    pem_certificate = sign_tls_certificate(csr, ca_name, common_name, lifetime, sans)
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), common_name)
@@ -132,7 +132,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
     if "lifetime" in event:
         lifetime = int(event.get("lifetime"))
 
-    common_name = event["common_name"]  # string, DNS common name, also used for certificate SAN
+    common_name = event["common_name"]  # string, DNS common name, also used for certificate SAN if no SANs provided
+    sans = event.get("sans")  # list of strings, DNS Subject Alternative Names
     locality = event.get("locality")  # string, locality
     organization = event.get("organization")  # string, organization
     organizational_unit = event.get("organizational_unit")  # string, organizational unit
@@ -161,7 +162,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
         print("Request not proceessed - private key storage in DynamoDB disabled")
         return {"error": "Private key storage in DynamoDB disabled"}
 
-    base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime)
+    base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime, sans)
 
     db_tls_cert_issued(
         cert_info,

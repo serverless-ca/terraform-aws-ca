@@ -177,20 +177,12 @@ def ca_kms_sign_tls_certificate_request(
     cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
     csr_cert = cert_request_info["CsrCert"]
-    domain_name = cert_request_info["DomainName"]
+    x509_dns_names = cert_request_info["x509Sans"]
     lifetime = cert_request_info["Lifetime"]
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
-    x509_dns_names = []
-
     cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta)
-
-    if csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME):
-        x509_dns_names = csr_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value
-
-    elif domain_validator(domain_name):
-        x509_dns_names = [x509.DNSName(domain_name)]
 
     if len(x509_dns_names) > 0:
         cert = cert.add_extension(
