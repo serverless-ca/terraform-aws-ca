@@ -383,11 +383,9 @@ def test_tls_cert_issued_without_san_if_common_name_invalid_dns():
     # validate certificate
     assert_that(certificate_validated(cert_data, trust_roots)).is_true()
 
-    # check subject of issued certificate
+    # check SAN extension not present in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
     print(f"Issued certificate Subject: {issued_cert.subject.rfc4514_string()}")
-    sans_in_issued_cert = issued_cert.extensions.get_extension_for_oid(
+    assert_that(issued_cert.extensions.get_extension_for_oid).raises(Exception).when_called_with(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-    ).value.get_values_for_type(DNSName)
-    print(f"Issued certificate SubjectAlternativeName: {sans_in_issued_cert}")
-    assert_that(sans_in_issued_cert).is_equal_to([common_name])
+    ).is_equal_to("No <ObjectIdentifier(oid=2.5.29.17, name=subjectAltName)> extension was found")
