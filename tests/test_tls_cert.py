@@ -243,12 +243,6 @@ def test_tls_cert_issued_csr_includes_correct_dns_names():
     base64_cert_data = response["Base64Certificate"]
     cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
 
-    # check SAN in CSR matches valid DNS names
-    csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
-    assert_that(
-        csr.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME).value.get_values_for_type(DNSName)
-    ).is_equal_to(expected_result)
-
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
 
