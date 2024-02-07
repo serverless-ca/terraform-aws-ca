@@ -6,6 +6,7 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from utils.certs.crypto_kms_classes import AWSKMSEllipticCurvePrivateKey, AWSKMSRSAPrivateKey
+from validators import domain as domain_validator
 
 
 def crypto_cert_info(cert, common_name):
@@ -25,10 +26,26 @@ def crypto_ca_key_info(public_key, kms_key_id, common_name):
     }
 
 
-def crypto_cert_request_info(csr_cert, domain_name, lifetime):
+def crypto_cert_request_info(csr_cert, common_name, lifetime, sans):
+    # no SANs and common name is not a valid domain
+    if (sans is None or sans == []) and not domain_validator(common_name):
+        sans = []
+
+    # no SANs and common name is a valid domain
+    if (sans is None or sans == []) and domain_validator(common_name):
+        sans = [common_name]
+
+    # remove invalid SANs
+    sans = [s for s in sans if domain_validator(s)]
+
+    # convert to x509 cryptography format
+    x509_sans = []
+    for san in sans:
+        x509_sans.append(x509.DNSName(san))
+
     return {
         "CsrCert": csr_cert,
-        "DomainName": domain_name,
+        "x509Sans": x509_sans,
         "Lifetime": lifetime,
     }
 

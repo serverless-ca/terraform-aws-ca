@@ -101,7 +101,7 @@ variable "logging_account_id" {
 }
 
 variable "memory_size" {
-  description = "Memory allocation for scanning Lambda functions"
+  description = "Standard memory allocation for Lambda functions"
   default     = 128
 }
 

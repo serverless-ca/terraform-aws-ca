@@ -137,32 +137,8 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_kms_sign_tls_certificate_request(
-    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
-):
-    csr_cert = cert_request_info["CsrCert"]
-    domain_name = cert_request_info["DomainName"]
-    lifetime = cert_request_info["Lifetime"]
-
-    delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
-
-    crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
-        relative_name=None,
-        reasons=None,
-        crl_issuer=None,
-    )
-
-    aia = x509.AuthorityInformationAccess(
-        [
-            AccessDescription(
-                AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
-            )
-        ]
-    )
-
-    cert = (
+def ca_build_cert(csr_cert, ca_cert, lifetime, delta):
+    return (
         x509.CertificateBuilder()
         .subject_name(csr_cert.subject)
         .issuer_name(ca_cert.subject)
@@ -170,10 +146,6 @@ def ca_kms_sign_tls_certificate_request(
         .serial_number(x509.random_serial_number())
         .not_valid_before((datetime.now(timezone.utc)) - delta)
         .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
-        .add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(domain_name)]),
-            critical=False,
-        )
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -199,7 +171,43 @@ def ca_kms_sign_tls_certificate_request(
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
 
+
+def ca_kms_sign_tls_certificate_request(
+    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+):
+    csr_cert = cert_request_info["CsrCert"]
+    x509_dns_names = cert_request_info["x509Sans"]
+    lifetime = cert_request_info["Lifetime"]
+
+    delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
+
+    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta)
+
+    if len(x509_dns_names) > 0:
+        cert = cert.add_extension(
+            x509.SubjectAlternativeName(x509_dns_names),
+            critical=False,
+        )
+
     if public_crl == "enabled":
+
+        # construct CRL distribution point
+        crl_dp = x509.DistributionPoint(
+            [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
+            relative_name=None,
+            reasons=None,
+            crl_issuer=None,
+        )
+
+        # construct Authority Information Access
+        aia = x509.AuthorityInformationAccess(
+            [
+                AccessDescription(
+                    AuthorityInformationAccessOID.CA_ISSUERS,
+                    UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
+                )
+            ]
+        )
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
