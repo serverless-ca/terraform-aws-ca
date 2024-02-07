@@ -23,9 +23,10 @@ There are two methods available for requesting and issuing client certificates:
 ```json
 [
   {
-    "common_name" : "server.example.com",
+    "common_name": "server.example.com",
+    "sans": ["server.example.com", "server2.example.com"]
     "lifetime": 365,
-    "csr_file" : "server-example-com.csr"
+    "csr_file": "server-example-com.csr"
   }
 ]
 ```
@@ -36,9 +37,9 @@ There are two methods available for requesting and issuing client certificates:
 * Client certificates for containers in Amazon EKS / ECS / Fargate 
 
 **Approach - Amazon ECS / EKS**
-* Create a Sidecar container based on [client-cert.py](../tests/client-cert.py)
+* Create a Sidecar container based on [client-cert.py](../tests/server-cert.py)
 * Requires role with permissions to invoke the CA TLS Lambda function
-* Certificate, CA bundle and private key are written to `/certs` directory
+* Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
 * They can then be mounted into the application container
 
 ## Lambda - developer testing
@@ -49,3 +50,10 @@ There are two methods available for requesting and issuing client certificates:
 **Approach - developer testing**
 * Follow instructions at the end of [GettingStarted](getting-started.md)
 * Developer needs an IAM role with permissions to invoke the CA TLS Lambda function
+
+## Subject Alternative Names
+If you don't specify and DNS names by omitting the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
+
+If you specify `sans` these will take precedence over the common name.
+
+Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.

@@ -27,9 +27,9 @@ terraform apply (yes to confirm plan)
 
 ## Create client certificate
 * ensure Python and PIP are installed on your laptop
-* on your laptop, create a root level directory `certs`
+* on your laptop, if you don't already have one, create a root level directory `tmp`
 ```
-mkdir /certs
+mkdir /tmp
 ```
 * log in to the CA AWS account with your terminal using AWS CLI, e.g. `aws sso login` or set AWS environment variables
 * from the root of this repository:
@@ -50,3 +50,9 @@ python tests/client-cert.py
 <img src="images/trusted-cert.png" width="300">
 <img src="images/cert-details.png" width="300">
 <img src="images/cert-chain.png" width="300">
+
+## Create server certificate
+* create a server certificate with Subject Alternative Names
+```
+python tests/server-cert.py
+```

@@ -10,22 +10,23 @@ from utils_tests.aws.lambdas import get_lambda_name
 
 def main():  # pylint:disable=too-many-locals
     """
-    Create test client certificate for default Serverless CA environment
-    /tmp location of certificates and keys is for test purposes only
+    Create test server certificate for default Serverless CA environment
+    /tmp location of certificates and keys for test purposes only
     In production, change location to e.g. /certs with locked down permissions
     """
 
     # set variables
     lifetime = 90
-    common_name = "My Test Certificate"
+    common_name = "test.example.com"
+    sans = ["test.example.com", "test2.example.com"]
     country = "GB"
     locality = "London"
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    output_path_cert_key = "/tmp/client-key.pem"
-    output_path_cert = "/tmp/client-cert.pem"
-    output_path_cert_combined = "/tmp/client-cert-key.pem"
+    output_path_cert_key = "/tmp/server-key.pem"
+    output_path_cert = "/tmp/server-cert.pem"
+    output_path_cert_combined = "/tmp/server-cert-key.pem"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
@@ -40,6 +41,7 @@ def main():  # pylint:disable=too-many-locals
     # Construct JSON data to pass to Lambda function
     request_payload = {
         "common_name": common_name,
+        "sans": sans,
         "lifetime": lifetime,
         "base64_csr_data": base64.b64encode(csr_pem).decode("utf-8"),
         "force_issue": True,
