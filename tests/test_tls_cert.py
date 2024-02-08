@@ -208,7 +208,7 @@ def test_tls_cert_issued_csr_includes_correct_dns_names():
     # Generate key pair using KMS key to ensure randomness
     private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
 
-    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state, sans)
+    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
     # Generate Certificate Signing Request
     csr = crypto_tls_cert_signing_request(private_key, csr_info)
