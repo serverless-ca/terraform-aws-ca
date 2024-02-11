@@ -119,7 +119,7 @@ def create_csr_info(common_name, locality=None, organization=None, organizationa
     }
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=too-many-locals
+def lambda_handler(event, context):  # pylint:disable=unused-argument
 
     # get Issuing CA name
     issuing_ca_name = ca_name("issuing")

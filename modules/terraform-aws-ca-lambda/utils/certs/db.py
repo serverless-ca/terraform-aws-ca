@@ -106,8 +106,6 @@ def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
         },
     )
 
-    return
-
 
 def db_tls_cert_issued(cert_info, certificate):
     """creates a new item in DynamoDB when a TLS certificate is issued"""
