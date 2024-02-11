@@ -206,5 +206,4 @@ jobs:
           
       - name: Integration tests
         run: |
-          pytest -v tests/test_tls_cert.py
-          pytest -v tests/test_tls_cert_deprecated.py
+          pytest -v tests

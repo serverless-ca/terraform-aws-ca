@@ -281,7 +281,6 @@ module "rsa_tls_cert_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  allow_client_keys_in_db         = var.allow_client_keys_in_db
   allowed_invocation_principals   = var.aws_principals
 }
 

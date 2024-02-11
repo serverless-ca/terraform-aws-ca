@@ -1,8 +1,3 @@
-variable "allow_client_keys_in_db" {
-  description = "Do not change the default setting - feature will be deprecated in a future release"
-  default     = false
-}
-
 variable "allowed_invocation_principals" {
   description = "List of principals allowed to invoke this lambda"
   default     = []
