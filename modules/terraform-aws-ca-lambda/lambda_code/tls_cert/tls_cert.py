@@ -157,7 +157,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
     else:
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 
-
     base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime, sans)
 
     db_tls_cert_issued(
