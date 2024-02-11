@@ -143,8 +143,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
     if validation_error:
         return validation_error
 
-    base64_private_key = None
-    base64_passphrase = None
     if csr_file:
         csr = load_pem_x509_csr(s3_download(f"csrs/{csr_file}")["Body"].read())
     else:
@@ -152,12 +150,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
 
     base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime, sans)
 
-    db_tls_cert_issued(
-        cert_info,
-        base64_certificate,
-        base64_private_key,
-        (base64_passphrase.decode("utf-8") if base64_passphrase else None),
-    )
+    db_tls_cert_issued(cert_info, base64_certificate)
 
     if cert_bundle:
         base64_certificate = base64.b64encode(create_cert_bundle(base64_certificate).encode("utf-8"))
@@ -167,10 +160,5 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
         "Base64Certificate": base64_certificate,
         "Subject": load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
     }
-
-    if base64_private_key:
-        response_data["Base64PrivateKey"] = base64_private_key
-    if base64_passphrase:
-        response_data["Base64Passphrase"] = base64_passphrase
 
     return response_data

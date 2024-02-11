@@ -109,7 +109,7 @@ def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
     return
 
 
-def db_tls_cert_issued(cert_info, certificate, private_key=None, passphrase=None):
+def db_tls_cert_issued(cert_info, certificate):
     """creates a new item in DynamoDB when a TLS certificate is issued"""
     # if a passphrase is used, private key must be encrypted
 
@@ -121,40 +121,6 @@ def db_tls_cert_issued(cert_info, certificate, private_key=None, passphrase=None
     client = boto3.client("dynamodb")
     print(f"adding {common_name} certificate details to DynamoDB table {db_get_table_name()}")
 
-    # TLS cert request with encrypted private key and passphrase
-    if private_key and passphrase:
-        client.put_item(
-            TableName=db_get_table_name(),
-            Item={
-                "SerialNumber": {"S": serial_number},
-                "CommonName": {"S": common_name},
-                "Issued": {"S": issued},
-                "Expires": {"S": expires},
-                "Certificate": {"B": certificate},
-                "EncryptedPrivateKey": {"B": private_key},
-                "Passphrase": {"S": passphrase},
-            },
-        )
-
-        return
-
-    # TLS cert request with plaintext private key
-    if private_key:
-        client.put_item(
-            TableName=db_get_table_name(),
-            Item={
-                "SerialNumber": {"S": serial_number},
-                "CommonName": {"S": common_name},
-                "Issued": {"S": issued},
-                "Expires": {"S": expires},
-                "Certificate": {"B": certificate},
-                "PrivateKey": {"B": private_key},
-            },
-        )
-
-        return
-
-    # TLS cert request from Certificate Signing Request (CSR)
     client.put_item(
         TableName=db_get_table_name(),
         Item={
