@@ -13,8 +13,8 @@ def crypto_cert_info(cert, common_name):
     return {
         "CommonName": common_name,
         "SerialNumber": str(cert.serial_number),
-        "Issued": cert.not_valid_before.strftime("%Y-%m-%d %H:%M:%S"),
-        "Expires": cert.not_valid_after.strftime("%Y-%m-%d %H:%M:%S"),
+        "Issued": cert.not_valid_before_utc.strftime("%Y-%m-%d %H:%M:%S"),
+        "Expires": cert.not_valid_after_utc.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 
