@@ -2,7 +2,7 @@ from assertpy import assert_that
 import base64
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.backends import default_backend
-from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate, load_pem_x509_csr
+from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate
 from tests.utils_tests.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
@@ -90,7 +90,6 @@ def test_tls_cert_issued_csr_passphrase():
     json_data = {
         "common_name": common_name,
         "base64_csr_data": base64_csr_data,
-        "passphrase": True,
         "lifetime": 1,
         "force_issue": True,
         "cert_bundle": True,
@@ -152,7 +151,6 @@ def test_tls_cert_issued_csr_includes_specified_distinguished_name():
     json_data = {
         "common_name": common_name,
         "base64_csr_data": base64_csr_data,
-        "passphrase": False,
         "lifetime": 1,
         "force_issue": True,
         "cert_bundle": True,
@@ -219,7 +217,6 @@ def test_tls_cert_issued_csr_includes_correct_dns_names():
         "common_name": common_name,
         "sans": sans,
         "base64_csr_data": base64_csr_data,
-        "passphrase": False,
         "lifetime": 1,
         "force_issue": True,
         "cert_bundle": True,
@@ -286,7 +283,6 @@ def test_tls_cert_issued_csr_with_no_san_includes_correct_dns_name():
     json_data = {
         "common_name": common_name,
         "base64_csr_data": base64_csr_data,
-        "passphrase": False,
         "lifetime": 1,
         "force_issue": True,
         "cert_bundle": True,
@@ -353,7 +349,6 @@ def test_tls_cert_issued_without_san_if_common_name_invalid_dns():
     json_data = {
         "common_name": common_name,
         "base64_csr_data": base64_csr_data,
-        "passphrase": False,
         "lifetime": 1,
         "force_issue": True,
         "cert_bundle": True,

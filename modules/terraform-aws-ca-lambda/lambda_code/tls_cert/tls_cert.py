@@ -134,17 +134,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
 
     common_name = event["common_name"]  # string, DNS common name, also used for certificate SAN if no SANs provided
     sans = event.get("sans")  # list of strings, DNS Subject Alternative Names
-    locality = event.get("locality")  # string, locality
-    organization = event.get("organization")  # string, organization
-    organizational_unit = event.get("organizational_unit")  # string, organizational unit
-    email_address = event.get("email_address")  # string, email address
-    generate_passphrase = event.get("passphrase")  # boolean, whether to generate a passphrase or not
     csr_file = event.get("csr_file")  # string, reference to static file
     force_issue = event.get("force_issue")  # boolean, force certificate generation even if one already exists
     cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
-
-    csr_info = create_csr_info(common_name, locality, organization, organizational_unit, email_address)
 
     validation_error = is_invalid_certificate_request(issuing_ca_name, common_name, lifetime, force_issue)
     if validation_error:
