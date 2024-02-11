@@ -130,8 +130,6 @@ def db_tls_cert_issued(cert_info, certificate):
         },
     )
 
-    return
-
 
 def db_update_crl_number(common_name, serial_number):
     """increments CRL number by 1 and returns new value as integer"""
