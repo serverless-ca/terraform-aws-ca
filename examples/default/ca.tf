@@ -1,5 +1,7 @@
 module "certificate_authority" {
   source = "../../"
+  # source  = "serverless-ca/terraform-aws-ca"
+  # version = "0.1.0"
 
   providers = {
     aws           = aws

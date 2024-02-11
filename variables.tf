@@ -3,11 +3,6 @@ variable "access_logs" {
   default     = false
 }
 
-variable "allow_client_keys_in_db" {
-  description = "Do not change the default setting - feature will be deprecated in a future release"
-  default     = false
-}
-
 variable "aws_principals" {
   description = "List of ARNs for AWS principals allowed to assume DynamoDB reader role or execute the tls_cert lambda"
   default     = []

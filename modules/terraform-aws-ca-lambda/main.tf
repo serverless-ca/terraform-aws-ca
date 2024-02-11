@@ -40,7 +40,6 @@ resource "aws_lambda_function" "lambda" {
 
   environment {
     variables = {
-      CLIENT_KEYS_IN_DB  = local.client_keys_in_db
       DOMAIN             = var.domain
       ENVIRONMENT_NAME   = var.env
       EXTERNAL_S3_BUCKET = var.external_s3_bucket

@@ -154,13 +154,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,disable=to
     base64_passphrase = None
     if csr_file:
         csr = load_pem_x509_csr(s3_download(f"csrs/{csr_file}")["Body"].read())
-    elif base64_csr_data:
-        csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
-    elif client_keys_in_db == "enabled":
-        (csr, base64_private_key, base64_passphrase) = create_csr(csr_info, issuing_ca_name, generate_passphrase)
     else:
-        print("Request not proceessed - private key storage in DynamoDB disabled")
-        return {"error": "Private key storage in DynamoDB disabled"}
+        csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
+
 
     base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime, sans)
 
