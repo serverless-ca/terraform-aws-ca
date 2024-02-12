@@ -8,4 +8,4 @@
 ![Alt text](docs/images/ca-architecture-options.png?raw=true "CA architecture")
 
 ## Documentation
-Detailed documentation is on our [GitHub pages site]().
+Detailed documentation is on our [GitHub pages site](docs/index.md).
