@@ -42,7 +42,7 @@ See [CRL](crl.md) for details of how to enable public CRLs and CA certs.
 
 | environment | hosted zone domain |                                          CA Bundle                                           |
 |-------------|:------------------:|:--------------------------------------------------------------------------------------------:|
-| dev *       | dev.ca.celidor.io  |                      http://dev.ca.celidor.io/serverless-ca-bundle.pem                       |
+| dev *       | dev.ca.celidor.io  |                      http://dev.ca.celidor.io/serverless-ca-bundle-dev.pem                       |
 | prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-ca-bundle.pem](http://ca.celidor.io/serverless-root-ca.crt) |
 
 * `dev` environment not deployed, for illustration only
