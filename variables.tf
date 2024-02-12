@@ -100,6 +100,11 @@ variable "memory_size" {
   default     = 128
 }
 
+variable "prod_envs" {
+  description = "List of production environment names, used in outputs.tf"
+  default     = ["prd", "prod"]
+}
+
 variable "project" {
   description = "abbreviation for the project, forms first part of resource names"
   default     = "serverless"
