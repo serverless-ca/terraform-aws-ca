@@ -6,6 +6,7 @@ To familiarise yourself with the serverless CA, we recommend you start with defa
 * copy the [default example folder](../examples/default) to your laptop
 * make sure you include the `dev` subfolder and contents 
 * update `backend.tf` to include your own S3 Terraform state bucket in the same AWS account
+* update `ca.tf` with the provider source address and latest version
 ```
 terraform init
 terraform apply (yes to confirm plan)

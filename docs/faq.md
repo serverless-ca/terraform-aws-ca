@@ -46,3 +46,16 @@ Not at this time, the only currently supported configuration is an Issuing CA an
 
 ### Can I use the CA for cross-signing?
 Not at this time, the only currently supported configuration is an Issuing CA and Root CA.
+
+### How did you work out the cost comparison with AWS Private CA?
+
+The monthly AWS cost for the AWS accounts used for the CI/CD GitHub Actions tests of this repository are approximately $3 without a hosted zone and CloudFront, and $4 with a hosted zone and CloudFront. Over 100 certificates are typically issued per month, due to the CI/CD tests. 
+
+The majority of AWS costs are the 3 KMS keys per environment.
+
+Taking the upper figure of $4, the yearly cost is therefore $48, so around $50 per year per CA environment, each CA environment consisting of a Root CA and an Issuing CA.
+
+As of 12 February 2024, [pricing of AWS Private CA](https://aws.amazon.com/private-ca/pricing) is $400 per month per general purpose CA, plus $0.75 per certificate
+
+The monthly cost for a Root CA and and Issuing CA plus 100 certificates per month is therefore $875 per month, or $10,500 per year.
+
