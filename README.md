@@ -13,6 +13,8 @@ Detailed documentation is on our [GitHub pages site](docs/index.md).
 ## Contributing
 We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started.
 
+A guide to development and testing the Lambda function code is provided in the [Lambda sub-module README](/modules/terraform-aws-ca-lambda/README.MD).
+
 ## Sponsors
 This project is supported by [Q-Solution](www.q-solution.co.uk)
 

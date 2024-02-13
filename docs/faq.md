@@ -57,5 +57,5 @@ Taking the upper figure of $4, the yearly cost is therefore $48, so around $50 p
 
 As of 12 February 2024, [pricing of AWS Private CA](https://aws.amazon.com/private-ca/pricing) is $400 per month per general purpose CA, plus $0.75 per certificate
 
-The monthly cost for a Root CA and and Issuing CA plus 100 certificates per month is $875 per month, or $10,500 per year.
+The monthly cost for a Root CA and and Issuing CA plus 100 certificates per month is therefore $875 per month, or $10,500 per year.
 
