@@ -9,3 +9,11 @@
 
 ## Documentation
 Detailed documentation is on our [GitHub pages site](docs/index.md).
+
+## Contributing
+We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started.
+
+## Sponsors
+This project is supported by [Q-Solution](www.q-solution.co.uk)
+
+![Alt text](docs/images/q-solution.png?raw=true "Q-Solution")
