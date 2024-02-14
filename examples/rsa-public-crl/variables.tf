@@ -5,5 +5,5 @@ variable "hosted_zone_domain" {
 
 variable "cert_info_files" {
   description = "List of file names to be uploaded to internal S3 bucket for processing"
-  default     = ["revoked", "revoked-root-ca"]
+  default     = ["tls", "revoked", "revoked-root-ca"]
 }
