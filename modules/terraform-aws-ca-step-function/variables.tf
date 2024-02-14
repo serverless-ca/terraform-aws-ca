@@ -25,3 +25,7 @@ variable "purpose" {
 variable "internal_s3_bucket" {
   description = "Internal S3 Bucket Name"
 }
+
+variable "cert_info_files" {
+  description = "List of file names to be uploaded to internal S3 bucket for processing"
+}

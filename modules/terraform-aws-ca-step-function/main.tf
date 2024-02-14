@@ -5,7 +5,7 @@ resource "aws_cloudwatch_log_group" "log_group_for_sfn" {
 }
 
 resource "aws_sfn_state_machine" "state_machine" {
-  definition = templatefile("${path.module}/templates/ca.json.tpl", {
+  definition = templatefile("${path.module}/templates/${local.template_name_prefix}.json.tpl", {
     account_id         = data.aws_caller_identity.current.account_id,
     project            = var.project,
     env                = var.env,
