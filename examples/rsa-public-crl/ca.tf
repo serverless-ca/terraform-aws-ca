@@ -12,6 +12,7 @@ module "certificate_authority" {
   issuing_ca_key_spec = "RSA_4096"
   root_ca_key_spec    = "RSA_4096"
   public_crl          = true
+  cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
 
   providers = {
     aws           = aws
