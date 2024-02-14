@@ -12,16 +12,26 @@ def s3_download(key, internal=True):
 
     if internal:
         print(f"downloading {key} from s3 bucket {internal_s3_bucket_name}")
-        return client.get_object(
-            Bucket=internal_s3_bucket_name,
-            Key=key,
-        )
+
+        try:
+            return client.get_object(
+                Bucket=internal_s3_bucket_name,
+                Key=key,
+            )
+        except client.exceptions.NoSuchKey:
+            print(f"file {key} not found in s3 bucket {internal_s3_bucket_name}")
+            return None
 
     print(f"downloading {key} from s3 bucket {external_s3_bucket_name}")
-    return client.get_object(
-        Bucket=external_s3_bucket_name,
-        Key=key,
-    )
+
+    try:
+        return client.get_object(
+            Bucket=external_s3_bucket_name,
+            Key=key,
+        )
+    except client.exceptions.NoSuchKey:
+        print(f"file {key} not found in s3 bucket {external_s3_bucket_name}")
+        return None
 
 
 def s3_upload(file, key, content_type="application/x-pkcs7-crl", external=True):

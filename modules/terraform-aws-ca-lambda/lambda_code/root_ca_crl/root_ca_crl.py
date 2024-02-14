@@ -11,6 +11,11 @@ import json
 
 def build_list_of_revoked_certs():
     """Build list of revoked certificates for CRL"""
+    # handle certificate revocation not enabled
+    if not s3_download("revoked-root-ca.json"):
+        print("revoked-root-ca.json not found")
+        return []
+
     # get list of certificates to be revoked
     revocation_file = s3_download("revoked-root-ca.json")["Body"]
 
