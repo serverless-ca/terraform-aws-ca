@@ -22,6 +22,13 @@ CRL locations are detailed in [CA Cert Locations](locations.md)
 * CRLs are published once every 24 hours by default
 * CRLs can be published manually by executing the CA Step Function
 
+## Enable certificate revocation
+By default certificate revocation is disabled. To enable:
+* add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
+add files and subdirectory following the [rsa-public-crl example](../examples/rsa-public-crl/README.md)
+* change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
+* apply Terraform
+
 ## Revoking a certificate
 
 * identify serial number of certificate by looking up in DynamoDB table

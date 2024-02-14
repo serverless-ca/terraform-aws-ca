@@ -16,6 +16,13 @@ There are two methods available for requesting and issuing client certificates:
 * Merge PR to initiate CA pipeline
 * Certificate issued and published to DynamoDB table
 
+**Enable GitOps**  
+By default GitOps is disabled. To enable:
+* add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
+add files and subdirectory following the [rsa-public-crl example](../examples/rsa-public-crl/README.md)
+* change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
+* apply Terraform
+
 **Adding CSR File to CA repository**
 * In the example below replace `dev` with your environment name
 * Add CSR file `server-example-com.csr` to `certs/dev/csrs`
