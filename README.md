@@ -11,7 +11,7 @@
 Detailed documentation is on our [GitHub pages site](docs/index.md).
 
 ## Contributing
-We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started
+We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started.
 
 See [Example README](./examples/default/README.md) for information on Terraform development and testing.
 
