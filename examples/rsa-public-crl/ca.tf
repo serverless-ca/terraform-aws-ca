@@ -1,7 +1,7 @@
 module "certificate_authority" {
   source = "../../"
   # source  = "serverless-ca/terraform-aws-ca"
-  # version = "0.1.0"
+  # version = "1.0.0"
 
   bucket_prefix       = "my-company"
   env                 = "prod"

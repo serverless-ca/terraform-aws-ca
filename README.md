@@ -8,7 +8,7 @@
 ![Alt text](docs/images/ca-architecture-options.png?raw=true "CA architecture")
 
 ## Documentation
-Detailed documentation is on our [GitHub pages site](docs/index.md).
+Detailed documentation is on our [Docs](docs/index.md) site. If testing the Serverless CA for the first time, use the [Getting Started](docs/getting-started.md) guide.
 
 ## Contributing
 We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started.

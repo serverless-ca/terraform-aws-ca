@@ -23,7 +23,7 @@ CRL locations are detailed in [CA Cert Locations](locations.md)
 * CRLs can be published manually by executing the CA Step Function
 
 ## Enable certificate revocation
-By default certificate revocation is disabled. To enable:
+CRLs are always published, however the ability to revoke a certificate needs to be enabled. If you followed the [Getting Started](getting-started.md) guide, you'll already have done this:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
 add files and subdirectory following the [rsa-public-crl example](../examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
