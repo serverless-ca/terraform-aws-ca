@@ -15,7 +15,7 @@ variable "bucket_prefix" {
 
 variable "cert_info_files" {
   description = "List of file names to be uploaded to internal S3 bucket for processing"
-  default     = ["tls", "revoked", "revoked-root-ca"]
+  default     = [] # To enable certificate revocation change to ["tls", "revoked", "revoked-root-ca"]
 }
 
 variable "csr_files" {

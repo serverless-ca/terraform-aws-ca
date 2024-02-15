@@ -1,12 +1,14 @@
 # Getting Started
 
 | [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [FAQ](faq.md) |  
-To familiarise yourself with the serverless CA, we recommend you start with default settings. A Root CA and Issuing CA will be deployed to your AWS account, using ECDSA algorithms without public CRL distribution:
+To familiarise yourself with the serverless CA, we recommend you start with minimal changes to the default settings. A Root CA and Issuing CA will be deployed to your AWS account, using ECDSA algorithms without public CRL distribution:
 
 * copy the [default example folder](../examples/default) to your laptop
-* make sure you include the `dev` subfolder and contents 
+* make sure you include the `dev` subfolder and contents
 * update `backend.tf` to include your own S3 Terraform state bucket in the same AWS account
 * update `ca.tf` with the provider source address and latest version
+* uncomment the other variables in `ca.tf`
+* uncomment `locals.tf` and enter your own company details
 ```
 terraform init
 terraform apply (yes to confirm plan)

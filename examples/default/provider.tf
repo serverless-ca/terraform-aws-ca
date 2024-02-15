@@ -7,4 +7,3 @@ provider "aws" {
   region     = "us-east-1"
   sts_region = "eu-west-2"
 }
-
