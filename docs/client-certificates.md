@@ -37,7 +37,10 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
   }
 ]
 ```
-
+* add Terraform variable:
+```
+ csr_files = ["server-example-com.csr"]
+```
 ## Lambda - Amazon EKS or ECS
 
 **Example use case - Amazon EKS / ECS**
