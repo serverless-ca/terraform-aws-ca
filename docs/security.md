@@ -10,9 +10,10 @@ It's very important to implement your certificate authority (CA) in a secure way
     * review other options from a security perspective
 * very carefully control AWS IAM principals and permissions 
 * restrict permissions allowing invocation of all Lambda functions
+* store user / device private keys in hardware if possible
+* always verify person or entity requesting certificate is authorised
 * limit access to CA source code repository and CI/CD pipeline
 * ensure updates to CA source code repository are reviewed, especially new Certificate Signing Requests (CSRs)
-* store user / device private keys in hardware if possible
 * monitor CloudTrail for suspicious events, e.g. unauthorised signing using a CA KMS asymmetric key
 * export CloudTrail and CloudWatch logs to a central SIEM
 * create rules to alert on potential attacks, e.g. CloudTrail event showing CA KMS signing not correlated to Lambda function log in CloudWatch
