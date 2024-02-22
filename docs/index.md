@@ -2,7 +2,7 @@
 | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [FAQ](faq.md) |  
 
 * Serverless Certificate Authority typically $50 per year
-* Equivalent cost using AWS Private CA $10,000 per year
+* Equivalent cost using AWS Private CA around $10,000 per year
 * 100% serverless
 * CA private keys stored in FIPS-140-2 level 3 hardware
 * Wide range of configuration options
