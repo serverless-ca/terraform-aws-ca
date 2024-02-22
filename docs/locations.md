@@ -31,7 +31,7 @@ See [CRL](crl.md) for details of how to enable public CRLs and CA certs.
 
 ## Authority Information Access (AIA)
 
-| environment | hosted zone domain |                                       CDP - Root CA                                        |                                       CDP - Issuing CA                                        |
+| environment | hosted zone domain |                                       AIA - Root CA                                        |                                       AIA - Issuing CA                                        |
 |-------------|:------------------:|:------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
 | dev *       | dev.ca.celidor.io  |                    http://dev.ca.celidor.io/serverless-root-ca-dev.crt                     |                    http://dev.ca.celidor.io/serverless-issuing-ca-dev.crt                     |
 | prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crt](http://ca.celidor.io/serverless-root-ca.crt) | [http://ca.celidor.io/serverless-issuing-ca.crt](http://ca.celidor.io/serverless-root-ca.crt) |
