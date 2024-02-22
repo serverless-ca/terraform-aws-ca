@@ -25,6 +25,13 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 
 **Adding CSR File to CA repository**
 * In the example below replace `dev` with your environment name
+* Set up a Python virtual environment as described in [Getting Started](getting-started.md)
+* Create a CSR
+```
+python tests/server-csr.py
+```
+* Move the CSR and key file from `/tmp` to a safe location
+* For production, change to a locked down directory, e.g. `/certs` instead of `/tmp`
 * Add CSR file `server-example-com.csr` to `certs/dev/csrs`
 * add JSON to `certs/dev/tls.json` to specify certificate details, e.g.
 ```json
@@ -41,6 +48,10 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 ```
  csr_files = ["server-example-com.csr"]
 ```
+* apply Terraform
+* start the CA Step Function
+* certificates will be issued and can be downloaded from the DynamoDB table
+
 ## Lambda - Amazon EKS or ECS
 
 **Example use case - Amazon EKS / ECS**
