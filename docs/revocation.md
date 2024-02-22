@@ -31,7 +31,7 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 
 ## Revoking a certificate
 
-* identify serial number of certificate by looking up in DynamoDB table
+* identify serial number by inspecting the certificate, or looking up in DynamoDB table
 * add details of certificate to be revoked in `revoked.json` for relevant environment, e.g. `certs/dev/revoked.json`
 ```json
 [
