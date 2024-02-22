@@ -31,7 +31,7 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 [
   {
     "common_name": "server.example.com",
-    "sans": ["server.example.com", "server2.example.com"]
+    "sans": ["server.example.com", "server2.example.com"],
     "lifetime": 365,
     "csr_file": "server-example-com.csr"
   }
