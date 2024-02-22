@@ -5,11 +5,12 @@ The serverless CA is highly configurable by adjusting values of Terraform variab
 
 
 ## Revocation and GitOps
-By default certificate revocation and GitOps are disabled. If you followed the [Getting Started](./getting-started.md) guide you'll already have enabled GitOps:
+By default, certificate revocation and GitOps are disabled. If you followed the [Getting Started](./getting-started.md) guide you'll already have enabled GitOps:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
 add files and subdirectory following [the rsa-public-crl example](../examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
 * apply Terraform
+* you can now revoke a certificate as described in [Revocation](revocation.md)
 
 ## Public CRL and CA certs
 
