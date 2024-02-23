@@ -2,17 +2,19 @@
 import json
 import base64
 import boto3
+import os
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from utils_tests.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
 from utils_tests.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 from utils_tests.aws.lambdas import get_lambda_name
 
+homedir = os.path.expanduser("~")
+
 
 def main():  # pylint:disable=too-many-locals
     """
     Create test client certificate for default Serverless CA environment
-    /tmp location of certificates and keys is for test purposes only
-    In production, change location to e.g. /certs with locked down permissions
+    Before using, create a subdirectory `certs` within your home directory
     """
 
     # set variables
@@ -23,9 +25,10 @@ def main():  # pylint:disable=too-many-locals
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    output_path_cert_key = "/tmp/client-key.pem"
-    output_path_cert = "/tmp/client-cert.pem"
-    output_path_cert_combined = "/tmp/client-cert-key.pem"
+    output_path_cert_key = f"{homedir}/certs/client-key.pem"
+    output_path_cert_pem = f"{homedir}/certs/client-cert.pem"
+    output_path_cert_crt = f"{homedir}/certs/client-cert.crt"
+    output_path_cert_combined = f"{homedir}/certs/client-cert-key.pem"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
@@ -73,19 +76,24 @@ def main():  # pylint:disable=too-many-locals
     if output_path_cert_key:
         with open(output_path_cert_key, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
-            print(f"Private key written to {output_path_cert_key}, this should now be moved to a safe location")
+            print(f"Private key written to {output_path_cert_key}")
 
-    if output_path_cert:
-        with open(output_path_cert, "w", encoding="utf-8") as f:
+    if output_path_cert_pem:
+        with open(output_path_cert_pem, "w", encoding="utf-8") as f:
             f.write(cert_data.decode("utf-8"))
-            print(f"Certificate written to {output_path_cert}")
+            print(f"Certificate written to {output_path_cert_pem}")
+
+    if output_path_cert_crt:
+        with open(output_path_cert_crt, "w", encoding="utf-8") as f:
+            f.write(cert_data.decode("utf-8"))
+            print(f"Certificate written to {output_path_cert_crt}")
 
     if output_path_cert_combined:
         with open(output_path_cert_combined, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
             f.write(cert_data.decode("utf-8"))
 
-    print(f"Certificate and key written to {output_path_cert_combined}, this should now be moved to a safe location")
+    print(f"Certificate and key written to {output_path_cert_combined}")
 
 
 if __name__ == "__main__":

@@ -2,8 +2,35 @@
 | [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [FAQ](faq.md) |  
 
 There are two methods available for requesting and issuing client certificates:
-* **GitOps** - certificates requested and issued via a GitOps workflow
 * **Lambda** - certificates requested and issued by invoking a Lambda function
+* **GitOps** - certificates requested and issued via a GitOps workflow
+
+## Lambda - developer testing
+
+**Example use case - developer testing**
+* A developer wishes to test mutual TLS from a laptop
+
+**Approach - developer testing**
+* Follow instructions at the end of [GettingStarted](getting-started.md)
+* Developer needs an IAM role with permissions to invoke the CA TLS Lambda function
+
+## Lambda - Amazon EKS or ECS
+
+**Example use case - Amazon EKS / ECS**
+* Client certificates for containers in Amazon EKS / ECS / Fargate 
+
+**Approach - Amazon ECS / EKS**
+* Create a Sidecar container based on [client-cert.py](../tests/server-cert.py)
+* Requires role with permissions to invoke the CA TLS Lambda function
+* Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
+* They can then be mounted into the application container
+
+## Subject Alternative Names
+If you don't specify and DNS names by omitting the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
+
+If you specify `sans` these will take precedence over the common name.
+
+Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.
 
 ## GitOps
 **Example use case** 
@@ -26,12 +53,12 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 **Adding CSR File to CA repository**
 * In the example below replace `dev` with your environment name
 * Set up a Python virtual environment as described in [Getting Started](getting-started.md)
+* Create a subdirectory `certs` within your home directory
 * Create a CSR
 ```
 python tests/server-csr.py
 ```
-* Move the CSR and key file from `/tmp` to a safe location
-* For production, change to a locked down directory, e.g. `/certs` instead of `/tmp`
+* The CSR and key files will be written to the `certs` subdirectory of your home directory
 * Add CSR file `server-example-com.csr` to `certs/dev/csrs`
 * add JSON to `certs/dev/tls.json` to specify certificate details, e.g.
 ```json
@@ -51,30 +78,3 @@ python tests/server-csr.py
 * apply Terraform
 * start the CA Step Function
 * certificates will be issued and can be downloaded from the DynamoDB table
-
-## Lambda - Amazon EKS or ECS
-
-**Example use case - Amazon EKS / ECS**
-* Client certificates for containers in Amazon EKS / ECS / Fargate 
-
-**Approach - Amazon ECS / EKS**
-* Create a Sidecar container based on [client-cert.py](../tests/server-cert.py)
-* Requires role with permissions to invoke the CA TLS Lambda function
-* Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
-* They can then be mounted into the application container
-
-## Lambda - developer testing
-
-**Example use case - developer testing**
-* A developer wishes to test mutual TLS from a laptop
-
-**Approach - developer testing**
-* Follow instructions at the end of [GettingStarted](getting-started.md)
-* Developer needs an IAM role with permissions to invoke the CA TLS Lambda function
-
-## Subject Alternative Names
-If you don't specify and DNS names by omitting the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
-
-If you specify `sans` these will take precedence over the common name.
-
-Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.

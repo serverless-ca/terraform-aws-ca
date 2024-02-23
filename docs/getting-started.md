@@ -30,9 +30,10 @@ terraform apply (yes to confirm plan)
 
 ## Create client certificate
 * ensure Python and PIP are installed on your laptop
-* on your laptop, if you don't already have one, create a root level directory `tmp`
+* on your laptop, if you don't already have one, create a subdirectory `certs` within your home directory
 ```
-mkdir /tmp
+cd ~
+mkdir certs
 ```
 * log in to the CA AWS account with your terminal using AWS CLI, e.g. `aws sso login` or set AWS environment variables
 * from the root of this repository:
@@ -43,12 +44,11 @@ source .venv/bin/activate (Linux / MacOS)
 pip install -r tests/requirements-dev.txt
 python tests/client-cert.py
 ```
-* you will now have a client key and certificate on your laptop
+* you will now have a client key and certificate within your `certs` subdirectory
 * bundled Root CA and Issuing CA certs are also provided
 
 ## View client certificate
-* view the client certificate with your operating system cert viewer
-* if needed, convert to crt format `cp serverless-cert.pem serverless-cert.crt`
+* view the client certificate `serverless-cert.crt` with your operating system cert viewer
 
 <img src="images/trusted-cert.png" width="300">
 <img src="images/cert-details.png" width="300">

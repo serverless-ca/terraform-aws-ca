@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+import os
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from utils_tests.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
 from utils_tests.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 
 
+homedir = os.path.expanduser("~")
+
+
 def main():  # pylint:disable=too-many-locals
     """
     Create test Certificate Signing Request (CSR) for default Serverless CA environment
-    /tmp location of csr and keys is for test purposes only
-    In production, change location to e.g. /certs with locked down permissions
+    Before using, create a subdirectory `certs` within your home directory
     """
 
     # set variables
@@ -18,8 +21,8 @@ def main():  # pylint:disable=too-many-locals
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    output_path_cert_key = "/tmp/cert-request-key.pem"
-    output_path_csr = "/tmp/cert-request.csr"
+    output_path_cert_key = f"{homedir}/certs/cert-request-key.pem"
+    output_path_csr = f"{homedir}/certs/cert-request.csr"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
@@ -44,7 +47,7 @@ def main():  # pylint:disable=too-many-locals
     if output_path_cert_key:
         with open(output_path_cert_key, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
-            print(f"Private key written to {output_path_cert_key}, this should now be moved to a safe location")
+            print(f"Private key written to {output_path_cert_key}")
 
 
 if __name__ == "__main__":
