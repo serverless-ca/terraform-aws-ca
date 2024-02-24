@@ -53,7 +53,6 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 **Adding CSR File to CA repository**
 * In the example below replace `dev` with your environment name
 * Set up a Python virtual environment as described in [Getting Started](getting-started.md)
-* Create a subdirectory `certs` within your home directory
 * Create a CSR
 ```
 python tests/server-csr.py

@@ -5,13 +5,17 @@ from utils_tests.certs.crypto import create_csr_info, crypto_encode_private_key,
 from utils_tests.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 
 
+# identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
+base_path = f"{homedir}/certs"
+if not os.path.exists(base_path):
+    print(f"Creating directory {base_path}")
+    os.makedirs(base_path)
 
 
 def main():  # pylint:disable=too-many-locals
     """
-    Create test Certificate Signing Request (CSR) for default Serverless CA environment
-    Before using, create a subdirectory `certs` within your home directory
+    Create test client Certificate Signing Request (CSR) for default Serverless CA environment
     """
 
     # set variables
@@ -21,8 +25,8 @@ def main():  # pylint:disable=too-many-locals
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    output_path_cert_key = f"{homedir}/certs/cert-request-key.pem"
-    output_path_csr = f"{homedir}/certs/cert-request.csr"
+    output_path_cert_key = f"{base_path}/client-cert-request-key.pem"
+    output_path_csr = f"{base_path}/client-cert-request.csr"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
