@@ -8,13 +8,17 @@ from utils_tests.certs.crypto import create_csr_info, crypto_encode_private_key,
 from utils_tests.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 from utils_tests.aws.lambdas import get_lambda_name
 
+# identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
+base_path = f"{homedir}/certs"
+if not os.path.exists(base_path):
+    print(f"Creating directory {base_path}")
+    os.makedirs(base_path)
 
 
 def main():  # pylint:disable=too-many-locals
     """
     Create test client certificate for default Serverless CA environment
-    Before using, create a subdirectory `certs` within your home directory
     """
 
     # set variables
@@ -25,10 +29,10 @@ def main():  # pylint:disable=too-many-locals
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    output_path_cert_key = f"{homedir}/certs/client-key.pem"
-    output_path_cert_pem = f"{homedir}/certs/client-cert.pem"
-    output_path_cert_crt = f"{homedir}/certs/client-cert.crt"
-    output_path_cert_combined = f"{homedir}/certs/client-cert-key.pem"
+    output_path_cert_key = f"{base_path}/client-key.pem"
+    output_path_cert_pem = f"{base_path}/client-cert.pem"
+    output_path_cert_crt = f"{base_path}/client-cert.crt"
+    output_path_cert_combined = f"{base_path}/client-cert-key.pem"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
