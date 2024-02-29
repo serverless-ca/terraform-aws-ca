@@ -1,5 +1,4 @@
 variable "project" {}
-variable "region" {}
 
 variable "description" {
   description = "description of KSM key overrides default"

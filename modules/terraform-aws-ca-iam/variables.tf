@@ -1,5 +1,4 @@
 variable "project" {}
-variable "region" {}
 
 variable "env" {
   description = "Environment name, e.g. dev"

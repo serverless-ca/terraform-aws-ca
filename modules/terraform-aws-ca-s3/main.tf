@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "bucket" {
-  #checkov:skip=CKV_AWS_144:Data should stay in eu-west-2
+  #checkov:skip=CKV_AWS_144: region replication not required
   bucket        = local.bucket_name
   force_destroy = var.force_destroy
 

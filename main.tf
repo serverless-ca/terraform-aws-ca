@@ -3,7 +3,6 @@ module "kms_tls_keygen" {
   source = "./modules/terraform-aws-ca-kms"
 
   project     = "${var.project}-tls-keygen"
-  region      = var.region
   env         = var.env
   description = "${var.project}-${var.env} asymmetric key generation for TLS certs without CSR"
 }
@@ -13,7 +12,6 @@ module "kms_rsa_root_ca" {
   source = "./modules/terraform-aws-ca-kms"
 
   project                  = "${var.project}-root-ca"
-  region                   = var.region
   env                      = var.env
   description              = "${var.project}-${var.env} Root CA key pair"
   customer_master_key_spec = var.root_ca_key_spec
@@ -26,7 +24,6 @@ module "kms_rsa_issuing_ca" {
   source = "./modules/terraform-aws-ca-kms"
 
   project                  = "${var.project}-issuing-ca"
-  region                   = var.region
   env                      = var.env
   description              = "${var.project}-${var.env} Issuing CA key pair"
   customer_master_key_spec = var.issuing_ca_key_spec
@@ -103,7 +100,6 @@ module "create_root_ca_iam" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "create-root-ca"
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
@@ -119,7 +115,6 @@ module "create_issuing_ca_iam" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "create-issuing-ca"
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
@@ -136,7 +131,6 @@ module "root_crl_iam" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "root-crl"
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
@@ -152,7 +146,6 @@ module "issuing_crl_iam" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "issuing-crl"
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
@@ -168,7 +161,6 @@ module "tls_keygen_iam" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "tls-cert"
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
@@ -185,7 +177,6 @@ module "create_rsa_root_ca_lambda" {
   source = "./modules/terraform-aws-ca-lambda"
 
   project                         = var.project
-  region                          = var.region
   env                             = var.env
   function_name                   = "create-root-ca"
   description                     = "create Root Certificate Authority with KMS private key"
@@ -206,7 +197,6 @@ module "create_rsa_issuing_ca_lambda" {
   source = "./modules/terraform-aws-ca-lambda"
 
   project                         = var.project
-  region                          = var.region
   env                             = var.env
   function_name                   = "create-issuing-ca"
   description                     = "create Issuing Certificate Authority with KMS private key"
@@ -227,7 +217,6 @@ module "rsa_root_ca_crl_lambda" {
   source = "./modules/terraform-aws-ca-lambda"
 
   project                         = var.project
-  region                          = var.region
   env                             = var.env
   function_name                   = "root-ca-crl"
   description                     = "publish Root CA certificate revocation list signed by KMS private key"
@@ -248,7 +237,6 @@ module "rsa_issuing_ca_crl_lambda" {
   source = "./modules/terraform-aws-ca-lambda"
 
   project                         = var.project
-  region                          = var.region
   env                             = var.env
   function_name                   = "issuing-ca-crl"
   description                     = "publish Issuing CA certificate revocation list signed by KMS private key"
@@ -269,7 +257,6 @@ module "rsa_tls_cert_lambda" {
   source = "./modules/terraform-aws-ca-lambda"
 
   project                         = var.project
-  region                          = var.region
   env                             = var.env
   function_name                   = "tls-cert"
   description                     = "issue TLS certificates signed by KMS private key"
@@ -317,7 +304,6 @@ module "step-function-role" {
   source = "./modules/terraform-aws-ca-iam"
 
   project                = var.project
-  region                 = var.region
   env                    = var.env
   function_name          = "ca"
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
@@ -345,7 +331,6 @@ module "scheduler-role" {
   source = "./modules/terraform-aws-ca-iam"
 
   project            = var.project
-  region             = var.region
   env                = var.env
   function_name      = "scheduler"
   kms_arn_resource   = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
@@ -370,7 +355,6 @@ module "db-reader-role" {
   count  = var.aws_principals == [] ? 0 : 1
 
   project            = var.project
-  region             = var.region
   env                = var.env
   function_name      = "db-reader"
   aws_principals     = var.aws_principals

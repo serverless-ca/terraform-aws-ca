@@ -1,8 +1,11 @@
 resource "aws_kms_key" "encryption" {
-  description              = var.description == "" ? local.key_description : var.description
-  deletion_window_in_days  = 7
-  enable_key_rotation      = var.customer_master_key_spec == "SYMMETRIC_DEFAULT" ? true : false
-  policy                   = templatefile("${path.module}/templates/${var.kms_policy}.json.tpl", { account_id = data.aws_caller_identity.current.account_id, region = var.region })
+  description             = var.description == "" ? local.key_description : var.description
+  deletion_window_in_days = 7
+  enable_key_rotation     = var.customer_master_key_spec == "SYMMETRIC_DEFAULT" ? true : false
+  policy = templatefile("${path.module}/templates/${var.kms_policy}.json.tpl", {
+    account_id = data.aws_caller_identity.current.account_id,
+    region     = data.aws_region.current.name
+  })
   customer_master_key_spec = var.customer_master_key_spec
   key_usage                = var.key_usage
 }
