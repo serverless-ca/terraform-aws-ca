@@ -115,11 +115,6 @@ variable "public_crl" {
   default     = false
 }
 
-variable "region" {
-  description = "AWS region to deploy Lambda functions"
-  default     = "eu-west-2"
-}
-
 variable "root_ca_info" {
   description = "Root CA certificate information"
   default = {

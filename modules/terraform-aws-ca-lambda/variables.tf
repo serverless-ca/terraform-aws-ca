@@ -70,11 +70,6 @@ variable "public_crl" {
   default     = false
 }
 
-variable "region" {
-  description = "AWS region to deploy Lambda functions"
-  default     = "eu-west-2"
-}
-
 variable "retention_in_days" {
   description = "CloudWatch log group retention in days"
   default     = 30
