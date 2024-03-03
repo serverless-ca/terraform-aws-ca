@@ -75,7 +75,7 @@ bandit -r lambda_code utils
 cd modules\terraform-aws-ca-lambda
 python -m venv .venv
 ```
-* activate virtual environment (Windows)
+* activate virtual environment
 ```powershell
 .venv\Scripts\Activate
 ```
