@@ -16,7 +16,7 @@ source .venv/bin/activate
 ```powershell
 pip install -r requirements-dev.txt
 ```
-* set environment variables for dev environment (Windows)
+* set environment variables for dev environment
 ```bash
 export DOMAIN="ca.example.com"
 export ENVIRONMENT_NAME="dev"
@@ -29,7 +29,7 @@ ROOT_CA_INFO=$(jq -n '{country: "GB", state: "London", lifetime: 7300, locality:
 export ROOT_CA_INFO
 export PUBLIC_CRL="disabled"
 ```
-* copy and paste AWS Powershell CLI variables to terminal
+* copy and paste AWS MacOS / Linux CLI variables to terminal
 
 * test Lambda function locally
 * enter `python`
@@ -37,7 +37,7 @@ export PUBLIC_CRL="disabled"
 from lambda_code.create_root_ca.create_root_ca import lambda_handler
 lambda_handler({},{})
 ```
-* Test TLS lambda (Windows)
+* Test TLS lambda
 * Create Certificate Signing Request (CSR) file `client-cert-request.csr` following instructions in [Client Certificates](../../docs/client-certificates.md)
 * Upload CSR file to `csrs` folder in Internal S3 bucket
 ```bash
@@ -83,7 +83,7 @@ python -m venv .venv
 ```powershell
 pip install -r requirements-dev.txt
 ```
-* set environment variables for dev environment (Windows)
+* set environment variables for dev environment
 ```powershell
 $Env:DOMAIN="ca.example.com"
 $Env:ENVIRONMENT_NAME="dev"
@@ -101,7 +101,7 @@ $Env:ROOT_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 7300; locality
 from lambda_code.create_root_ca.create_root_ca import lambda_handler
 lambda_handler({},{})
 ```
-* Test TLS lambda (Windows)
+* Test TLS lambda
 * Create Certificate Signing Request (CSR) file `client-cert-request.csr` following instructions in [Client Certificates](../../docs/client-certificates.md)
 * Upload CSR file to `csrs` folder in Internal S3 bucket
 ```powershell
