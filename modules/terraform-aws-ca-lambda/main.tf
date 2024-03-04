@@ -1,6 +1,6 @@
 resource "null_resource" "install_python_dependencies" {
   triggers = {
-    always_run = timestamp()
+    source_archive_checksum = data.archive_file.lambda_source.output_base64sha256
   }
 
   provisioner "local-exec" {
@@ -19,16 +19,22 @@ resource "null_resource" "install_python_dependencies" {
   }
 }
 
+data "archive_file" "lambda_source" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_code/${local.file_name}"
+  output_path = "${path.module}/archive/${local.file_name}.src.zip"
+}
+
 data "archive_file" "lambda_zip" {
-  depends_on  = [null_resource.install_python_dependencies]
+  depends_on  = [null_resource.install_python_dependencies, data.archive_file.lambda_source]
   type        = "zip"
   source_dir  = "${path.module}/build/${local.file_name}"
-  output_path = "${path.module}/build/${local.file_name}.zip"
+  output_path = "${path.module}/archive/${local.file_name}.zip"
 }
 
 resource "aws_lambda_function" "lambda" {
-  filename         = "${path.module}/build/${local.file_name}.zip"
-  source_code_hash = sha1(join("", [for f in fileset("${path.module}/lambda_code/${local.file_name}", "*") : filesha1("${path.module}/lambda_code/${local.file_name}/${f}")]))
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   function_name    = "${var.project}-${var.function_name}-${var.env}"
   description      = "${var.project} ${var.description}"
   role             = var.lambda_role_arn
