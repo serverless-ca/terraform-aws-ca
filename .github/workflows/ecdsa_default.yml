@@ -90,10 +90,22 @@ jobs:
 
       - name: Terraform initialise
         run: >
-          terraform init 
-          -backend-config=bucket=${{ secrets.TERRAFORM_STATE_BUCKET}} 
-          -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}} 
+          terraform init
+          -backend-config=bucket=${{ secrets.TERRAFORM_STATE_BUCKET}}
+          -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}}
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
+
+      - name: cache built python modules
+        uses: actions/cache@v3
+        with:
+          key: modules_terraform-aws-ca-lambda_build_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}
+          path: ./modules/terraform-aws-ca-lambda/build
+
+      - name: cache zipped python modules
+        uses: actions/cache@v3
+        with:
+          key: modules_terraform-aws-ca-lambda_archive_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}
+          path: ./modules/terraform-aws-ca-lambda/archive
 
       - name: terraform plan
         run: terraform plan -out tfplan
@@ -135,7 +147,7 @@ jobs:
 
       - name: Delete all DynamoDB items
         run: |
-          python tests/scripts/delete_db_table_items.py        
+          python tests/scripts/delete_db_table_items.py
 
   start_ca:
     name: Start CA
@@ -180,7 +192,7 @@ jobs:
       id-token: write
       contents: read
       checks: write
-        
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
