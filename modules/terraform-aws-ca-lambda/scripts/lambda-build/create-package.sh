@@ -1,5 +1,3 @@
-#!/bin/bash
-
 echo "Executing create_package.sh..."
 
 dir_name=$function_name/

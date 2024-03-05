@@ -1,21 +1,12 @@
-resource "null_resource" "install_python_dependencies" {
-  triggers = {
-    source_archive_checksum = data.archive_file.lambda_source.output_base64sha256
-  }
+data "external" "install_python_dependencies" {
 
-  provisioner "local-exec" {
-    command = <<-EOT
-      chmod +x ${path.module}/scripts/lambda-build/create-package.sh
-      ./${path.module}/scripts/lambda-build/create-package.sh
-    EOT
-
-    environment = {
-      source_code_path = "${path.module}/lambda_code"
-      function_name    = local.file_name
-      runtime          = var.runtime
-      path_cwd         = path.module
-      platform         = var.platform
-    }
+  program = ["bash", "${path.module}/scripts/lambda-build/create-package-wrapper.sh"]
+  query = {
+    source_code_path = "${path.module}/lambda_code"
+    function_name    = local.file_name
+    runtime          = var.runtime
+    path_cwd         = path.module
+    platform         = var.platform
   }
 }
 
@@ -26,7 +17,7 @@ data "archive_file" "lambda_source" {
 }
 
 data "archive_file" "lambda_zip" {
-  depends_on  = [null_resource.install_python_dependencies, data.archive_file.lambda_source]
+  depends_on  = [data.external.install_python_dependencies, data.archive_file.lambda_source]
   type        = "zip"
   source_dir  = "${path.module}/build/${local.file_name}"
   output_path = "${path.module}/archive/${local.file_name}.zip"

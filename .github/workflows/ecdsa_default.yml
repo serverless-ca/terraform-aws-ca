@@ -95,18 +95,6 @@ jobs:
           -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}}
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
-      - name: cache built python modules
-        uses: actions/cache@v3
-        with:
-          key: modules_terraform-aws-ca-lambda_build_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}
-          path: ./modules/terraform-aws-ca-lambda/build
-
-      - name: cache zipped python modules
-        uses: actions/cache@v3
-        with:
-          key: modules_terraform-aws-ca-lambda_archive_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}
-          path: ./modules/terraform-aws-ca-lambda/archive
-
       - name: terraform plan
         run: terraform plan -out tfplan
 
