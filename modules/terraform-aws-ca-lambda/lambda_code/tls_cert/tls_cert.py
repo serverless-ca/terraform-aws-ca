@@ -14,6 +14,7 @@ from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 
+foo = "bar"
 
 # support legacy capability - to be removed in future release
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
