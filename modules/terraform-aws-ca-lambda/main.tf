@@ -29,7 +29,7 @@ data "archive_file" "lambda_source" {
 }
 
 data "archive_file" "lambda_zip" {
-  depends_on  = [data.archive_file.lambda_source, null_resource.install_python_dependencies]
+  depends_on  = [null_resource.install_python_dependencies]
   type        = "zip"
   source_dir  = "${path.module}/build/${local.file_name}"
   output_path = "${path.module}/archive/${local.file_name}.zip"
