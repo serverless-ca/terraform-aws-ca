@@ -30,6 +30,7 @@ def main():  # pylint:disable=too-many-locals
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
+    purposes = ["server_auth"]
     output_path_cert_key = f"{base_path}/server-key.pem"
     output_path_cert_pem = f"{base_path}/server-cert.pem"
     output_path_cert_crt = f"{base_path}/server-cert.crt"
@@ -48,6 +49,7 @@ def main():  # pylint:disable=too-many-locals
     # Construct JSON data to pass to Lambda function
     request_payload = {
         "common_name": common_name,
+        "purposes": purposes,
         "sans": sans,
         "lifetime": lifetime,
         "base64_csr_data": base64.b64encode(csr_pem).decode("utf-8"),

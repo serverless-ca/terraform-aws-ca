@@ -60,3 +60,20 @@ Taking the upper figure of $4, the yearly cost is therefore $48, so around $50 p
 As of 12 February 2024, [pricing of AWS Private CA](https://aws.amazon.com/private-ca/pricing) is $400 per month per general purpose CA, plus $0.75 per certificate
 
 The monthly cost for a Root CA and Issuing CA plus 100 certificates per month is therefore $875 per month (2 x $400 + 100 x $0.75) or $10,500 per year.
+
+### Can I specify certificate purposes?
+You can use the `purposes` JSON key to specify the certificate purposes extension. This overrides any setting in the Certificate Signing Request (CSR). Client Authentication and Server Authentication are supported.
+
+To specify only the client authentication extension:
+```json
+"purposes": ["client_auth"],
+```
+To specify only the server authentication extension:
+```json
+"purposes": ["server_auth"],
+```
+To specify both client and server authentication extensions:
+```json
+"purposes": ["client_auth", "server_auth"],
+```
+If `purposes` isn't specified, both client and server authentication will be included.
