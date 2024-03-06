@@ -17,7 +17,6 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 
 # support legacy capability - to be removed in future release
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
-proper_name = "foo"
 
 def sign_tls_certificate(csr, ca_name, common_name, lifetime, sans):
     # get CA cert from DynamoDB
