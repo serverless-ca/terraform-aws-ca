@@ -137,7 +137,15 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_build_cert(csr_cert, ca_cert, lifetime, delta):
+def ca_build_cert(csr_cert, ca_cert, lifetime, delta, purposes):
+
+    extended_key_usage_oids = []
+    for purpose in purposes:
+        if purpose == "server_auth":
+            extended_key_usage_oids.append(ExtendedKeyUsageOID.SERVER_AUTH)
+        if purpose == "client_auth":
+            extended_key_usage_oids.append(ExtendedKeyUsageOID.CLIENT_AUTH)
+
     return (
         x509.CertificateBuilder()
         .subject_name(csr_cert.subject)
@@ -161,7 +169,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta):
             critical=True,
         )
         .add_extension(
-            x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]),
+            x509.ExtendedKeyUsage(extended_key_usage_oids),
             critical=False,
         )
         .add_extension(
@@ -178,10 +186,11 @@ def ca_kms_sign_tls_certificate_request(
     csr_cert = cert_request_info["CsrCert"]
     x509_dns_names = cert_request_info["x509Sans"]
     lifetime = cert_request_info["Lifetime"]
+    purposes = cert_request_info["Purposes"]
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
-    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta)
+    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta, purposes)
 
     if len(x509_dns_names) > 0:
         cert = cert.add_extension(

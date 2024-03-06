@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
 
 
-def sign_tls_certificate(csr, ca_name, common_name, lifetime, sans):
+def sign_tls_certificate(csr, ca_name, csr_info_1, csr_info_2):
     # get CA cert from DynamoDB
     ca_cert = load_pem_x509_certificate(base64.b64decode(db_list_certificates(ca_name)[0]["Certificate"]["B"]))
 
@@ -27,7 +27,11 @@ def sign_tls_certificate(csr, ca_name, common_name, lifetime, sans):
     issuing_ca_kms_key_id = kms_get_kms_key_id(ca_name)
 
     # collect Certificate Request info
-    cert_request_info = crypto_cert_request_info(csr, common_name, lifetime, sans)
+    common_name = csr_info_1["commonName"]
+    lifetime = csr_info_2["lifetime"]
+    purposes = csr_info_2["purposes"]
+    sans = csr_info_2["sans"]
+    cert_request_info = crypto_cert_request_info(csr, common_name, lifetime, purposes, sans)
 
     # sign certificate
     return ca_kms_sign_tls_certificate_request(
@@ -69,9 +73,11 @@ def create_csr(csr_info, ca_slug, generate_passphrase):
     return (csr, base64_private_key, base64_passphrase)
 
 
-def sign_csr(csr, ca_name, common_name, lifetime, sans):
+def sign_csr(csr, ca_name, csr_info_1, csr_info_2):
+    common_name = csr_info_1["commonName"]
+
     # sign certificate
-    pem_certificate = sign_tls_certificate(csr, ca_name, common_name, lifetime, sans)
+    pem_certificate = sign_tls_certificate(csr, ca_name, csr_info_1, csr_info_2)
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), common_name)
@@ -109,14 +115,33 @@ def create_cert_bundle(base64_certificate):
     )
 
 
-def create_csr_info(common_name, locality=None, organization=None, organizational_unit=None, email_address=None):
+def create_csr_info_1(common_name, locality=None, organization=None, organizational_unit=None, country=None):
     return {
         "commonName": common_name,
-        "emailAddress": email_address,
+        "country": country,
         "locality": locality,
         "organization": organization,
         "organizationalUnit": organizational_unit,
     }
+
+
+def create_csr_info_2(lifetime, email_address=None, purposes=None, sans=None):
+    return {"lifetime": lifetime, "emailAddress": email_address, "sans": sans, "purposes": purposes}
+
+
+def get_csr_info(event):
+    common_name = event["common_name"]  # string, DNS common name, also used for certificate SAN if no SANs provided
+    country = event.get("country")  # string, country code
+    email_address = event.get("email_address")  # string, email address
+    locality = event.get("locality")  # string, location
+    organization = event.get("organization")  # string, organization name
+    organizational_unit = event.get("organizational_unit")  # string, organizational unit name
+    purposes = event.get("purposes")  # list of strings, e.g. ["client_auth", "server_auth"]
+    sans = event.get("sans")  # list of strings, DNS Subject Alternative Names
+
+    return create_csr_info_1(common_name, locality, organization, organizational_unit, country), create_csr_info_2(
+        30, email_address, purposes, sans
+    )
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
@@ -132,8 +157,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     if "lifetime" in event:
         lifetime = int(event.get("lifetime"))
 
-    common_name = event["common_name"]  # string, DNS common name, also used for certificate SAN if no SANs provided
-    sans = event.get("sans")  # list of strings, DNS Subject Alternative Names
+    csr_info_1, csr_info_2 = get_csr_info(event)
+
+    common_name = csr_info_1["commonName"]
     csr_file = event.get("csr_file")  # string, reference to static file
     force_issue = event.get("force_issue")  # boolean, force certificate generation even if one already exists
     cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
@@ -148,7 +174,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     else:
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 
-    base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, common_name, lifetime, sans)
+    base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, csr_info_1, csr_info_2)
 
     db_tls_cert_issued(cert_info, base64_certificate)
 
