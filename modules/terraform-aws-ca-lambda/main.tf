@@ -1,7 +1,9 @@
 resource "null_resource" "install_python_dependencies" {
   triggers = {
     source_archive_checksum = data.archive_file.lambda_source.output_base64sha256
-    build_already_present   = fileexists("${path.module}/build/${local.file_name}/__init__.py")
+
+    # static value (true) if present, variable value (timestamp()) when not present. (so the 'false' state isn't static and forces a build by change of state whenever so. a static false value doesn't force change of state.)
+    build_already_present = fileexists("${path.module}/build/${local.file_name}/__init__.py") ? true : timestamp()
   }
 
   provisioner "local-exec" {
