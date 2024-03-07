@@ -78,7 +78,7 @@ def test_tls_cert_issued_csr_no_passphrase():
 
 def test_client_cert_issued_with_only_client_auth_extension():
     """
-    Test client certificate issued from CSR with client authentication extension
+    Test client certificate issued from CSR with only client authentication extension
     """
     common_name = "My test client"
     purposes = ["client_auth"]
