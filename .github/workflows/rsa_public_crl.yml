@@ -12,7 +12,6 @@ on:
 
 env:
   TF_VAR_hosted_zone_domain: ${{ secrets.HOSTED_ZONE_DOMAIN }}
-  TF_VAR_allow_client_keys_in_db: true  # don't copy this setting - feature will be removed in future release
 
 jobs:
   terraform_validate:
