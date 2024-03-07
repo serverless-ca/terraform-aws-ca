@@ -146,7 +146,7 @@ jobs:
 
       - name: Delete all DynamoDB items
         run: |
-          python tests/scripts/delete_db_table_items.py
+          python scripts/delete_db_table_items.py
 
   start_ca:
     name: Start CA
@@ -171,7 +171,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r tests/scripts/requirements.txt
+          pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
@@ -181,7 +181,7 @@ jobs:
 
       - name: Start CA
         run: |
-          python tests/scripts/start_ca_step_function.py
+          python scripts/start_ca_step_function.py
 
   integration_tests:
     name: Integration Tests

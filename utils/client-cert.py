@@ -4,9 +4,9 @@ import base64
 import boto3
 import os
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-from utils_tests.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
-from utils_tests.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
-from utils_tests.aws.lambdas import get_lambda_name
+from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
+from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
+from modules.aws.lambdas import get_lambda_name
 
 # identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
@@ -18,23 +18,22 @@ if not os.path.exists(base_path):
 
 def main():  # pylint:disable=too-many-locals
     """
-    Create test server certificate for default Serverless CA environment
+    Create test client certificate for default Serverless CA environment
     """
 
     # set variables
     lifetime = 90
-    common_name = "test.example.com"
-    sans = ["test.example.com", "test2.example.com"]
+    common_name = "My Test Certificate"
     country = "GB"
     locality = "London"
     state = "England"
     organization = "Serverless Inc"
     organizational_unit = "Security Operations"
-    purposes = ["server_auth"]
-    output_path_cert_key = f"{base_path}/server-key.pem"
-    output_path_cert_pem = f"{base_path}/server-cert.pem"
-    output_path_cert_crt = f"{base_path}/server-cert.crt"
-    output_path_cert_combined = f"{base_path}/server-cert-key.pem"
+    purposes = ["client_auth"]
+    output_path_cert_key = f"{base_path}/client-key.pem"
+    output_path_cert_pem = f"{base_path}/client-cert.pem"
+    output_path_cert_crt = f"{base_path}/client-cert.crt"
+    output_path_cert_combined = f"{base_path}/client-cert-key.pem"
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
@@ -50,7 +49,6 @@ def main():  # pylint:disable=too-many-locals
     request_payload = {
         "common_name": common_name,
         "purposes": purposes,
-        "sans": sans,
         "lifetime": lifetime,
         "base64_csr_data": base64.b64encode(csr_pem).decode("utf-8"),
         "force_issue": True,

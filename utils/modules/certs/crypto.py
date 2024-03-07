@@ -18,10 +18,13 @@ def convert_truststore(cert_bundle):
     return trust_roots
 
 
-def certificate_validated(pem_cert, trust_roots, purposes=["server_auth", "client_auth"], check_crl=True):
+def certificate_validated(pem_cert, trust_roots, purposes=None, check_crl=True):
     """
     Validate certificate
     """
+    if purposes is None:
+        purposes = ["server_auth", "client_auth"]
+
     cert = pem_cert.encode(encoding="utf-8")
     if check_crl:
         cert_context = ValidationContext(allow_fetching=True, revocation_mode="hard-fail", trust_roots=trust_roots)

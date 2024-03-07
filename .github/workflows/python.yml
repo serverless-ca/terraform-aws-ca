@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r tests/requirements-dev.txt
+          pip install -r requirements-dev.txt
           
       - name: Black
         run: |
@@ -39,7 +39,7 @@ jobs:
 
       - name: generate json report
         run: >
-          bandit -r modules/terraform-aws-ca-lambda/lambda_code modules/terraform-aws-ca-lambda/utils scripts tests
+          bandit -r modules/terraform-aws-ca-lambda/lambda_code modules/terraform-aws-ca-lambda/utils scripts tests utils
           --exit-zero
           --ini .config/sast_python_bandit_json.yml
           1> ${{runner.temp}}/reports_sast_python/${RANDOM}.json

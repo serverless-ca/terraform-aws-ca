@@ -36,8 +36,8 @@ terraform apply (yes to confirm plan)
 python -m venv .venv
 source .venv/bin/activate (Linux / MacOS)
 .venv/scripts/activate (Windows PowerShell)
-pip install -r tests/requirements-dev.txt
-python tests/client-cert.py
+pip install -r requirements-dev.txt
+python utils/client-cert.py
 ```
 * you will now have a client key and certificate at `~/certs`
 * bundled Root CA and Issuing CA certs are also provided
@@ -52,5 +52,5 @@ python tests/client-cert.py
 ## Create server certificate
 * create a server certificate with Subject Alternative Names
 ```
-python tests/server-cert.py
+python utils/server-cert.py
 ```
