@@ -18,7 +18,7 @@ def convert_truststore(cert_bundle):
     return trust_roots
 
 
-def certificate_validated(pem_cert, trust_roots, check_crl=True):
+def certificate_validated(pem_cert, trust_roots, purposes=["server_auth", "client_auth"], check_crl=True):
     """
     Validate certificate
     """
@@ -30,7 +30,7 @@ def certificate_validated(pem_cert, trust_roots, check_crl=True):
         cert_context = ValidationContext(trust_roots=trust_roots)
 
     validator = CertificateValidator(cert, validation_context=cert_context)
-    validator.validate_usage({"digital_signature", "key_encipherment"}, {"server_auth", "client_auth"}, True)
+    validator.validate_usage({"digital_signature", "key_encipherment"}, set(purposes), True)
     return True
 
 

@@ -25,6 +25,23 @@ There are two methods available for requesting and issuing client certificates:
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
 * They can then be mounted into the application container
 
+## Purposes
+You can use the `purposes` JSON key to specify the certificate purposes extension. Client Authentication and Server Authentication are supported.
+
+To specify only the client authentication extension:
+```json
+"purposes": ["client_auth"],
+```
+To specify only the server authentication extension:
+```json
+"purposes": ["server_auth"],
+```
+To specify both client and server authentication extensions:
+```json
+"purposes": ["client_auth", "server_auth"],
+```
+If `purposes` isn't specified, both client and server authentication will be included.
+
 ## Subject Alternative Names
 If you don't specify and DNS names by omitting the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
 
@@ -64,6 +81,7 @@ python tests/server-csr.py
 [
   {
     "common_name": "server.example.com",
+    "purposes": ["server_auth"],
     "sans": ["server.example.com", "server2.example.com"],
     "lifetime": 365,
     "csr_file": "server-example-com.csr"

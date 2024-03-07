@@ -26,7 +26,19 @@ def crypto_ca_key_info(public_key, kms_key_id, common_name):
     }
 
 
-def crypto_cert_request_info(csr_cert, common_name, lifetime, sans):
+def crypto_cert_request_info(csr_cert, common_name, lifetime, purposes, sans):
+    """Creates a dictionary with the information needed to sign a certificate"""
+    # if no purposes are specified, default to both client and server auth
+    if purposes is None:
+        purposes = ["client_auth", "server_auth"]
+
+    # only allowed purposes are client_auth and server_auth
+    purposes = [p for p in purposes if p in ["client_auth", "server_auth"]]
+
+    # if purposes list is empty, default to both client and server auth
+    if purposes == []:
+        purposes = ["client_auth", "server_auth"]
+
     # no SANs and common name is not a valid domain
     if (sans is None or sans == []) and not domain_validator(common_name):
         sans = []
@@ -47,6 +59,7 @@ def crypto_cert_request_info(csr_cert, common_name, lifetime, sans):
         "CsrCert": csr_cert,
         "x509Sans": x509_sans,
         "Lifetime": lifetime,
+        "Purposes": purposes,
     }
 
 
