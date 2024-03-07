@@ -6,7 +6,7 @@ on:
       - "**/*.py"
       - "**/*.tf"
       - "**/*.txt"
-      - ".github/workflows/rsa_public.yml"
+      - ".github/workflows/rsa_public_crl.yml"
     branches:
       - main
 
