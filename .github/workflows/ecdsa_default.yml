@@ -97,7 +97,7 @@ jobs:
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
       - name: cache built python modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: modules_terraform-aws-ca-lambda_build_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}_py${{ steps.setup_python.outputs.python-version }}
           path: ./modules/terraform-aws-ca-lambda/build
