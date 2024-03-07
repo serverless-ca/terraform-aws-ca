@@ -5,6 +5,7 @@ on:
     paths:
       - "**/*.py"
       - "**/*.tf"
+      - "**/*.txt"
       - ".github/workflows/ecdsa_default.yml"
     branches:
       - main

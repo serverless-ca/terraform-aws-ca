@@ -5,6 +5,7 @@ on:
     paths:
       - "**/*.py"
       - "**/*.tf"
+      - "**/*.txt"
       - ".github/workflows/rsa_public.yml"
     branches:
       - main
