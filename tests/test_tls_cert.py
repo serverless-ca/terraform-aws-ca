@@ -4,15 +4,15 @@ from certvalidator.errors import InvalidCertificateError
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate
-from tests.utils_tests.certs.crypto import (
+from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
     certificate_validated,
     convert_truststore,
 )
-from tests.utils_tests.certs.kms import kms_generate_key_pair
-from tests.utils_tests.aws.kms import get_kms_details
-from tests.utils_tests.aws.lambdas import get_lambda_name, invoke_lambda
+from utils.modules.certs.kms import kms_generate_key_pair
+from utils.modules.aws.kms import get_kms_details
+from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
 
 
 def test_tls_cert_issued_csr_no_passphrase():

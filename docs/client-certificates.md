@@ -20,7 +20,7 @@ There are two methods available for requesting and issuing client certificates:
 * Client certificates for containers in Amazon EKS / ECS / Fargate 
 
 **Approach - Amazon ECS / EKS**
-* Create a Sidecar container based on [client-cert.py](../tests/server-cert.py)
+* Create a Sidecar container based on [client-cert.py](../utils/server-cert.py)
 * Requires role with permissions to invoke the CA TLS Lambda function
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
 * They can then be mounted into the application container
@@ -72,7 +72,7 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 * Set up a Python virtual environment as described in [Getting Started](getting-started.md)
 * Create a CSR
 ```
-python tests/server-csr.py
+python utils/server-csr.py
 ```
 * The CSR and key files will be written to the `certs` subdirectory of your home directory
 * Add CSR file `server-example-com.csr` to `certs/dev/csrs`
