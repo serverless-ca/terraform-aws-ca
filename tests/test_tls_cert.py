@@ -1,5 +1,6 @@
 from assertpy import assert_that
 import base64
+from certvalidator.errors import InvalidCertificateError
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate
@@ -19,6 +20,7 @@ def test_tls_cert_issued_csr_no_passphrase():
     Test TLS certificate issued from a Certificate Signing Request with no passphrase
     """
     common_name = "pipeline-test-csr-no-passphrase.example.com"
+    purposes = ["server_auth"]
 
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
@@ -36,6 +38,7 @@ def test_tls_cert_issued_csr_no_passphrase():
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
+        "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "passphrase": False,
         "lifetime": 1,
@@ -65,7 +68,73 @@ def test_tls_cert_issued_csr_no_passphrase():
     trust_roots = convert_truststore(cert_data)
 
     # validate certificate
-    assert_that(certificate_validated(cert_data, trust_roots)).is_true()
+    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
+
+    # check client auth extension is not present in certificate
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        cert_data, trust_roots, ["client_auth"]
+    ).is_equal_to("The X.509 certificate provided is not valid for the purpose of client auth")
+
+
+def test_client_cert_issued_with_only_client_auth_extension():
+    """
+    Test client certificate issued from CSR with client authentication extension
+    """
+    common_name = "My test client"
+    purposes = ["client_auth"]
+
+    # Get KMS details for key generation KMS key
+    key_alias, kms_arn = get_kms_details("-tls-keygen")
+    print(f"Generating key pair using KMS key {key_alias}")
+
+    # Generate key pair using KMS key to ensure randomness
+    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+
+    csr_info = create_csr_info(common_name)
+
+    # Generate Certificate Signing Request
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    # Construct JSON data to pass to Lambda function
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "purposes": purposes,
+        "base64_csr_data": base64_csr_data,
+        "passphrase": False,
+        "lifetime": 1,
+        "force_issue": True,
+        "cert_bundle": True,
+    }
+
+    # Identify TLS certificate Lambda function
+    function_name = get_lambda_name("-tls")
+    print(f"Invoking Lambda function {function_name}")
+
+    # Invoke TLS certificate Lambda function
+    response = invoke_lambda(function_name, json_data)
+
+    # Inspect the response which includes the signed certificate
+    result = response["CertificateInfo"]["CommonName"]
+    print(f"Certificate issued for {common_name}")
+
+    # Assert that the certificate was issued for the correct domain name
+    assert_that(result).is_equal_to(common_name)
+
+    # extract certificate from response including bundled certificate chain
+    base64_cert_data = response["Base64Certificate"]
+    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+
+    # convert bundle to trust store format
+    trust_roots = convert_truststore(cert_data)
+
+    # validate certificate including check for client auth extension
+    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
+
+    # check server auth extension is not present in certificate
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        cert_data, trust_roots, ["server_auth"]
+    ).is_equal_to("The X.509 certificate provided is not valid for the purpose of server auth")
 
 
 def test_tls_cert_issued_csr_passphrase():
@@ -332,6 +401,7 @@ def test_tls_cert_issued_without_san_if_common_name_invalid_dns():
     organization = "Serverless Inc"
     organizational_unit = "DevOps"
     state = "New York"
+    purposes = ["server_auth"]
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
     print(f"Generating key pair using KMS key {key_alias}")
@@ -348,6 +418,7 @@ def test_tls_cert_issued_without_san_if_common_name_invalid_dns():
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
+        "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
         "force_issue": True,
@@ -376,7 +447,7 @@ def test_tls_cert_issued_without_san_if_common_name_invalid_dns():
     trust_roots = convert_truststore(cert_data)
 
     # validate certificate
-    assert_that(certificate_validated(cert_data, trust_roots)).is_true()
+    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
 
     # check SAN extension not present in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
