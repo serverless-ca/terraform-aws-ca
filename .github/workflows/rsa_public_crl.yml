@@ -136,7 +136,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r tests/scripts/requirements.txt
+          pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
@@ -203,7 +203,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r tests/requirements-dev.txt
+          pip install -r requirements-dev.txt
 
       - name: Configure AWS Credentials - Dev
         uses: aws-actions/configure-aws-credentials@v4
