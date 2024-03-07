@@ -47,7 +47,7 @@ Not at this time, the only currently supported configuration is an Issuing CA an
 ### Can I use the CA for cross-signing?
 Not at this time, the only currently supported configuration is an Issuing CA and Root CA.
 
-### [How did you work out the cost comparison with AWS Private CA?](#aws-private-ca-costs)
+### How did you work out the cost comparison with AWS Private CA?
 
 ![Alt text](images/costs.png?raw=true "Typical CA costs")
 
