@@ -225,6 +225,7 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
+        "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
         "force_issue": True,
@@ -253,7 +254,7 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
     trust_roots = convert_truststore(cert_data)
 
     # validate certificate
-    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
+    assert_that(certificate_validated(cert_data, trust_roots)).is_true()
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -291,6 +292,7 @@ def test_issued_cert_includes_correct_dns_names():
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
+        "purposes": purposes,
         "sans": sans,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
@@ -359,6 +361,7 @@ def test_issued_cert_with_no_san_includes_correct_dns_name():
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
+        "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
         "force_issue": True,
