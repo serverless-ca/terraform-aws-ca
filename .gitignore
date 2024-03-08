@@ -3,7 +3,7 @@
 .idea
 .vs
 .venv
-.zip
+*.src.zip
 __pycache__
 .terraform.lock.hcl
 .terraform.tfstate
