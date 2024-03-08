@@ -4,8 +4,8 @@ resource "null_resource" "install_python_dependencies" {
     source_archive_checksum = data.archive_file.lambda_source.output_base64sha256
 
     # detect changes to files in utils directory
-    dir_sha1 = sha1(join("", [for f in fileset("${path.module}/utils", "**"): filesha1("${path.module}/utils/${f}")]))
-  
+    dir_sha1 = sha1(join("", [for f in fileset("${path.module}/utils", "**") : filesha1("${path.module}/utils/${f}")]))
+
     # static value (true) if present, variable value (timestamp()) when not present. (so the 'false' state isn't static and forces a build by change of state whenever so. a static false value doesn't force change of state.)
     build_already_present = fileexists("${path.module}/build/${local.file_name}/__init__.py") ? true : timestamp()
   }
