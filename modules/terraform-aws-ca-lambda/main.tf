@@ -1,6 +1,10 @@
 resource "null_resource" "install_python_dependencies" {
   triggers = {
-    source_archive_checksum = data.archive_file.lambda_source.output_base64sha256
+    # detect changes to Lambda code
+    lambda_code_sha256 = sha256(join("", [for f in sort(tolist(fileset("${path.module}/lambda_code/${local.file_name}", "**"))) : filesha256("${path.module}/lambda_code/${local.file_name}/${f}")]))
+
+    # detect changes to files in utils directory
+    utils_sha256 = sha256(join("", [for f in sort(tolist(fileset("${path.module}/utils", "**"))) : filesha256("${path.module}/utils/${f}")]))
 
     # static value (true) if present, variable value (timestamp()) when not present. (so the 'false' state isn't static and forces a build by change of state whenever so. a static false value doesn't force change of state.)
     build_already_present = fileexists("${path.module}/build/${local.file_name}/__init__.py") ? true : timestamp()
@@ -22,17 +26,11 @@ resource "null_resource" "install_python_dependencies" {
   }
 }
 
-data "archive_file" "lambda_source" {
-  type        = "zip"
-  source_dir  = "${path.module}/lambda_code/${local.file_name}"
-  output_path = "${path.module}/archive/${local.file_name}.src.zip"
-}
-
 data "archive_file" "lambda_zip" {
   depends_on  = [null_resource.install_python_dependencies]
   type        = "zip"
   source_dir  = "${path.module}/build/${local.file_name}"
-  output_path = "${path.module}/archive/${local.file_name}.zip"
+  output_path = "${path.module}/build/${local.file_name}.zip"
 }
 
 resource "aws_lambda_function" "lambda" {
