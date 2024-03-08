@@ -76,4 +76,4 @@ To specify both client and server authentication extensions:
 ```json
 "purposes": ["client_auth", "server_auth"],
 ```
-If `purposes` isn't specified, both client and server authentication will be included.
+If `purposes` isn't specified, the certificate will only include the client authentication extension.
