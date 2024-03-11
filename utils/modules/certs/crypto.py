@@ -2,6 +2,7 @@ from asn1crypto import pem
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from validators import domain as domain_validator
 from certvalidator import CertificateValidator, ValidationContext
 
@@ -122,3 +123,35 @@ def crypto_encode_private_key(key, passphrase=None):
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=encryption_algorithm,
     )
+
+
+def generate_key(algorithm="ecdsa", key_length=256):
+    """Generate key pair"""
+    if algorithm == "rsa":
+        return rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=key_length,
+        )
+
+    if algorithm == "ecdsa":
+        if key_length == 256:
+            return ec.generate_private_key(ec.SECP256R1())
+        if key_length == 384:
+            return ec.generate_private_key(ec.SECP384R1())
+        if key_length == 521:
+            return ec.generate_private_key(ec.SECP521R1())
+        raise ValueError(f"Unsupported key length: {key_length}")
+
+    raise ValueError(f"Unsupported algorithm: {algorithm}")
+
+
+def write_key_to_disk(key, filepath):
+    """Write RSA key to disk"""
+    with open(filepath, "wb") as f:
+        f.write(
+            key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
