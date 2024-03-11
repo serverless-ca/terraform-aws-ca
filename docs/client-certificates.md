@@ -75,7 +75,7 @@ add files and subdirectory following the [rsa-public-crl example](../examples/rs
 python utils/server-csr.py
 ```
 * The CSR and key files will be written to the `certs` subdirectory of your home directory
-* Add CSR file `server-example-com.csr` to `certs/dev/csrs`
+* Add CSR file `server-cert-request.csr` to `certs/dev/csrs`
 * add JSON to `certs/dev/tls.json` to specify certificate details, e.g.
 ```json
 [
@@ -84,13 +84,13 @@ python utils/server-csr.py
     "purposes": ["server_auth"],
     "sans": ["server.example.com", "server2.example.com"],
     "lifetime": 365,
-    "csr_file": "server-example-com.csr"
+    "csr_file": "server-cert-request.csr"
   }
 ]
 ```
 * add Terraform variable:
 ```
- csr_files = ["server-example-com.csr"]
+ csr_files = ["server-cert-request.csr"]
 ```
 * apply Terraform
 * start the CA Step Function

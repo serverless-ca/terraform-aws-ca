@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 import os
-from cryptography.hazmat.primitives.serialization import load_der_private_key
-from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
-from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
+from modules.certs.crypto import (
+    create_csr_info,
+    crypto_encode_private_key,
+    crypto_tls_cert_signing_request,
+    generate_key,
+    write_key_to_disk,
+)
 
 
 # identify home directory and create certs subdirectory if needed
@@ -13,7 +17,7 @@ if not os.path.exists(base_path):
     os.makedirs(base_path)
 
 
-def main():  # pylint:disable=too-many-locals
+def main():
     """
     Create test client Certificate Signing Request (CSR) for default Serverless CA environment
     """
@@ -27,12 +31,10 @@ def main():  # pylint:disable=too-many-locals
     organizational_unit = "Security Operations"
     output_path_cert_key = f"{base_path}/client-cert-request-key.pem"
     output_path_csr = f"{base_path}/client-cert-request.csr"
-    key_alias = "serverless-tls-keygen-dev"
 
-    # create key pair using symmetric KMS key to provide entropy
-    key_id = kms_get_kms_key_id(key_alias)
-    kms_response = kms_generate_key_pair(key_id)
-    private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
+    # create private key
+    private_key = generate_key()
+    write_key_to_disk(private_key, output_path_cert_key)
 
     # create CSR
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
