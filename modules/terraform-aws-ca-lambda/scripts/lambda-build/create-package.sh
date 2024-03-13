@@ -2,6 +2,21 @@
 
 echo "Executing create_package.sh..."
 
+# Check Python version matches runtime
+python_minor_version="$(python3 --version)"
+python_version="${python_minor_version%.*}"
+prefix="Python "
+local_version="${python_version#$prefix}"
+runtime_prefix="python"
+lambda_version="${runtime#$runtime_prefix}"
+
+if [ "$lambda_version" != "$local_version" ]; then
+  echo "Error: local Python version does not match Lambda Python runtime"
+  echo "Local Python version: $local_version"
+  echo "Lambda Python version: $lambda_version"
+  exit 1
+fi
+
 dir_name=$function_name/
 mkdir -p $path_cwd/build/$dir_name
 
