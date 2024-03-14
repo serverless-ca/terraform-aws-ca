@@ -11,7 +11,7 @@ To familiarise yourself with the serverless CA, we recommend you start with mini
 * uncomment `locals.tf` and enter your own company details
 ```
 terraform init
-terraform apply (yes to confirm plan)
+terraform apply
 ```
 * CA lambda functions, KMS keys, S3 buckets and other resources will be created in your AWS account
 * to initialise the CA, use the console to execute the CA Step Functions workflow
@@ -28,18 +28,30 @@ terraform apply (yes to confirm plan)
 * download the Root CA and issuing CA
 * import and trust both CA certificates
 
-## Create client certificate
+## Create client certificate (Linux / MacOS)
 * ensure Python and PIP are installed on your laptop
 * log in to the CA AWS account with your terminal using AWS CLI, e.g. `aws sso login` or set AWS environment variables
 * from the root of this repository:
 ```
 python -m venv .venv
-source .venv/bin/activate (Linux / MacOS)
-.venv/scripts/activate (Windows PowerShell)
+source .venv/bin/activate
 pip install -r requirements-dev.txt
 python utils/client-cert.py
 ```
 * you will now have a client key and certificate at `~/certs`
+* bundled Root CA and Issuing CA certs are also provided
+
+## Create client certificate (Windows)
+* ensure Python and PIP are installed on your laptop
+* log in to the CA AWS account with your terminal using AWS CLI, e.g. `aws sso login` or set AWS environment variables
+* from the root of this repository:
+```
+python -m venv .venv
+.venv/scripts/activate
+pip install -r requirements-dev.txt
+python utils/client-cert.py
+```
+* you will now have a client key and certificate at `~\certs`
 * bundled Root CA and Issuing CA certs are also provided
 
 ## View client certificate

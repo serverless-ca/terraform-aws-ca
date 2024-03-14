@@ -95,3 +95,12 @@ python utils/server-csr.py
 * apply Terraform
 * start the CA Step Function
 * certificates will be issued and can be downloaded from the DynamoDB table
+
+**Retrieving certificates from DynamoDB**
+* using the console, navigate to the CA DynamoDB table
+* select Explore table items
+* run a query, searching for the Common Name
+<img src="images/dynamodb-test-server-cert.png" width="300">
+* select the issued certificate by clicking on the link
+<img src="images/dynamodb-test-server-cert-details.png" width="300">
+* copy the certificate value, this is double Base64 encoded
