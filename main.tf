@@ -340,7 +340,7 @@ module "scheduler-role" {
 }
 
 module "scheduler" {
-  # triggers step function once per day
+  # triggers step function once per day by default
   source = "./modules/terraform-aws-ca-scheduler"
 
   project             = var.project
