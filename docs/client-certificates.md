@@ -104,3 +104,10 @@ python utils/server-csr.py
 * select the issued certificate by clicking on the link
 <img src="images/dynamodb-test-server-cert-details.png" width="300">
 * copy the certificate value, this is double Base64 encoded
+
+**Decoding DynamoDB certificate (Linux / MacOS)**
+* Open terminal / command line
+* Overwrite placeholder with text from certificate field of DynamoDB item
+```
+echo CERT-TEXT-FROM-DYNAMODB-HERE | base64 --decode | base64 --decode > test-example-com.pem
+```
