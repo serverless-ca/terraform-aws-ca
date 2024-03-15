@@ -103,11 +103,26 @@ python utils/server-csr.py
 <img src="images/dynamodb-test-server-cert.png" width="300">
 * select the issued certificate by clicking on the link
 <img src="images/dynamodb-test-server-cert-details.png" width="300">
-* copy the certificate value, this is double Base64 encoded
+* copy the certificate value, this is double Base64 encoded when viewed in the console
 
 **Decoding DynamoDB certificate (Linux / MacOS)**
 * Open terminal / command line
 * Overwrite placeholder with text from certificate field of DynamoDB item
-```
+```bash
 echo CERT-TEXT-FROM-DYNAMODB-HERE | base64 --decode | base64 --decode > test-example-com.pem
+```
+
+**Decoding DynamoDB certificate (Windows)**
+* Open Windows PowerShell ISE
+* Copy the script below into the editor
+* Overwrite placeholder with text from certificate field of DynamoDB item
+* Press Run
+```PowerShell
+# PowerShell
+$input = "CERT-TEXT-FROM-DYNAMODB-HERE"
+$filepath = "c:\tmp\test-example-com.crt"
+
+# double decoding from DynamoDB
+$decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($input))
+$cert = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($decoded)) | Out-File -FilePath $filepath
 ```
