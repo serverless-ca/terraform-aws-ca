@@ -21,7 +21,6 @@ variable "target_arn" {
 
 variable "schedule_expression" {
   description = "Schedule in supported format"
-  default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
 variable "group_name" {

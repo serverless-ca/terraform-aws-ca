@@ -166,6 +166,11 @@ variable "s3_aws_principals" {
   default     = []
 }
 
+variable "schedule_expression" {
+  description = "Step function schedule in supported format, must be carefully synchronised with CRL schedule and timing"
+  default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
+}
+
 variable "subscription_filter_destination" {
   description = "CloudWatch log subscription filter destination, last section of ARN"
   default     = ""

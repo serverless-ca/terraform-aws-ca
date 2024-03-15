@@ -343,10 +343,11 @@ module "scheduler" {
   # triggers step function once per day
   source = "./modules/terraform-aws-ca-scheduler"
 
-  project    = var.project
-  env        = var.env
-  role_arn   = module.scheduler-role.lambda_role_arn
-  target_arn = module.step-function.state_machine_arn
+  project             = var.project
+  env                 = var.env
+  role_arn            = module.scheduler-role.lambda_role_arn
+  target_arn          = module.step-function.state_machine_arn
+  schedule_expression = var.schedule_expression
 }
 
 module "db-reader-role" {
