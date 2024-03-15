@@ -107,7 +107,7 @@ python utils/server-csr.py
 
 **Decoding DynamoDB certificate (Linux / MacOS)**
 * Open terminal / command line
-* Overwrite placeholder with text from the certificate field of the DynamoDB item
+* Overwrite placeholder with text from certificate field of DynamoDB item
 ```
 echo CERT-TEXT-FROM-DYNAMODB-HERE | base64 --decode | base64 --decode > test-example-com.pem
 ```
