@@ -41,6 +41,16 @@ variable "issuing_ca_info" {
   default     = {}
 }
 
+variable "issuing_crl_days" {
+  description = "Number of days before Issuing CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
+  default     = 1
+}
+
+variable "issuing_crl_seconds" {
+  description = "Number of seconds before Issuing CA CRL expires, in addition to days. Used for overlap in case of clock skew"
+  default     = 600
+}
+
 variable "lambda_role_arn" {
   description = "Lambda role ARN"
 }
@@ -78,6 +88,16 @@ variable "retention_in_days" {
 variable "root_ca_info" {
   description = "Root CA information"
   default     = {}
+}
+
+variable "root_crl_days" {
+  description = "Number of days before Root CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
+  default     = 1
+}
+
+variable "root_crl_seconds" {
+  description = "Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew"
+  default     = 600
 }
 
 variable "runtime" {

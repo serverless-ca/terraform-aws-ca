@@ -47,14 +47,18 @@ resource "aws_lambda_function" "lambda" {
 
   environment {
     variables = {
-      DOMAIN             = var.domain
-      ENVIRONMENT_NAME   = var.env
-      EXTERNAL_S3_BUCKET = var.external_s3_bucket
-      INTERNAL_S3_BUCKET = var.internal_s3_bucket
-      ISSUING_CA_INFO    = jsonencode(var.issuing_ca_info)
-      PROJECT            = var.project
-      PUBLIC_CRL         = local.public_crl
-      ROOT_CA_INFO       = jsonencode(var.root_ca_info)
+      DOMAIN              = var.domain
+      ENVIRONMENT_NAME    = var.env
+      EXTERNAL_S3_BUCKET  = var.external_s3_bucket
+      INTERNAL_S3_BUCKET  = var.internal_s3_bucket
+      ISSUING_CA_INFO     = jsonencode(var.issuing_ca_info)
+      ISSUING_CRL_DAYS    = tostring(var.issuing_crl_days)
+      ISSUING_CRL_SECONDS = tostring(var.issuing_crl_seconds)
+      PROJECT             = var.project
+      PUBLIC_CRL          = local.public_crl
+      ROOT_CA_INFO        = jsonencode(var.root_ca_info)
+      ROOT_CRL_DAYS       = tostring(var.root_crl_days)
+      ROOT_CRL_SECONDS    = tostring(var.root_crl_seconds)
     }
   }
 

@@ -75,6 +75,16 @@ variable "issuing_ca_key_spec" {
   }
 }
 
+variable "issuing_crl_days" {
+  description = "Number of days before Issuing CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
+  default     = 1
+}
+
+variable "issuing_crl_seconds" {
+  description = "Number of seconds before Issuing CA CRL expires, in addition to days. Used for overlap in case of clock skew"
+  default     = 600
+}
+
 variable "kms_key_alias" {
   description = "KMS key alias for bucket encryption, if left at default, TLS key gen KMS key will be used"
   default     = ""
@@ -147,6 +157,16 @@ variable "root_ca_key_spec" {
   }
 }
 
+variable "root_crl_days" {
+  description = "Number of days before Root CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
+  default     = 1
+}
+
+variable "root_crl_seconds" {
+  description = "Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew"
+  default     = 600
+}
+
 variable "runtime" {
   description = "Lambda language runtime"
   default     = "python3.12"
@@ -167,7 +187,7 @@ variable "s3_aws_principals" {
 }
 
 variable "schedule_expression" {
-  description = "Step function schedule in supported format, must be carefully synchronised with CRL schedule and timing"
+  description = "Step function schedule in cron format, interval must be less than CRL lifetime"
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
