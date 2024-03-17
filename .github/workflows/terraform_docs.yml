@@ -1,4 +1,9 @@
 name: Generate terraform docs
+
+permissions:
+  contents: write
+  pull-requests: write
+
 on:
   - pull_request
 jobs:
