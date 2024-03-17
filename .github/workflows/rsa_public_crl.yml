@@ -54,6 +54,7 @@ jobs:
   terraform_plan_apply:
     name: Terraform plan & apply
     runs-on: ubuntu-latest
+    environment: 'rsa'
     needs:
       - terraform_validate
       - secret_scan
