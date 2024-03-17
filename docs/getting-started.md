@@ -16,7 +16,7 @@ By the end of this tutorial you will have:
 
 A Root CA and Issuing CA will be deployed to your AWS account:
 
-* copy the [default example folder](../examples/default) to your laptop
+* copy the [default example folder](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/default) to your laptop
 * make sure you include the `dev` subfolder and contents
 * update `backend.tf` to include your own S3 Terraform state bucket in the same AWS account
 * update `ca.tf` with the provider source address and latest version
