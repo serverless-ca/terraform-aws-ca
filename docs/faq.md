@@ -79,4 +79,4 @@ To specify both client and server authentication extensions:
 If `purposes` isn't specified, the certificate will only include the client authentication extension.
 
 ### How can I change CRL lifetime?
-The default setting for CRL lifetime of 1 day should be appropriate for most use cases. However, the Issuing CRL lifetime, Root CRL lifetime, and publication frequency can be adjusted as detailed in [Revocation](revocation.md#crl-lifetime).
+The default setting for CRL lifetime of 1 day should be appropriate for most use cases. However, the Issuing CA CRL lifetime, Root CA CRL lifetime, and publication frequency can be adjusted as detailed in [Revocation](revocation.md#crl-lifetime).
