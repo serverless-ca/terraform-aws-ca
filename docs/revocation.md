@@ -1,5 +1,6 @@
-# Revocation
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
+# Certificate Revocation
+
+![Alt text](images/crl.png?raw=true "Certificate Revocation List")
 
 * Certificates can be revoked using a Certificate Revocation List (CRL)
 * Online Certificate Status Protocol (OCSP) is not supported
@@ -7,7 +8,7 @@
 ## CRL publication
 CRLs are published to `external` S3 bucket, not directly accessible from public Internet
 
-To publish publicly, set `public_crl` to `true` and provide `hosted_zone_id` and `hosted_zone_name` in [Terraform variables](../variables.tf).
+To publish publicly, set `public_crl` to `true` and provide `hosted_zone_id` and `hosted_zone_name` in [Terraform variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf).
 
 Applying Terraform will result in:
 * CRLs published to a public URL via CloudFront
@@ -21,7 +22,7 @@ CRL locations are detailed in [CA Cert Locations](locations.md)
 ## Enable certificate revocation
 CRLs are always published, however the ability to revoke a certificate needs to be enabled. If you followed the [Getting Started](getting-started.md) guide, you'll already have done this:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
-add files and subdirectory following the [rsa-public-crl example](../examples/rsa-public-crl/README.md)
+add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
 * apply Terraform
 

@@ -1,13 +1,12 @@
 # Automation
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
 
 The serverless CA can be deployed and updated using a CI/CD pipeline.
 
 ## GitHub Actions example
 
-For examples using GitHub Actions see one of the [test GitHub Actions workflows](../.github/workflows/ecdsa_default.yml) within this repository, or the [Cloud CA deployment workflow](https://github.com/serverless-ca/cloud-ca/blob/main/.github/workflows/deploy.yml) shown below:
+For examples using GitHub Actions see one of the [test GitHub Actions workflows](https://github.com/serverless-ca/terraform-aws-ca/blob/main/.github/workflows/ecdsa_default.yml) within this repository, or the [Cloud CA deployment workflow](https://github.com/serverless-ca/cloud-ca/blob/main/.github/workflows/deploy.yml) shown below:
 
-<img src="images/deployment-workflow.png" width="600">
+![Alt text](images/deployment-workflow.png?raw=true "GitHub Actions workflow")
 
 The principal steps are:
 
