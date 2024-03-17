@@ -1,5 +1,5 @@
 # Terraform module for Certificate Authority on AWS
-| [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Security](security.md) | [FAQ](faq.md) |  
+| [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
 
 * Serverless Certificate Authority typically $50 per year
 * [Equivalent cost using AWS Private CA around $10,000 per year](./faq.md#how-did-you-work-out-the-cost-comparison-with-aws-private-ca)
