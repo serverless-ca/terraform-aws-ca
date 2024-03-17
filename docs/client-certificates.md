@@ -13,6 +13,11 @@ There are two methods available for requesting and issuing client certificates:
 **Approach - developer testing**
 * Follow instructions at the end of [GettingStarted](getting-started.md)
 * Developer needs an IAM role with permissions to invoke the CA TLS Lambda function
+* Protect your private keys, e.g. on Linux / MacOS:
+```
+chmod 600 ~/certs/client-cert.pem
+chmod 600 ~/certs/client-cert-key.pem
+```
 
 ## Lambda - Amazon EKS or ECS
 
