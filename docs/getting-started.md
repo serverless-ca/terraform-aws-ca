@@ -1,7 +1,22 @@
 # Getting Started
 
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Security](security.md) | [FAQ](faq.md) |  
-To familiarise yourself with the serverless CA, we recommend you start with minimal changes to the default settings. A Root CA and Issuing CA will be deployed to your AWS account, using ECDSA algorithms without public CRL distribution:
+| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Security](security.md) | [FAQ](faq.md) |
+
+## Objectives
+By the end of this tutorial you will have:
+* created a serverless CA in your own AWS account
+* viewed the Root CA, Issuing CA certificates and CRLs
+* issued a client certificate
+* issued a server certificate
+
+## Prerequisites
+* AWS account
+* [Terraform](https://developer.hashicorp.com/terraform/install?product_intent=terraform) configured with admin credentials to your AWS account
+* Terraform state bucket
+
+## Create serverless CA in your own AWS account
+
+A Root CA and Issuing CA will be deployed to your AWS account:
 
 * copy the [default example folder](../examples/default) to your laptop
 * make sure you include the `dev` subfolder and contents
@@ -14,14 +29,17 @@ terraform init
 terraform apply
 ```
 * CA lambda functions, KMS keys, S3 buckets and other resources will be created in your AWS account
-* to initialise the CA, use the console to execute the CA Step Functions workflow
+
+## Start CA
+
+To initialise the CA, in the AWS console, select Step Furnctions, and execute the CA workflow
 
 <img src="images/step-function.png" width="300">
 
-* alternatively wait for the next scheduled run of the Step Function which may take up to 24 hours
+Alternatively wait for the next scheduled run of the Step Function which may take up to 24 hours
 
 ## View CA certificates and CRLs
-* CA certificates and CRLs are available in the 'external' S3 bucket created by Terraform
+CA certificates and CRLs are available in the 'external' S3 bucket created by Terraform
 
 <img src="images/external-s3.png" width="400">
 
@@ -35,7 +53,7 @@ terraform apply
 ```
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements-dev.txt
+pip install -r utils/requirements.txt
 python utils/client-cert.py
 ```
 * you will now have a client key and certificate at `~/certs`
@@ -48,21 +66,21 @@ python utils/client-cert.py
 ```
 python -m venv .venv
 .venv/scripts/activate
-pip install -r requirements-dev.txt
+pip install -r utils/requirements.txt
 python utils/client-cert.py
 ```
 * you will now have a client key and certificate at `~\certs`
 * bundled Root CA and Issuing CA certs are also provided
 
 ## View client certificate
-* view the client certificate `serverless-cert.crt` with your operating system cert viewer
+View the client certificate `serverless-cert.crt` with your operating system cert viewer
 
 <img src="images/trusted-cert.png" width="300">
 <img src="images/cert-details.png" width="300">
 <img src="images/cert-chain.png" width="300">
 
 ## Create server certificate
-* create a server certificate with Subject Alternative Names
+Create a server certificate with Subject Alternative Names
 ```
 python utils/server-cert.py
 ```
