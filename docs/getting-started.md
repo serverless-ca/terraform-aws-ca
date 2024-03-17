@@ -79,8 +79,10 @@ View the client certificate `serverless-cert.crt` with your operating system cer
 <img src="images/cert-details.png" width="300">
 <img src="images/cert-chain.png" width="300">
 
-## Create server certificate
+## Create and view server certificate
 Create a server certificate with Subject Alternative Names
 ```
 python utils/server-cert.py
 ```
+<img src="images/server-cert-1.png" width="300">
+<img src="images/server-cert-2.png" width="300">
