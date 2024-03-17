@@ -1,5 +1,4 @@
 # Security
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
 
 It's very important to implement your certificate authority (CA) in a secure way:
 
@@ -26,4 +25,4 @@ The security of any CA is dependent on the protection of CA private keys. AWS KM
 
 Secure operation of AWS services such as KMS rely on AWS upholding its side of the [AWS Shared Responsibility Model](https://aws.amazon.com/compliance/shared-responsibility-model/).
 
-The above information is provided to assist you in assuring the security of your CA. However, the authors accept no responsibility for your CA being implemented and operated in a secure manner, in according with the [License](../LICENSE.md).
+The above information is provided to assist you in assuring the security of your CA. However, the authors accept no responsibility for your CA being implemented and operated in a secure manner, in according with the [License](https://github.com/serverless-ca/terraform-aws-ca/blob/main/LICENSE.md).

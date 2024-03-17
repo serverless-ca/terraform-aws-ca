@@ -1,5 +1,4 @@
 # Client Certificates
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
 
 There are two methods available for requesting and issuing client certificates:
 * **Lambda** - certificates requested and issued by invoking a Lambda function
@@ -25,7 +24,7 @@ chmod 600 ~/certs/client-cert-key.pem
 * Client certificates for containers in Amazon EKS / ECS / Fargate 
 
 **Approach - Amazon ECS / EKS**
-* Create a Sidecar container based on [client-cert.py](../utils/server-cert.py)
+* Create a Sidecar container based on [client-cert.py](https://github.com/serverless-ca/terraform-aws-ca/blob/main/utils/client-cert.py)
 * Requires role with permissions to invoke the CA TLS Lambda function
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
 * They can then be mounted into the application container
@@ -68,7 +67,7 @@ Only valid domains will be included in the Subject Alternative Name X.509 certif
 **Enable GitOps**  
 If you followed the [Getting Started](getting-started.md) guide, you'll already have enabled GitOps:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
-add files and subdirectory following the [rsa-public-crl example](../examples/rsa-public-crl/README.md)
+add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
 * apply Terraform
 
@@ -105,9 +104,12 @@ python utils/server-csr.py
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
 * run a query, searching for the Common Name
-<img src="images/dynamodb-test-server-cert.png" width="300">
+![Alt text](images/dynamodb-test-server-cert.png?raw=true "DynamoDB query")
+
 * select the issued certificate by clicking on the link
-<img src="images/dynamodb-test-server-cert-details.png" width="300">
+
+![Alt text](images/dynamodb-test-server-cert-details.png?raw=true "DynamoDB item details")
+
 * copy the certificate value, this is double Base64 encoded when viewed in the console
 
 **Decoding DynamoDB certificate (Linux / MacOS)**

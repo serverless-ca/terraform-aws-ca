@@ -1,0 +1,52 @@
+site_name: Serverless CA on AWS
+repo_name: serverless-ca/terraform-aws-ca
+repo_url: https://github.com/serverless-ca/terraform-aws-ca
+edit_uri: edit/main/docs/
+use_directory_urls: true
+theme:
+  name: material
+  icon:
+    logo: material/rocket-launch-outline
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+    - scheme: default
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - pymdownx.snippets
+    - navigation.footer
+    - toc.integrate
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+
+extra:
+  status:
+    new: Recently added
+    deprecated: Deprecated
+
+nav:
+  - Introduction: index.md
+  - Getting started: getting-started.md 
+  - Automation: automation.md
+  - CA Certificate locations: locations.md
+  - Client certificates: client-certificates.md
+  - Configuration options: options.md
+  - FAQs: faq.md
+  - Revocation: revocation.md
+  - Security: security.md
+  - Terraform reference: reference.md
+ 
+  

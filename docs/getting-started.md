@@ -1,7 +1,5 @@
 # Getting Started
 
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |
-
 ## Objectives
 By the end of this tutorial you will have:
 * created a serverless CA in your own AWS account
@@ -34,14 +32,14 @@ terraform apply
 
 To initialise the CA, in the AWS console, select Step Furnctions, and execute the CA workflow
 
-<img src="images/step-function.png" width="300">
+![Alt text](images/step-function.png?raw=true "CA Step Function")
 
 Alternatively wait for the next scheduled run of the Step Function which may take up to 24 hours
 
 ## View CA certificates and CRLs
 CA certificates and CRLs are available in the 'external' S3 bucket created by Terraform
 
-<img src="images/external-s3.png" width="400">
+![Alt text](images/external-s3.png?raw=true "External S3 bucket")
 
 * download the Root CA and issuing CA
 * import and trust both CA certificates
@@ -75,14 +73,14 @@ python utils/client-cert.py
 ## View client certificate
 View the client certificate `serverless-cert.crt` with your operating system cert viewer
 
-<img src="images/trusted-cert.png" width="300">
-<img src="images/cert-details.png" width="300">
-<img src="images/cert-chain.png" width="300">
+![Alt text](images/trusted-cert.png?raw=true "Client certificate")
+![Alt text](images/cert-details.png?raw=true "Client certificate details")
+![Alt text](images/cert-chain.png?raw=true "Client certificate chain")
 
 ## Create and view server certificate
 Create a server certificate with Subject Alternative Names
 ```
 python utils/server-cert.py
 ```
-<img src="images/server-cert-1.png" width="300">
-<img src="images/server-cert-2.png" width="300">
+![Alt text](images/server-cert-1.png?raw=true "Client certificate")
+![Alt text](images/server-cert-2.png?raw=true "Client certificate details")

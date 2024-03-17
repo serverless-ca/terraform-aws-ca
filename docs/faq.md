@@ -1,5 +1,4 @@
 # Frequently Asked Questions
-| [Home](index.md) | [Getting Started](getting-started.md) | [Client Certificates](client-certificates.md) | [CRL](revocation.md) | [CA Cert Locations](locations.md) | [Options](options.md) | [Automation](automation.md) | [Security](security.md) | [FAQ](faq.md) |  
 
 ### Can certificates only be used in AWS?
 No, certificates issued by the CA can be used anywhere.
@@ -25,7 +24,7 @@ It will also result in a Authority Information Access (AIA) extension being adde
 No, OSCP is not currently supported
 
 ### What algorithms can be used for the CAs?
-The following algorithms can be selected via Terraform [variables](../variables.tf):
+The following algorithms can be selected via Terraform [variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf):
 `RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521`
 
 ### How are the CA private keys protected?
