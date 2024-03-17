@@ -187,7 +187,7 @@ variable "s3_aws_principals" {
 }
 
 variable "schedule_expression" {
-  description = "Step function schedule in cron format, interval must be less than CRL lifetime"
+  description = "Step function schedule in cron format, interval should normally be the same as issuing_crl_days"
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 

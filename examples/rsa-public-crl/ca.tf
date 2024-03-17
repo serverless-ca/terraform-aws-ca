@@ -10,7 +10,6 @@ module "certificate_authority" {
   issuing_ca_info     = local.issuing_ca_info
   root_ca_info        = local.root_ca_info
   issuing_ca_key_spec = "RSA_4096"
-  issuing_crl_days    = 2 # temporary test
   root_ca_key_spec    = "RSA_4096"
   public_crl          = true
   cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
