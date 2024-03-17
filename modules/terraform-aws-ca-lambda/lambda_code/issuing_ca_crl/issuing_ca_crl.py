@@ -7,6 +7,10 @@ from utils.certs.s3 import s3_download, s3_upload
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import datetime
 import json
+import os
+
+issuing_crl_days = int(os.environ["ISSUING_CRL_DAYS"])
+issuing_crl_seconds = int(os.environ["ISSUING_CRL_SECONDS"])
 
 
 def build_list_of_revoked_certs():
@@ -47,7 +51,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     public_key = load_der_public_key(kms_get_public_key(kms_key_id))
 
     # issue CRL valid for one day 10 minutes
-    timedelta = datetime.timedelta(1, 600, 0)
+    timedelta = datetime.timedelta(issuing_crl_days, issuing_crl_seconds, 0)
     ca_key_info = crypto_ca_key_info(public_key, kms_key_id, ca_slug)
     crl = ca_kms_publish_crl(
         ca_key_info,
