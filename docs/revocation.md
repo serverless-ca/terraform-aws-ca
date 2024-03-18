@@ -46,17 +46,7 @@ add files and subdirectory following the [rsa-public-crl example](https://github
 * wait up to 24 hours, or manually execute the CA Step Function
 
 ## CRL publication frequency
-To avoid certificate validation errors, it's essential that the CRL publication interval is less than, or equal to, the CRL lifetime. This ensures there is always a valid CRL at any time.
-* CRLs are published once every 24 hours by default
-* CRLs can be published manually by executing the CA Step Function
-* Issuing CA and Root CA CRLs are publised at the same time
-* Publication frequency can be changed using the Terraform variable `schedule_expression`
-* Generally there should be no need to change this value from the default
+If required, the default CRL publication frequency of once per day can be changed, as described in [Configuration Options](./options.md#crl-publication-frequency)
 
 ## CRL lifetime
-To avoid certificate validation errors, it's essential that the CRL lifetime is equal to, or greater than, the publication interval. This ensures there is always a valid CRL at any time.
-* Issuing CA CRL lifetime can be adjusted using the Terraform variables `issuing_crl_days` and `issuing_crl_seconds`
-* `issuing_crl_days` should normally be identical to the interval configured in `schedule_expression`
-* `issuing_crl_seconds` is an additional time period used as an overlap in case of clock skew
-* Similarly, Root CA CRL lifetime can be adjusted using the Terraform variables `root_crl_days` and `root_crl_seconds`
- * Generally there should be no need to change these values from their defaults
+If required, the default CRL lifetime of 1 day plus a 600 seconds overlap period can be changed, as described in [Configuration Options](./options.md#crl-lifetime)
