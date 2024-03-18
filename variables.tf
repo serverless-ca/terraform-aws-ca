@@ -9,7 +9,7 @@ variable "aws_principals" {
 }
 
 variable "bucket_prefix" {
-  description = "first part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead"
+  description = "First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead"
   default     = ""
 }
 
