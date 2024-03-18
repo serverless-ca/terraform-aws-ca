@@ -1,7 +1,5 @@
 # Terraform module for Certificate Authority on AWS
 =========
-[![ECDSA CA build](https://github.com/serverless-ca/terraform-aws-ca/actions/workflows/ecdsa_default/badge.svg?branch=main)](https://github.com/serverless-ca/terraform-aws-ca/actions/workflows/ecdsa_default.yml)
-[![ECDSA CA build](https://github.com/serverless-ca/terraform-aws-ca/actions/workflows/rsa/badge.svg?branch=main)](https://github.com/serverless-ca/terraform-aws-ca/actions/workflows/rsa.yml)
 [![Apache License](https://img.shields.io/badge/License-Apache%20v2-green.svg)](https://github.com/serverless-ca/terraform-aws-ca/blob/main/LICENSE.md)
 
 
