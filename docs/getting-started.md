@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Objectives
-By the end of this tutorial you will have:
+By the end of this How-to guide you will have:
 * created a serverless CA in your own AWS account
 * viewed the Root CA, Issuing CA certificates and CRLs
 * issued a client certificate
