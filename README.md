@@ -1,5 +1,5 @@
 # Terraform module for Certificate Authority on AWS
-=========
+
 [![Apache License](https://img.shields.io/badge/License-Apache%20v2-green.svg)](https://github.com/serverless-ca/terraform-aws-ca/blob/main/LICENSE.md)
 
 
