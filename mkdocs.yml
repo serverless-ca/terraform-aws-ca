@@ -44,6 +44,7 @@ nav:
   - CA Certificate locations: locations.md
   - Client certificates: client-certificates.md
   - Configuration options: options.md
+  - Development: development.md
   - FAQs: faq.md
   - Revocation: revocation.md
   - Security: security.md
