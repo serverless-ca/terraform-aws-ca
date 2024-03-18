@@ -2,7 +2,7 @@
 =========
 ![ECDSA CA build](https://github.com/github/docs/actions/workflows/ecdsa.yml/badge.svg?branch=main)
 ![RSA CA build](https://github.com/github/docs/actions/workflows/ecdsa.yml/badge.svg?branch=main)
-[![Apache License](https://img.shields.io/badge/License-Apache%20v2-green.svg)](https://github.com/OWASP/Nettacker/blob/master/LICENSE)
+[![Apache License](https://img.shields.io/badge/License-Apache%20v2-green.svg)](https://github.com/serverless-ca/terraform-aws-ca/blob/main/LICENSE.md)
 
 
 * Serverless Certificate Authority typically $50 per year
