@@ -52,7 +52,7 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_access_logs"></a> [access\_logs](#input\_access\_logs) | Enable access logs for S3 buckets, requires log\_bucket variable to be set | `bool` | `false` | no |
 | <a name="input_aws_principals"></a> [aws\_principals](#input\_aws\_principals) | List of ARNs for AWS principals allowed to assume DynamoDB reader role or execute the tls\_cert lambda | `list` | `[]` | no |
-| <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | first part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
+| <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
 | <a name="input_cert_info_files"></a> [cert\_info\_files](#input\_cert\_info\_files) | List of file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
 | <a name="input_csr_files"></a> [csr\_files](#input\_csr\_files) | List of CSR file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
@@ -85,10 +85,10 @@
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ca_bundle_s3_location"></a> [ca\_bundle\_s3\_location](#output\_ca\_bundle\_s3\_location) | n/a |
-| <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | n/a |
-| <a name="output_issuing_ca_cert_s3_location"></a> [issuing\_ca\_cert\_s3\_location](#output\_issuing\_ca\_cert\_s3\_location) | n/a |
-| <a name="output_issuing_ca_crl_s3_location"></a> [issuing\_ca\_crl\_s3\_location](#output\_issuing\_ca\_crl\_s3\_location) | n/a |
-| <a name="output_root_ca_cert_s3_location"></a> [root\_ca\_cert\_s3\_location](#output\_root\_ca\_cert\_s3\_location) | n/a |
-| <a name="output_root_ca_crl_s3_location"></a> [root\_ca\_crl\_s3\_location](#output\_root\_ca\_crl\_s3\_location) | n/a |
+| <a name="output_ca_bundle_s3_location"></a> [ca\_bundle\_s3\_location](#output\_ca\_bundle\_s3\_location) | S3 location of CA bundle for use as a TrustStore |
+| <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | Domain name of CloudFront distribution used for public CRL |
+| <a name="output_issuing_ca_cert_s3_location"></a> [issuing\_ca\_cert\_s3\_location](#output\_issuing\_ca\_cert\_s3\_location) | S3 location of Issuing CA certificate file |
+| <a name="output_issuing_ca_crl_s3_location"></a> [issuing\_ca\_crl\_s3\_location](#output\_issuing\_ca\_crl\_s3\_location) | S3 location of Issuing CA CRL file |
+| <a name="output_root_ca_cert_s3_location"></a> [root\_ca\_cert\_s3\_location](#output\_root\_ca\_cert\_s3\_location) | S3 location of Root CA certificate file |
+| <a name="output_root_ca_crl_s3_location"></a> [root\_ca\_crl\_s3\_location](#output\_root\_ca\_crl\_s3\_location) | S3 location of Root CA CRL file |
 <!-- END_TF_DOCS -->
