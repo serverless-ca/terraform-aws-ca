@@ -1,5 +1,8 @@
 # Frequently Asked Questions
 
+### Where can I find the Terraform module?
+The Terraform module is published on the public [Terraform Registry](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest).
+
 ### Can certificates only be used in AWS?
 No, certificates issued by the CA can be used anywhere.
 
