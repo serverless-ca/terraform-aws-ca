@@ -15,7 +15,7 @@
 
 > 📄 Detailed documentation is on our [Docs](https://serverlessca.com) site. If testing the Serverless CA for the first time, use the [Getting Started](https://serverlessca.com/getting-started/) guide.
 
-> 📢 We welcome contributions! See the [Contributing Guide](CONTRIBUTING.md) for how to get started.
+> 📢 We welcome contributions! See the [Contributing Guide](https://github.com/serverless-ca/terraform-aws-ca/blob/main/CONTRIBUTING.md) for how to get started.
 
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
