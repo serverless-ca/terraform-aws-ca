@@ -20,4 +20,3 @@
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
 <a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/images/q-solution.png" /></a>
-https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/images/q-solution.png
