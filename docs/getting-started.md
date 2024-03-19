@@ -2,6 +2,7 @@
 
 ## Objectives
 By the end of this How-to guide you will have:
+
 * created a serverless CA in your own AWS account
 * viewed the Root CA, Issuing CA certificates and CRLs
 * issued a client certificate
@@ -19,7 +20,13 @@ A Root CA and Issuing CA will be deployed to your AWS account:
 * copy the [default example folder](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/default) to your laptop
 * make sure you include the `dev` subfolder and contents
 * update `backend.tf` to include your own S3 Terraform state bucket in the same AWS account
-* update `ca.tf` with the provider source address and latest version
+* update `ca.tf` with the terraform module source address and [latest version](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest), e.g.
+```
+module "certificate_authority" {
+  source  = "serverless-ca/ca/aws"
+  version = "0.1.0"
+}
+```
 * uncomment the other variables in `ca.tf`
 * uncomment `locals.tf` and enter your own company details
 ```
