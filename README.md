@@ -1,5 +1,7 @@
 # Terraform module for Certificate Authority on AWS
 
+[![Version](https://img.shields.io/github/v/release/serverless-ca/terraform-aws-ca)](https://github.com/serverless-ca/terraform-aws-ca/releases/tag/v0.1.0)
+[![Build](https://img.shields.io/github/actions/workflow/status/serverless-ca/terraform-aws-ca/.github%2Fworkflows%2Fecdsa_default.yml?branch=main)](https://github.com/serverless-ca/terraform-aws-ca/actions/workflows/ecdsa_default.yml)
 [![Apache License](https://img.shields.io/badge/License-Apache%20v2-green.svg)](https://github.com/serverless-ca/terraform-aws-ca/blob/main/LICENSE.md)
 
 * Serverless Certificate Authority typically $50 per year
