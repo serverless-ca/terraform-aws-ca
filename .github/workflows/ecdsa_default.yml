@@ -32,9 +32,11 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Terraform init
+        working-directory: ./examples/default
         run: terraform init -get -backend=false
 
       - name: Terraform validate
+        working-directory: ./examples/default
         run: terraform validate
 
   secret_scan:
