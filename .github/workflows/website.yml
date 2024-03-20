@@ -1,4 +1,4 @@
-name: Publish Website 
+name: Publish website 
 on:
   push:
     branches:
