@@ -1,0 +1,29 @@
+name: Terraform tests
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "**/*.tf"
+      - ".github/workflows/terraform.yml"
+
+jobs:
+  terraform_validate:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Terraform setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Terraform format
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init -get -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
