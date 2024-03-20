@@ -31,10 +31,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Terraform validate
-        id: fmt
+      - name: Terraform format
         run: terraform fmt -check -recursive
 
+      - name: Terraform init
+        run: terraform init -get -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+        
   secret_scan:
     name: Secret scan
     runs-on: ubuntu-latest
