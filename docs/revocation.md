@@ -1,6 +1,6 @@
 # Certificate Revocation
 
-![Alt text](images/crl.png?raw=true "Certificate Revocation List")
+![Certificate Revocation List](images/crl.png?raw=true)
 
 * Certificates can be revoked using a Certificate Revocation List (CRL)
 * Online Certificate Status Protocol (OCSP) is not supported
@@ -29,21 +29,20 @@ add files and subdirectory following the [rsa-public-crl example](https://github
 ## Revoking a certificate
 
 * identify serial number by inspecting the certificate, or looking up in DynamoDB table
-* add details of certificate to be revoked in `revoked.json` for relevant environment, e.g. `certs/dev/revoked.json`
+* add details of certificate to be revoked to the `revoked.json` list for relevant environment, e.g. `certs/dev/revoked.json`
 ```json
 [
   {
     "common_name" : "test-tls-cert.example.com",
-    "serial_number": "487548094217404552161959299244142788109493400485"
-  },
-  {
-    "common_name" : "test-tls-cert2.example.com",
-    "serial_number": "92003901754314702601432136351765805692836206995"
+    "serial_number": "400591262296335747457420220526770623344507066427"
   }
 ]
 ```
 * run the pipeline
 * wait up to 24 hours, or manually execute the CA Step Function
+* the revoked certificate can be viewed within the CRL:
+
+![Revoked certificate](images/crl-revoked.png?raw=true)
 
 ## CRL publication frequency
 If required, the default CRL publication frequency of once per day can be changed, as described in [Configuration Options](./options.md#crl-publication-frequency)
