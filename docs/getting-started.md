@@ -24,7 +24,7 @@ A Root CA and Issuing CA will be deployed to your AWS account:
 ```
 module "certificate_authority" {
   source  = "serverless-ca/ca/aws"
-  version = "0.1.0"
+  version = "1.0.0"
 }
 ```
 * uncomment the other variables in `ca.tf`
