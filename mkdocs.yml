@@ -60,4 +60,4 @@ plugins:
   - social:
       cards_layout_options:
         background_image: layouts/background-purple.png
-        background_color: transparent
+
