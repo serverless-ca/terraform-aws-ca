@@ -19,3 +19,6 @@ terraform.tfvars
 
 # MKDocs
 .cache/
+
+# MacOS
+.DS_Store
