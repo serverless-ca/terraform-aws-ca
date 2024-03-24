@@ -51,4 +51,8 @@ nav:
   - Terraform reference: reference.md
 
 plugins:
-  - social
+  - social:
+      cards_layout: default
+      cards_title: Serverless CA on AWS
+      cards_description: Terraform module for serverless Certificate Authority on AWS
+      logo: docs/images/cert-logo.png
