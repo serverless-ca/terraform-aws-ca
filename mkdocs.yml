@@ -44,7 +44,7 @@ extra:
       link: https://twitter.com/paulschwarzen
 
 nav:
-  - Introduction: index.md
+  - Home: index.md
   - Getting started: getting-started.md 
   - Automation: automation.md
   - CA Certificate locations: locations.md
