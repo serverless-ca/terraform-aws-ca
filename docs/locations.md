@@ -20,7 +20,7 @@ See [Revocation](revocation.md) for details of how to enable public CRLs and CA 
 * `project_name` is `serverless` and `environment` is either `dev` (not deployed, for illustration only) or `prod` (deployed)
 * environment suffix automatically omitted for `prod` or `prd` environment:
 
-![CRL distribution point](images/cdp.png?raw=true)
+![CRL distribution point](assets/images/cdp.png?raw=true)
 
 ## CRL Distribution Point (CDP)
 

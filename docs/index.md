@@ -11,9 +11,9 @@
 * Wide range of [configuration options](options.md)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
-![Alt text](images/ca-architecture-options.png?raw=true "CA architecture")
+![Alt text](assets/images/ca-architecture-options.png?raw=true "CA architecture")
 
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
-![Alt text](images/q-solution.png?raw=true "Q-Solution")
+![Alt text](assets/images/q-solution.png?raw=true "Q-Solution")

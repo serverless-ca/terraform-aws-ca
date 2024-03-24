@@ -6,7 +6,7 @@ The serverless CA can be deployed and updated using a CI/CD pipeline.
 
 For examples using GitHub Actions see one of the [test GitHub Actions workflows](https://github.com/serverless-ca/terraform-aws-ca/blob/main/.github/workflows/ecdsa_default.yml) within this repository, or the [Cloud CA deployment workflow](https://github.com/serverless-ca/cloud-ca/blob/main/.github/workflows/deploy.yml) shown below:
 
-![GitHub Actions workflow](images/deployment-workflow.png?raw=true)
+![GitHub Actions workflow](assets/images/deployment-workflow.png?raw=true)
 
 The principal steps are:
 
@@ -22,7 +22,7 @@ Further details are provided below:
 ## Caching Lambda zips
 So that Lambda functions only get rebuilt when needed, the Lambda package zip files are cached and can be viewed in the [GitHub Actions cache](https://github.com/serverless-ca/terraform-aws-ca/actions/caches):
 
-![Lambda zip cache](images/cache.png?raw=true)
+![Lambda zip cache](assets/images/cache.png?raw=true)
 
 To ensure Lambda functions are updated when needed, check the cache name includes source code hashes and the Python version.
 

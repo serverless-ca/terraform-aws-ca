@@ -1,6 +1,6 @@
 # Certificate Revocation
 
-![Certificate Revocation List](images/crl.png?raw=true)
+![Certificate Revocation List](assets/images/crl.png?raw=true)
 
 * Certificates can be revoked using a Certificate Revocation List (CRL)
 * Online Certificate Status Protocol (OCSP) is not supported
@@ -42,7 +42,7 @@ add files and subdirectory following the [rsa-public-crl example](https://github
 * wait up to 24 hours, or manually execute the CA Step Function
 * the revoked certificate can be viewed within the CRL:
 
-![Revoked certificate](images/crl-revoked.png?raw=true)
+![Revoked certificate](assets/images/crl-revoked.png?raw=true)
 
 ## CRL publication frequency
 If required, the default CRL publication frequency of once per day can be changed, as described in [Configuration Options](./options.md#crl-publication-frequency)

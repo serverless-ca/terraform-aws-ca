@@ -51,7 +51,7 @@ Not at this time, the only currently supported configuration is an Issuing CA an
 
 ### How did you work out the cost comparison with AWS Private CA?
 
-![Alt text](images/costs.png?raw=true "Typical CA costs")
+![Alt text](assets/images/costs.png?raw=true "Typical CA costs")
 
 The monthly AWS cost for the AWS accounts used for the CI/CD GitHub Actions tests of this repository are typically $3 without a hosted zone and CloudFront, and $4 with a hosted zone and CloudFront (above). Over 100 certificates are typically issued per month, due to the CI/CD tests. 
 

@@ -32,4 +32,4 @@ mkdocs serve
 ```
 view the web site locally at http://127.0.0.1:8000
 
-![Alt text](images/docs-development.png?raw=true "Docs development")
+![Alt text](assets/images/docs-development.png?raw=true "Docs development")

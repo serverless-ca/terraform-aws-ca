@@ -104,11 +104,11 @@ python utils/server-csr.py
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
 * run a query, searching for the Common Name
-![Alt text](images/dynamodb-test-server-cert.png?raw=true "DynamoDB query")
+![Alt text](assets/images/dynamodb-test-server-cert.png?raw=true "DynamoDB query")
 
 * select the issued certificate by clicking on the link
 
-![Alt text](images/dynamodb-test-server-cert-details.png?raw=true "DynamoDB item details")
+![Alt text](assets/images/dynamodb-test-server-cert-details.png?raw=true "DynamoDB item details")
 
 * copy the certificate value, this is double Base64 encoded when viewed in the console
 
