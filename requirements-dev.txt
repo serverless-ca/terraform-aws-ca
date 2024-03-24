@@ -1,3 +1,4 @@
+-r requirements-docs.txt
 setuptools==69.0.3
 assertpy==1.1
 boto3==1.34.64
@@ -7,8 +8,6 @@ asn1crypto == 1.5.1
 certvalidator == 0.11.1
 prospector==1.10.3
 bandit==1.7.5
-mkdocs-material==9.5.13
-mkdocs-material[imaging]==9.5.13
 pytest==7.4.4
 validators==0.22.0
 requests==2.31.0

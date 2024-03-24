@@ -8,6 +8,7 @@ edit_uri: edit/main/docs/
 use_directory_urls: true
 theme:
   name: material
+  logo: assets/images/cert-logo.svg
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
@@ -57,6 +58,4 @@ nav:
   - Terraform reference: reference.md
 
 plugins:
-  - social:
-      cards_layout_options:
-        background_image: layouts/background-purple.png
+  - social
