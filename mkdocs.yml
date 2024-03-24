@@ -38,6 +38,11 @@ extra:
   status:
     new: Recently added
     deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/serverless-ca/terraform-aws-ca
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/paulschwarzen
 
 nav:
   - Introduction: index.md
@@ -53,8 +58,4 @@ nav:
   - Terraform reference: reference.md
 
 plugins:
-  - social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/serverless-ca/terraform-aws-ca
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/paulschwarzen
+  - social
