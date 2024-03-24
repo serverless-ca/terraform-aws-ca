@@ -1,12 +1,13 @@
 site_name: Serverless CA on AWS
+site_description: Terraform module for serverless Certificate Authority on AWS
+site_author: Paul Schwarzenberger
+site_url: https://serverlessca.com
 repo_name: serverless-ca/terraform-aws-ca
 repo_url: https://github.com/serverless-ca/terraform-aws-ca
 edit_uri: edit/main/docs/
 use_directory_urls: true
 theme:
   name: material
-  icon:
-    logo: material/rocket-launch-outline
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
@@ -36,9 +37,14 @@ extra:
   status:
     new: Recently added
     deprecated: Deprecated
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/serverless-ca/terraform-aws-ca
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/paulschwarzen
 
 nav:
-  - Introduction: index.md
+  - Home: index.md
   - Getting started: getting-started.md 
   - Automation: automation.md
   - CA Certificate locations: locations.md
@@ -51,4 +57,6 @@ nav:
   - Terraform reference: reference.md
 
 plugins:
-  - social
+  - social:
+      cards_layout_options:
+        background_image: layouts/background-purple.png

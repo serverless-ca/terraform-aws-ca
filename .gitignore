@@ -1,11 +1,24 @@
-.terraform/
+# IDEs   
 *.code-workspace
 .idea
 .vs
-.venv
-*.src.zip
+
+# Lambda
+modules/terraform-aws-ca-lambda/build/
+
+# Python
 __pycache__
+.venv
+
+# Terraform
+.terraform/
 .terraform.lock.hcl
 .terraform.tfstate
 .terraform.tfstate.backup
 terraform.tfvars
+
+# MKDocs
+.cache/
+
+# MacOS
+.DS_Store

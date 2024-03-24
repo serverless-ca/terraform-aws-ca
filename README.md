@@ -11,7 +11,7 @@
 * Wide range of [configuration options](https://serverlessca.com/options/)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
-<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/images/ca-architecture-options.png" /></a>
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/ca-architecture-options.png" /></a>
 
 > 📄 Detailed documentation is on our [Docs](https://serverlessca.com) site. If testing the Serverless CA for the first time, use the [Getting Started](https://serverlessca.com/getting-started/) guide.
 
@@ -20,4 +20,4 @@
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
-<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/images/q-solution.png" /></a>
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/q-solution.png" /></a>
