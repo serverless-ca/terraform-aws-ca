@@ -8,8 +8,6 @@ edit_uri: edit/main/docs/
 use_directory_urls: true
 theme:
   name: material
-  icon:
-    logo: images/cert-logo.png
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
