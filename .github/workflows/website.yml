@@ -8,6 +8,7 @@ permissions:
   contents: write
 jobs:
   deploy:
+    name: Publish docs website
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
