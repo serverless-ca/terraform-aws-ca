@@ -9,7 +9,7 @@ use_directory_urls: true
 theme:
   name: material
   icon:
-    logo: docs/images/cert-logo.png
+    logo: images/cert-logo.png
   palette:
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
