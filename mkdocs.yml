@@ -59,4 +59,5 @@ nav:
 plugins:
   - social:
       cards_layout_options:
-        background_color: blue # Change background color
+        background_image: layouts/background-purple.png
+        background_color: transparent
