@@ -1,3 +1,7 @@
+---
+title: Terraform module for serverless CA on AWS
+description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cost typically under $5 per month
+---
 # Terraform module for Certificate Authority on AWS
 
 [![Version](https://img.shields.io/github/v/release/serverless-ca/terraform-aws-ca)](https://github.com/serverless-ca/terraform-aws-ca/releases/tag/v0.1.0)
