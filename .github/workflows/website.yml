@@ -4,8 +4,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+
 permissions:
   contents: write
+  id-token: write
+  pages: write
+  
 jobs:
   deploy:
     name: Publish docs website
