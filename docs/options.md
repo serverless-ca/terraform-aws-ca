@@ -2,7 +2,6 @@
 
 The serverless CA is highly configurable by adjusting values of Terraform variables in [variables.tf](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf). Principal configuration options:
 
-
 ## Revocation and GitOps
 By default, certificate revocation and GitOps are disabled. If you followed the [Getting Started](./getting-started.md) guide you'll already have enabled GitOps:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
