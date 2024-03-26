@@ -27,14 +27,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
-
-      - name: Set up cache 
-        uses: actions/cache@v4
-        with:
-          key: mkdocs-material-${{ hashfiles('docs/**') }}-${{ hashfiles('mkdocs.yml') }}
-          path: docs
-          restore-keys: |
-            mkdocs-material-
       
       - name: Install dependencies
         run: |
