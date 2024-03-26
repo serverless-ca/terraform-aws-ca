@@ -26,19 +26,25 @@ jobs:
       - name: Setup Python 
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
 
-      - name: Set up cache 
-        uses: actions/cache@v4
+      - name: Set up build cache
+        uses: actions/cache/restore@v4
         with:
-          key: mkdocs-material-${{ hashfiles('docs/**') }}-${{ hashfiles('mkdocs.yml') }}
-          path: docs
+          key: mkdocs-material-${{ hashfiles('.cache/**') }}
+          path: .cache
           restore-keys: |
             mkdocs-material-
-      
+
       - name: Install dependencies
         run: |
           pip install -r requirements-docs.txt
       
       - name: Deploy GitHub Pages
         run: mkdocs gh-deploy --force
+
+      - name: Save build cache
+        uses: actions/cache/save@v4
+        with:
+          key: mkdocs-material-${{ hashfiles('.cache/**') }}
+          path: .cache
