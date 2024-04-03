@@ -13,7 +13,7 @@ resource "null_resource" "install_python_dependencies" {
   provisioner "local-exec" {
     command = <<-EOT
       chmod +x ${path.module}/scripts/lambda-build/create-package.sh
-      ./${path.module}/scripts/lambda-build/create-package.sh
+      ${path.module}/scripts/lambda-build/create-package.sh
     EOT
 
     environment = {
