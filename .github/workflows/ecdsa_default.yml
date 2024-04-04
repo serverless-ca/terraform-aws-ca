@@ -121,6 +121,7 @@ jobs:
     # deletes Certificate Authority - only use for testing
     name: Delete all DynamoDB items
     runs-on: ubuntu-latest
+    environment: 'ecdsa'
     needs:
       - terraform_plan_apply
     permissions:
@@ -156,6 +157,7 @@ jobs:
   start_ca:
     name: Start CA
     runs-on: ubuntu-latest
+    environment: 'ecdsa'
     needs:
       - delete_dynamo_db_items
     permissions:
@@ -191,6 +193,7 @@ jobs:
   integration_tests:
     name: Integration Tests
     runs-on: ubuntu-latest
+    environment: 'ecdsa'
     needs: start_ca
     permissions:
       id-token: write
