@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "Executing create_package.sh..."
 
@@ -21,7 +21,7 @@ dir_name=$function_name/
 mkdir -p $path_cwd/build/$dir_name
 
 # Create and activate virtual environment...
-virtualenv -p $runtime $path_cwd/build/env_$function_name
+python3 -m venv $path_cwd/build/env_$function_name
 source $path_cwd/build/env_$function_name/bin/activate
 
 # Installing python dependencies...
