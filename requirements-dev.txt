@@ -8,6 +8,6 @@ asn1crypto == 1.5.1
 certvalidator == 0.11.1
 prospector==1.10.3
 bandit==1.7.5
-pytest==7.4.4
+pytest==8.2.0
 validators==0.28.1
 requests==2.31.0
