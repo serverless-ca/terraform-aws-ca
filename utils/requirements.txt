@@ -1,5 +1,5 @@
 asn1crypto == 1.5.1
-boto3==1.34.64
+boto3==1.34.93
 certvalidator == 0.11.1
 cryptography == 42.0.4
 validators==0.28.1
