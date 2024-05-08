@@ -17,7 +17,11 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 
 ![Alt text](assets/images/ca-architecture-options.png?raw=true "CA architecture")
 
-> 📖 Blog post on [Medium](https://medium.com/@paulschwarzenberger/open-source-cloud-certificate-authority-75609439dfe7)
+## Blog posts
+
+> 📖 [Open-source cloud Certificate Authority](https://medium.com/@paulschwarzenberger/open-source-cloud-certificate-authority-75609439dfe7)
+
+> 📖 [AWS Application Load Balancer mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7)
 
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)

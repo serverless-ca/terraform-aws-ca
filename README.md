@@ -15,9 +15,13 @@
 
 > 📄 Detailed documentation is on our [Docs](https://serverlessca.com) site. If testing the Serverless CA for the first time, use the [Getting Started](https://serverlessca.com/getting-started/) guide.
 
-> 📖 Blog post on [Medium](https://medium.com/@paulschwarzenberger/open-source-cloud-certificate-authority-75609439dfe7)
-
 > 📢 We welcome contributions! See the [Contributing Guide](https://github.com/serverless-ca/terraform-aws-ca/blob/main/CONTRIBUTING.md) for how to get started.
+
+## Blog posts
+
+> 📖 [Open-source cloud Certificate Authority](https://medium.com/@paulschwarzenberger/open-source-cloud-certificate-authority-75609439dfe7)
+
+> 📖 [AWS Application Load Balancer mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7)
 
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
