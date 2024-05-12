@@ -10,7 +10,7 @@ At re:Invent 2023 AWS [announced support](https://aws.amazon.com/blogs/aws/mutua
 
 We use our [open-source serverless cloud CA](https://serverlessca.com), a cost-effective, secure private CA which is straightforward to deploy as a Terraform module.
 
-# Deploy Application Load Balancer without authentication
+## Deploy Application Load Balancer without authentication
 
 We’ll start by setting up an Application Load Balancer open to the world. While we’d never actually do this for a confidential application, it’s useful to do so here for demonstration and learning purposes.
 
