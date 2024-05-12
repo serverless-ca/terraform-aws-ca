@@ -1,6 +1,6 @@
 # AWS Application Load Balancer mTLS with open-source cloud CA
 
-A step-by-step guide on implementing mTLS for AWS Application Load Balancer using our [open-source cloud CA](https://serverlessca.com).
+A step-by-step guide on implementing mTLS for AWS Application Load Balancer using our [open-source cloud CA](https://github.com/serverless-ca/terraform-aws-ca), also published as a [blog post](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7).
 
 ![Alt text](../assets/images/alb/alb-mtls.png?raw=true "ALB mTLS Architecture")
 
@@ -14,7 +14,7 @@ We use our [open-source serverless cloud CA](https://serverlessca.com), a cost-e
 
 We’ll start by setting up an Application Load Balancer open to the world. While we’d never actually do this for a confidential application, it’s useful to do so here for demonstration and learning purposes.
 
-> :warning: the environment you’re creating is relatively costly to run for long periods, so you may wish to complete the setup in one sitting and then destroy, as described at the end of this article
+> 💰💰💰 the environment you’re creating is relatively costly to run for long periods, so you may wish to complete the setup in one sitting and then destroy, as described at the end of this article
 
 ![Alt text](../assets/images/alb/alb-resources.png?raw=true "ALB Deployed Resources")
 
