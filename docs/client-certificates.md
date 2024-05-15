@@ -1,15 +1,18 @@
 # Client Certificates
 
 There are two methods available for requesting and issuing client certificates:
+
 * **Lambda** - certificates requested and issued by invoking a Lambda function
 * **GitOps** - certificates requested and issued via a GitOps workflow
 
 ## Lambda - developer testing
 
 **Example use case - developer testing**
+
 * A developer wishes to test mutual TLS from a laptop
 
 **Approach - developer testing**
+
 * Follow instructions at the end of [GettingStarted](getting-started.md)
 * Developer needs an IAM role with permissions to invoke the CA TLS Lambda function
 * Protect your private keys, e.g. on Linux / MacOS:
@@ -21,12 +24,14 @@ chmod 600 ~/certs/client-cert-key.pem
 ## Lambda - Amazon EKS or ECS
 
 **Example use case - Amazon EKS / ECS**
-* Client certificates for containers in Amazon EKS / ECS / Fargate 
+
+* Client certificates for containers in Amazon EKS / ECS / Fargate
 
 **Approach - Amazon ECS / EKS**
+
 * Create a Sidecar container based on [client-cert.py](https://github.com/serverless-ca/terraform-aws-ca/blob/main/utils/client-cert.py)
 * Requires role with permissions to invoke the CA TLS Lambda function
-* Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions
+* Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions 
 * They can then be mounted into the application container
 
 ## Purposes
@@ -54,24 +59,29 @@ If you specify `sans` these will take precedence over the common name.
 Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.
 
 ## GitOps
-**Example use case** 
-* External partner requires a certificate with a manual approval step  
+
+**Example use case**
+
+* External partner requires a certificate with a manual approval step
 
 **Example workflow**
+
 * External partner emails Certificate Signing Request (CSR) to internal team
 * Internal team adds the CSR to a new branch
 * Internal team creates and approves pull request (PR)
 * Merge PR to initiate CA pipeline
 * Certificate issued and published to DynamoDB table
 
-**Enable GitOps**  
+**Enable GitOps**
+
 If you followed the [Getting Started](getting-started.md) guide, you'll already have enabled GitOps:
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
-add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)
+* add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)  
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
 * apply Terraform
 
 **Adding CSR File to CA repository**
+
 * In the example below replace `dev` with your environment name
 * Set up a Python virtual environment as described in [Getting Started](getting-started.md)
 * Create a CSR
@@ -101,6 +111,7 @@ python utils/server-csr.py
 * certificates will be issued and can be downloaded from the DynamoDB table
 
 **Retrieving certificates from DynamoDB**
+
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
 * run a query, searching for the Common Name
@@ -113,6 +124,7 @@ python utils/server-csr.py
 * copy the certificate value, this is double Base64 encoded when viewed in the console
 
 **Decoding DynamoDB certificate (Linux / MacOS)**
+
 * Open terminal / command line
 * Overwrite placeholder with text from certificate field of DynamoDB item
 ```bash
@@ -120,6 +132,7 @@ echo CERT-TEXT-FROM-DYNAMODB-HERE | base64 --decode | base64 --decode > test-exa
 ```
 
 **Decoding DynamoDB certificate (Windows)**
+
 * Open Windows PowerShell ISE
 * Copy the script below into the editor
 * Overwrite placeholder with text from certificate field of DynamoDB item
