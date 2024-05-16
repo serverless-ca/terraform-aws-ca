@@ -589,7 +589,6 @@ def test_max_cert_lifetime():
     print(f"Issued certificate lifetime: {issued_cert_lifetime}")
 
     # Expected cert lifetime is max cert lifetime in days plus 5 minutes for clock skew
-
     expected_cert_lifetime = timedelta(days=max_cert_lifetime, minutes=5)
     print(f"Expected certificate lifetime: {expected_cert_lifetime}")
 
