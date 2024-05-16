@@ -52,7 +52,7 @@ To avoid certificate validation errors, it's essential that the CRL lifetime is 
 
  *Default setting (Issuing and Root CA CRLs): 1 day with a 600 second overlap period*
 
- ## Maximum certificate lifetime
+## Maximum certificate lifetime
 By default the maximum lifetime of an end entity certificate is set to 365 days.
 
 * If a certificate request is submitted with a greater lifetime, the issued certificate lifetime will be reduced to the maximum
