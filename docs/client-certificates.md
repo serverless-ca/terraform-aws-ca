@@ -75,6 +75,7 @@ Only valid domains will be included in the Subject Alternative Name X.509 certif
 **Enable GitOps**
 
 If you followed the [Getting Started](getting-started.md) guide, you'll already have enabled GitOps:
+
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
 * add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)  
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`

@@ -4,6 +4,7 @@ The serverless CA is highly configurable by adjusting values of Terraform variab
 
 ## Revocation and GitOps
 By default, certificate revocation and GitOps are disabled. If you followed the [Getting Started](./getting-started.md) guide you'll already have enabled GitOps:
+
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
 add files and subdirectory following [the rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
@@ -31,6 +32,7 @@ CloudWatch log subscription filters can be used to send log events to a central 
 
 ## CRL publication frequency
 To avoid certificate validation errors, it's essential that the CRL publication interval is less than, or equal to, the CRL lifetime. This ensures there is always a valid CRL at any time.
+
 * CRLs are published once every 24 hours by default
 * CRLs can be published manually by executing the CA Step Function
 * Issuing CA and Root CA CRLs are publised at the same time
@@ -41,6 +43,7 @@ To avoid certificate validation errors, it's essential that the CRL publication 
 
 ## CRL lifetime
 To avoid certificate validation errors, it's essential that the CRL lifetime is equal to, or greater than, the publication interval. This ensures there is always a valid CRL at any time.
+
 * Issuing CA CRL lifetime can be adjusted using the Terraform variables `issuing_crl_days` and `issuing_crl_seconds`
 * `issuing_crl_days` should normally be identical to the interval configured in `schedule_expression`
 * `issuing_crl_seconds` is an additional time period used as an overlap in case of clock skew
@@ -48,4 +51,12 @@ To avoid certificate validation errors, it's essential that the CRL lifetime is 
  * Generally there should be no need to change these values from their defaults
 
  *Default setting (Issuing and Root CA CRLs): 1 day with a 600 second overlap period*
+
+ ## Maximum certificate lifetime
+By default the maximum lifetime of an end entity certificate is set to 365 days.
+
+* If a certificate request is submitted with a greater lifetime, the issued certificate lifetime will be reduced to the maximum
+* This value can be configured using the `max_cert_lifetime` Terraform variable
+
+ *Default setting: 365 days*
  

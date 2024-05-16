@@ -11,6 +11,7 @@ CRLs are published to `external` S3 bucket, not directly accessible from public 
 To publish publicly, set `public_crl` to `true` and provide `hosted_zone_id` and `hosted_zone_name` in [Terraform variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf).
 
 Applying Terraform will result in:
+
 * CRLs published to a public URL via CloudFront
 * CA certificates published to a public URL via CloudFront
 * CRL Distribution Point (CDP) extension added to certificates
@@ -21,6 +22,7 @@ CRL locations are detailed in [CA Cert Locations](locations.md)
 
 ## Enable certificate revocation
 CRLs are always published, however the ability to revoke a certificate needs to be enabled. If you followed the [Getting Started](getting-started.md) guide, you'll already have done this:
+
 * add a subdirectory to your repository with the same name as the value of the Terraform variable `env`, e.g. `dev`, `prd`
 add files and subdirectory following the [rsa-public-crl example](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md)
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`

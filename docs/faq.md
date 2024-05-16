@@ -36,6 +36,7 @@ The AWS KMS service is [certified to FIPS 140-2 Level 3](https://aws.amazon.com/
 
 ### What's the default configuration for the CA?
 The default configuration is:
+
 * `ECC_NIST_P256` for Issuing CA key, `ECC_NIST_P384` Root CA key
 * 10 year lifetime for Issuing CA, 20 year lifetime for Root CA
 * No public CRLs

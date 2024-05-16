@@ -55,6 +55,7 @@ resource "aws_lambda_function" "lambda" {
       ISSUING_CA_INFO     = jsonencode(var.issuing_ca_info)
       ISSUING_CRL_DAYS    = tostring(var.issuing_crl_days)
       ISSUING_CRL_SECONDS = tostring(var.issuing_crl_seconds)
+      MAX_CERT_LIFETIME   = tostring(var.max_cert_lifetime)
       PROJECT             = var.project
       PUBLIC_CRL          = local.public_crl
       ROOT_CA_INFO        = jsonencode(var.root_ca_info)

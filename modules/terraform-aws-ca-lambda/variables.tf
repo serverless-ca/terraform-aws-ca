@@ -60,6 +60,11 @@ variable "logging_account_id" {
   default     = ""
 }
 
+variable "max_cert_lifetime" {
+  description = "Maximum end entity certificate lifetime in days"
+  default     = 365
+}
+
 variable "memory_size" {
   description = "Memory allocation for scanning Lambda functions"
   default     = 128

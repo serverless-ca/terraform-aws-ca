@@ -274,6 +274,7 @@ module "rsa_tls_cert_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
+  max_cert_lifetime               = var.max_cert_lifetime 
   allowed_invocation_principals   = var.aws_principals
 }
 

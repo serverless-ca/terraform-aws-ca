@@ -19,6 +19,7 @@ from utils.certs.crypto import crypto_select_class, crypto_hash_algorithm, crypt
 domain = os.environ.get("DOMAIN")
 env_name = os.environ["ENVIRONMENT_NAME"]
 issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
+max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
 project = os.environ["PROJECT"]
 public_crl = os.environ["PUBLIC_CRL"]
 root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
@@ -187,6 +188,10 @@ def ca_kms_sign_tls_certificate_request(
     x509_dns_names = cert_request_info["x509Sans"]
     lifetime = cert_request_info["Lifetime"]
     purposes = cert_request_info["Purposes"]
+
+    # reduce lifetime to maximum allowed if needed
+    if lifetime > max_cert_lifetime:
+        lifetime = max_cert_lifetime
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
