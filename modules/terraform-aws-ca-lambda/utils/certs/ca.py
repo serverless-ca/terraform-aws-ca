@@ -190,8 +190,7 @@ def ca_kms_sign_tls_certificate_request(
     purposes = cert_request_info["Purposes"]
 
     # reduce lifetime to maximum allowed if needed
-    if lifetime > max_cert_lifetime:
-        lifetime = max_cert_lifetime
+    lifetime = min(lifetime, max_cert_lifetime)
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
