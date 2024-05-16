@@ -1,6 +1,6 @@
 from assertpy import assert_that
 import base64
-from datetime import datetime, timedelta
+from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.backends import default_backend
@@ -478,15 +478,12 @@ def test_issued_cert_lifetime_as_expected():
     """
     Test issued certification with no passphrase has expected lifetime
     """
-    common_name = "pipeline-test-dn-csr-no-passphrase.example.com"
+    common_name = "pipeline-test-cert-lifetime.example.com"
     country = "GB"
     locality = "London"
     organization = "Acme Inc"
     organizational_unit = "Animation Department"
     state = "England"
-    expected_subject = (
-        "ST=England,OU=Animation Department,O=Acme Inc,L=London,C=GB,CN=pipeline-test-dn-csr-no-passphrase.example.com"
-    )
     purposes = ["client_auth", "server_auth"]
 
     # Get KMS details for key generation KMS key
@@ -530,6 +527,70 @@ def test_issued_cert_lifetime_as_expected():
 
     # Expected cert lifetime is lifetime in days plus 5 minutes for clock skew
     expected_cert_lifetime = timedelta(days=json_data["lifetime"], minutes=5)
+    print(f"Expected certificate lifetime: {expected_cert_lifetime}")
+
+    # Assert that issued certificate lifetime is as expected
+    assert_that(issued_cert_lifetime).is_equal_to(expected_cert_lifetime)
+
+
+def test_max_cert_lifetime():
+    """
+    Test maximum certificate lifetime
+    """
+    common_name = "pipeline-test-max-cert-lifetime.example.com"
+    country = "GB"
+    locality = "London"
+    organization = "Acme Inc"
+    organizational_unit = "Animation Department"
+    state = "England"
+    purposes = ["client_auth"]
+
+    max_cert_lifetime = 365
+
+    # Get KMS details for key generation KMS key
+    key_alias, kms_arn = get_kms_details("-tls-keygen")
+    print(f"Generating key pair using KMS key {key_alias}")
+
+    # Generate key pair using KMS key to ensure randomness
+    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+
+    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
+
+    # Generate Certificate Signing Request
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    # Construct JSON data to pass to Lambda function
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "purposes": purposes,
+        "base64_csr_data": base64_csr_data,
+        "lifetime": 500,
+        "force_issue": True,
+        "cert_bundle": True,
+    }
+
+    print(f"Requested certificate lifetime: {json_data['lifetime']} days")
+
+    # Identify TLS certificate Lambda function
+    function_name = get_lambda_name("-tls")
+    print(f"Invoking Lambda function {function_name}")
+
+    # Invoke TLS certificate Lambda function
+    response = invoke_lambda(function_name, json_data)
+
+    # extract certificate from response including bundled certificate chain
+    base64_cert_data = response["Base64Certificate"]
+    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+
+    # calculate issued certificate lifetime
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    issued_cert_lifetime = issued_cert.not_valid_after_utc - issued_cert.not_valid_before_utc
+    print(f"Issued certificate lifetime: {issued_cert_lifetime}")
+
+    # Expected cert lifetime is max cert lifetime in days plus 5 minutes for clock skew
+
+    expected_cert_lifetime = timedelta(days=max_cert_lifetime, minutes=5)
     print(f"Expected certificate lifetime: {expected_cert_lifetime}")
 
     # Assert that issued certificate lifetime is as expected
