@@ -26,7 +26,7 @@ ISSUING_CA_INFO=$(jq -n '{}')
 export ISSUING_CA_INFO
 export ISSUING_CRL_DAYS="1"
 export ISSUING_CRL_SECONDS="600"
-export ISSUING_MAX_CERT_LIFETIME="365"
+export MAX_CERT_LIFETIME="365"
 export PROJECT="serverless"
 ROOT_CA_INFO=$(jq -n '{country: "GB", state: "London", lifetime: 7300, locality: "London", organization: "serverless", organizationalUnit: "Security Operations", commonName: "Serverless Development Root CA", emailAddress: "secops@example.com", pathLengthConstraint: 1}')
 export ROOT_CA_INFO
@@ -54,7 +54,7 @@ ISSUING_CA_INFO=$(jq -n '{country: "GB", state: "London", lifetime: 3650, locali
 export ISSUING_CA_INFO
 export ISSUING_CRL_DAYS="1"
 export ISSUING_CRL_SECONDS="600"
-export ISSUING_MAX_CERT_LIFETIME="365"
+export MAX_CERT_LIFETIME="365"
 export PROJECT="serverless"
 export PUBLIC_CRL="disabled"
 ROOT_CA_INFO=$(jq -n '{}')
@@ -102,7 +102,7 @@ $Env:INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-dev"
 $Env:ISSUING_CA_INFO=(@{} | ConvertTo-Json)
 $Env:ISSUING_CRL_DAYS="1"
 $Env:ISSUING_CRL_SECONDS="600"
-$Env:ISSUING_MAX_CERT_LIFETIME="365"
+$Env:MAX_CERT_LIFETIME="365"
 $Env:PROJECT="serverless"
 $Env:ROOT_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 7300; locality = "London"; organization = "serverless"; organizationalUnit = "Security Operations"; commonName = "Serverless Development Root CA"; emailAddress = "secops@example.com"; pathLengthConstraint = 1} | ConvertTo-Json)
 $Env:ROOT_CRL_DAYS="1"
@@ -127,7 +127,7 @@ $Env:INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-dev"
 $Env:ISSUING_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 3650; locality = "London"; organization = "serverless"; organizationalUnit = "Security Operations"; commonName = "Serverless Development Issuing CA"; emailAddress = "secops@example.com"; pathLengthConstraint = 0} | ConvertTo-Json)
 $Env:ISSUING_CRL_DAYS="1"
 $Env:ISSUING_CRL_SECONDS="600"
-$Env:ISSUING_MAX_CERT_LIFETIME="365"
+$Env:MAX_CERT_LIFETIME="365"
 $Env:PROJECT="serverless"
 $Env:PUBLIC_CRL="enabled"
 $Env:ROOT_CA_INFO=(@{} | ConvertTo-Json)
