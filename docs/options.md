@@ -48,7 +48,7 @@ To avoid certificate validation errors, it's essential that the CRL lifetime is 
 * `issuing_crl_days` should normally be identical to the interval configured in `schedule_expression`
 * `issuing_crl_seconds` is an additional time period used as an overlap in case of clock skew
 * Similarly, Root CA CRL lifetime can be adjusted using the Terraform variables `root_crl_days` and `root_crl_seconds`
- * Generally there should be no need to change these values from their defaults
+* Generally there should be no need to change these values from their defaults
 
  *Default setting (Issuing and Root CA CRLs): 1 day with a 600 second overlap period*
 
