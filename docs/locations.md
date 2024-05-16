@@ -15,6 +15,7 @@ If you choose to publish CRLs and CA certificates:
 See [Revocation](revocation.md) for details of how to enable public CRLs and CA certs.
 
 ## Example locations
+
 * locations below for an [example deployment](https://github.com/serverless-ca/terraform-aws-ca/blob/main/examples/rsa-public-crl/README.md) in the [terraform-aws-ca](https://github.com/q-solution/terraform-aws-ca) repository.
 * infrastructure deployed by a [GitHub Actions test workflow](https://github.com/serverless-ca/terraform-aws-ca/blob/main/.github/workflows/rsa_public_crl.yml) in the [terraform-aws-ca](https://github.com/q-solution/terraform-aws-ca) repository.
 * `project_name` is `serverless` and `environment` is either `dev` (not deployed, for illustration only) or `prod` (deployed)

@@ -67,6 +67,7 @@
 | <a name="input_kms_key_alias"></a> [kms\_key\_alias](#input\_kms\_key\_alias) | KMS key alias for bucket encryption, if left at default, TLS key gen KMS key will be used | `string` | `""` | no |
 | <a name="input_log_bucket"></a> [log\_bucket](#input\_log\_bucket) | Name of log bucket, if access\_logs variable set to true | `string` | `""` | no |
 | <a name="input_logging_account_id"></a> [logging\_account\_id](#input\_logging\_account\_id) | AWS Account ID of central logging account for CloudWatch subscription filters | `string` | `""` | no |
+| <a name="input_max_cert_lifetime"></a> [max\_cert\_lifetime](#input\_max\_cert\_lifetime) | Maximum end entity certificate lifetime in days | `number` | `365` | no |
 | <a name="input_memory_size"></a> [memory\_size](#input\_memory\_size) | Standard memory allocation for Lambda functions | `number` | `128` | no |
 | <a name="input_prod_envs"></a> [prod\_envs](#input\_prod\_envs) | List of production environment names, used in outputs.tf | `list` | <pre>[<br>  "prd",<br>  "prod"<br>]</pre> | no |
 | <a name="input_project"></a> [project](#input\_project) | abbreviation for the project, forms first part of resource names | `string` | `"serverless"` | no |

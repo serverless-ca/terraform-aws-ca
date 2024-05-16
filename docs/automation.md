@@ -34,6 +34,7 @@ The Start CA job forces an immediate execution of the AWS Step Function. If this
 
 ## Integration Tests
 Integration tests include:
+
 * certificate issued with no passphrase
 * issued cert only includes client auth extension
 * certificate issued with passphrase
@@ -43,6 +44,7 @@ Integration tests include:
 * certificate issued without SAN if common name invalid 
 
 To reduce the risk of test certificates and keys being compromised and then used to access your environment, test certificates are:
+
 * not saved to disk on the GitHub Actions runner
 * short lifetime (1 day)
 
