@@ -65,46 +65,22 @@ def ca_construct_subject_name(ca_info, ca_hierarchy_type="root"):
     return x509.Name(attributes)
 
 
-def tls_cert_construct_subject_name(csr_cert, cert_request_info):  # pylint:disable=too-many-branches
+def get_subject_attribute_or_none(csr_cert, attribute):
+    if csr_cert.subject.get_attributes_for_oid(attribute):
+        return csr_cert.subject.get_attributes_for_oid(attribute)[0].value
+    return None
+
+
+def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     """Constructs subject name for end entity certificate"""
     # subject values from CSR
     common_name = csr_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-
-    # get country attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.COUNTRY_NAME):
-        country = csr_cert.subject.get_attributes_for_oid(NameOID.COUNTRY_NAME)[0].value
-    else:
-        country = None
-
-    # get email attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.EMAIL_ADDRESS):
-        email_address = csr_cert.subject.get_attributes_for_oid(NameOID.EMAIL_ADDRESS)[0].value
-    else:
-        email_address = None
-
-    # get state attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.STATE_OR_PROVINCE_NAME):
-        state = csr_cert.subject.get_attributes_for_oid(NameOID.STATE_OR_PROVINCE_NAME)[0].value
-    else:
-        state = None
-
-    # get locality attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.LOCALITY_NAME):
-        locality = csr_cert.subject.get_attributes_for_oid(NameOID.LOCALITY_NAME)[0].value
-    else:
-        locality = None
-
-    # get organization attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME):
-        organization = csr_cert.subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
-    else:
-        organization = None
-
-    # get organizational unit attribute if present
-    if csr_cert.subject.get_attributes_for_oid(NameOID.ORGANIZATIONAL_UNIT_NAME):
-        organizational_unit = csr_cert.subject.get_attributes_for_oid(NameOID.ORGANIZATIONAL_UNIT_NAME)[0].value
-    else:
-        organizational_unit = None
+    country = get_subject_attribute_or_none(csr_cert, NameOID.COUNTRY_NAME)
+    email_address = get_subject_attribute_or_none(csr_cert, NameOID.EMAIL_ADDRESS)
+    locality = get_subject_attribute_or_none(csr_cert, NameOID.LOCALITY_NAME)
+    state = get_subject_attribute_or_none(csr_cert, NameOID.STATE_OR_PROVINCE_NAME)
+    organization = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATION_NAME)
+    organizational_unit = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATIONAL_UNIT_NAME)
 
     # overwrite subject values from CSR with cert_request_info values if present
     common_name = cert_request_info.get("CommonName") or common_name
