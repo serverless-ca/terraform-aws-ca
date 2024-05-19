@@ -102,4 +102,6 @@ def test_certificate_revoked():
         delete_s3_object(internal_bucket_name, "revoked.json")
 
     # Check that certificate has been revoked
-    assert_that(crl.get_revoked_certificate_by_serial_number(int(serial_number))).is_not_none()
+    assert_that(crl.get_revoked_certificate_by_serial_number(int(serial_number)).serial_number).is_equal_to(
+        int(serial_number)
+    )
