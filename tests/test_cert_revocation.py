@@ -54,8 +54,8 @@ def test_certificate_revoked():
     internal_bucket_name = get_s3_bucket()
 
     # Get CRL before revocation
-    crl_name = function_name.replace("tls-cert", "issuing-ca")
-    crl_file_name = f"{crl_name}.crl"
+    objects = list_s3_object_keys(external_bucket_name)
+    crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
     print(f"Retrieved CRL {crl_file_name} with {len(crl)} revoked certificates")
