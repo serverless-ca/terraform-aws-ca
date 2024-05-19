@@ -104,4 +104,4 @@ Include the subject values you wish to override in the certificate request JSON.
 The default setting for CRL lifetime of 1 day should be appropriate for most use cases. However, the Issuing CA CRL lifetime, Root CA CRL lifetime, and publication frequency can be adjusted as detailed in [Revocation](revocation.md#crl-lifetime).
 
 ### Can the CA be used for Application Load Balancer mTLS?
-A walkthrough with configuration of certificate authentication for AWS Application Load Balancer is provided in [this blog post](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7).
+A walkthrough with configuration of certificate authentication for AWS Application Load Balancer is provided in [Getting Started Guides](https://serverlessca.com/how-to-guides/alb/) and [this blog post](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7).
