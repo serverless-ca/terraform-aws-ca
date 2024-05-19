@@ -44,3 +44,12 @@ def put_s3_object(bucket_name, kms_arn, key, data, encryption_algorithm="aws:kms
     s3_client.put_object(
         Bucket=bucket_name, SSEKMSKeyId=kms_arn, ServerSideEncryption=encryption_algorithm, Key=key, Body=data
     )
+
+
+def delete_s3_object(bucket_name, key):
+    """
+    Delete object from S3
+    """
+
+    s3_client = boto3.client("s3")
+    s3_client.delete_object(Bucket=bucket_name, Key=key)

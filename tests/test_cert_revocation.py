@@ -7,7 +7,7 @@ from utils.modules.certs.crypto import crypto_tls_cert_signing_request, create_c
 from utils.modules.certs.kms import kms_generate_key_pair
 from utils.modules.aws.kms import get_kms_details
 from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
-from utils.modules.aws.s3 import get_s3_bucket, get_s3_object, list_s3_object_keys, put_s3_object
+from utils.modules.aws.s3 import delete_s3_object, get_s3_bucket, get_s3_object, list_s3_object_keys, put_s3_object
 
 
 def test_certificate_revoked():
@@ -62,11 +62,13 @@ def test_certificate_revoked():
 
     # Get revoked certificate JSON data
     if "revoked.json" in list_s3_object_keys(internal_bucket_name):
+        gitops = True
         revoked_json = json.loads(get_s3_object(internal_bucket_name, "revoked.json"))
         print(f"Downloaded revoked.json from {internal_bucket_name} with {len(revoked_json)} revoked certificates")
 
     else:
         print("No revoked.json found in S3 bucket")
+        gitops = False
         revoked_json = []
 
     # Add certificate to revoked list
@@ -93,6 +95,11 @@ def test_certificate_revoked():
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
     print(f"Retrieved CRL {crl_file_name} with {len(crl)} revoked certificates")
+
+    # Delete revoked.json S3 object if GitOps is not enabled
+    if not gitops:
+        print(f"Deleting revoked.json from S3 bucket {internal_bucket_name}")
+        delete_s3_object(internal_bucket_name, "revoked.json")
 
     # Check that certificate has been revoked
     assert_that(crl.get_revoked_certificate_by_serial_number(int(serial_number))).is_not_none()
