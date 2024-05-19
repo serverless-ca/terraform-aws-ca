@@ -16,6 +16,7 @@ from utils.modules.aws.kms import get_kms_details
 from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
 from utils.modules.aws.s3 import get_s3_bucket, put_s3_object
 
+
 def test_cert_issued_no_passphrase():
     """
     Test certificate issued from a Certificate Signing Request with no passphrase
