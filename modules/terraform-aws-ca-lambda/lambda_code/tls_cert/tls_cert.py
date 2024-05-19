@@ -27,11 +27,7 @@ def sign_tls_certificate(csr, ca_name, csr_info_1, csr_info_2):
     issuing_ca_kms_key_id = kms_get_kms_key_id(ca_name)
 
     # collect Certificate Request info
-    common_name = csr_info_1["commonName"]
-    lifetime = csr_info_2["lifetime"]
-    purposes = csr_info_2["purposes"]
-    sans = csr_info_2["sans"]
-    cert_request_info = crypto_cert_request_info(csr, common_name, lifetime, purposes, sans)
+    cert_request_info = crypto_cert_request_info(csr, csr_info_1, csr_info_2)
 
     # sign certificate
     return ca_kms_sign_tls_certificate_request(
@@ -125,8 +121,8 @@ def create_csr_info_1(common_name, locality=None, organization=None, organizatio
     }
 
 
-def create_csr_info_2(lifetime, email_address=None, purposes=None, sans=None):
-    return {"lifetime": lifetime, "emailAddress": email_address, "sans": sans, "purposes": purposes}
+def create_csr_info_2(lifetime, email_address=None, purposes=None, sans=None, state=None):
+    return {"lifetime": lifetime, "emailAddress": email_address, "sans": sans, "purposes": purposes, "state": state}
 
 
 def get_csr_info(event):
@@ -139,9 +135,10 @@ def get_csr_info(event):
     organizational_unit = event.get("organizational_unit")  # string, organizational unit name
     purposes = event.get("purposes")  # list of strings, e.g. ["client_auth", "server_auth"]
     sans = event.get("sans")  # list of strings, DNS Subject Alternative Names
+    state = event.get("state")  # string, state or province
 
     return create_csr_info_1(common_name, locality, organization, organizational_unit, country), create_csr_info_2(
-        int(lifetime), email_address, purposes, sans
+        int(lifetime), email_address, purposes, sans, state
     )
 
 

@@ -65,6 +65,55 @@ def ca_construct_subject_name(ca_info, ca_hierarchy_type="root"):
     return x509.Name(attributes)
 
 
+def get_subject_attribute_or_none(csr_cert, attribute):
+    if csr_cert.subject.get_attributes_for_oid(attribute):
+        return csr_cert.subject.get_attributes_for_oid(attribute)[0].value
+    return None
+
+
+def tls_cert_construct_subject_name(csr_cert, cert_request_info):
+    """Constructs subject name for end entity certificate"""
+    # subject values from CSR
+    common_name = csr_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+    country = get_subject_attribute_or_none(csr_cert, NameOID.COUNTRY_NAME)
+    email_address = get_subject_attribute_or_none(csr_cert, NameOID.EMAIL_ADDRESS)
+    locality = get_subject_attribute_or_none(csr_cert, NameOID.LOCALITY_NAME)
+    state = get_subject_attribute_or_none(csr_cert, NameOID.STATE_OR_PROVINCE_NAME)
+    organization = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATION_NAME)
+    organizational_unit = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATIONAL_UNIT_NAME)
+
+    # overwrite subject values from CSR with cert_request_info values if present
+    common_name = cert_request_info.get("CommonName") or common_name
+    country = cert_request_info.get("Country") or country
+    email_address = cert_request_info.get("EmailAddress") or email_address
+    state = cert_request_info.get("State") or state
+    locality = cert_request_info.get("Locality") or locality
+    organization = cert_request_info.get("Organization") or organization
+    organizational_unit = cert_request_info.get("OrganizationalUnit") or organizational_unit
+
+    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+
+    if country:
+        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
+
+    if email_address:
+        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
+
+    if locality:
+        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
+
+    if organization:
+        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
+
+    if organizational_unit:
+        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
+
+    if state:
+        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
+
+    return x509.Name(attributes)
+
+
 def ca_kms_sign_ca_certificate_request(
     csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
@@ -138,7 +187,10 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_build_cert(csr_cert, ca_cert, lifetime, delta, purposes):
+def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
+    purposes = cert_request_info["Purposes"]
+
+    x509_subject = tls_cert_construct_subject_name(csr_cert, cert_request_info)
 
     extended_key_usage_oids = []
     for purpose in purposes:
@@ -149,7 +201,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, purposes):
 
     return (
         x509.CertificateBuilder()
-        .subject_name(csr_cert.subject)
+        .subject_name(x509_subject)
         .issuer_name(ca_cert.subject)
         .public_key(csr_cert.public_key())
         .serial_number(x509.random_serial_number())
@@ -187,14 +239,13 @@ def ca_kms_sign_tls_certificate_request(
     csr_cert = cert_request_info["CsrCert"]
     x509_dns_names = cert_request_info["x509Sans"]
     lifetime = cert_request_info["Lifetime"]
-    purposes = cert_request_info["Purposes"]
 
     # reduce lifetime to maximum allowed if needed
     lifetime = min(lifetime, max_cert_lifetime)
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
-    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta, purposes)
+    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info)
 
     if len(x509_dns_names) > 0:
         cert = cert.add_extension(

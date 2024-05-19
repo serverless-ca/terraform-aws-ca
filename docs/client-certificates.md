@@ -110,6 +110,7 @@ python utils/server-csr.py
 * apply Terraform
 * start the CA Step Function
 * certificates will be issued and can be downloaded from the DynamoDB table
+* subject details entered in JSON e.g. `Organization`, `Locality` override those included in CSR
 
 **Retrieving certificates from DynamoDB**
 

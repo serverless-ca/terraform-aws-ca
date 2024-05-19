@@ -14,6 +14,7 @@ from utils.modules.certs.crypto import (
 from utils.modules.certs.kms import kms_generate_key_pair
 from utils.modules.aws.kms import get_kms_details
 from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
+from utils.modules.aws.s3 import get_s3_bucket, put_s3_object
 
 
 def test_cert_issued_no_passphrase():
@@ -594,3 +595,68 @@ def test_max_cert_lifetime():
 
     # Assert that issued certificate lifetime is as expected
     assert_that(issued_cert_lifetime).is_equal_to(expected_cert_lifetime)
+
+
+def test_csr_uploaded_to_s3():
+    """
+    Test certificate issued from CSR uploaded to S3
+    """
+    common_name = "pipeline-test-csr-s3-upload"
+    country = "GB"
+    locality = "London"
+    organization = "Acme Inc"
+    organizational_unit = "Animation Department"
+    state = "England"
+
+    # Override certain values in CSR using JSON
+    override_locality = "Override CSR Location"
+    override_organization = "Override CSR Org"
+
+    expected_subject = f"ST={state},OU={organizational_unit},O={override_organization},L={override_locality},C={country},CN={common_name}"
+
+    # Get KMS details for key generation KMS key
+    key_alias, kms_arn = get_kms_details("-tls-keygen")
+    print(f"Generating key pair using KMS key {key_alias}")
+
+    # Generate key pair using KMS key to ensure randomness
+    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+
+    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
+
+    # Generate Certificate Signing Request
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    # Identify S3 bucket and KMS key for CSR upload
+    bucket_name = get_s3_bucket()
+    kms_arn = get_kms_details("-tls-keygen")[1]
+
+    # Upload CSR to S3 bucket
+    print(f"Uploading CSR to S3 bucket {bucket_name}")
+    put_s3_object(bucket_name, kms_arn, f"csrs/{common_name}.csr", csr)
+
+    # Construct JSON data to pass to Lambda function
+    csr_file = f"{common_name}.csr"
+    json_data = {
+        "common_name": common_name,
+        "lifetime": 1,
+        "locality": override_locality,
+        "organization": override_organization,
+        "csr_file": csr_file,
+        "force_issue": True,
+    }
+
+    # Identify TLS certificate Lambda function
+    function_name = get_lambda_name("-tls")
+    print(f"Invoking Lambda function {function_name}")
+
+    # Invoke TLS certificate Lambda function
+    response = invoke_lambda(function_name, json_data)
+
+    # extract certificate from response including bundled certificate chain
+    base64_cert_data = response["Base64Certificate"]
+    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+
+    # check subject of issued certificate with correct overrides
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    print(f"Issued certificate Subject: {issued_cert.subject.rfc4514_string()}")
+    assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)

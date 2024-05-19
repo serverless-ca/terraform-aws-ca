@@ -26,8 +26,16 @@ def crypto_ca_key_info(public_key, kms_key_id, common_name):
     }
 
 
-def crypto_cert_request_info(csr_cert, common_name, lifetime, purposes, sans):
+def crypto_cert_request_info(csr_cert, csr_info_1, csr_info_2):
     """Creates a dictionary with the information needed to sign a certificate"""
+    # get common name from csr_info_1
+    common_name = csr_info_1["commonName"]
+
+    # get values from csr_info_2
+    purposes = csr_info_2.get("purposes")
+    lifetime = csr_info_2.get("lifetime")
+    sans = csr_info_2.get("sans")
+
     # if no purposes are specified, default to both client auth
     if purposes is None:
         purposes = ["client_auth"]
@@ -56,10 +64,17 @@ def crypto_cert_request_info(csr_cert, common_name, lifetime, purposes, sans):
         x509_sans.append(x509.DNSName(san))
 
     return {
+        "CommonName": common_name,
+        "Country": csr_info_1["country"],
         "CsrCert": csr_cert,
-        "x509Sans": x509_sans,
+        "EmailAddress": csr_info_2["emailAddress"],
         "Lifetime": lifetime,
+        "Locality": csr_info_1["locality"],
+        "Organization": csr_info_1["organization"],
+        "OrganizationalUnit": csr_info_1["organizationalUnit"],
         "Purposes": purposes,
+        "State": csr_info_2["state"],
+        "x509Sans": x509_sans,
     }
 
 
