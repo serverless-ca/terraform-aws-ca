@@ -28,7 +28,7 @@ See [Revocation](revocation.md) for details of how to enable public CRLs and CA 
 | environment | hosted zone domain |                                       CDP - Root CA                                        |                                         CDP - Issuing CA                                         |
 |-------------|:------------------:|:------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------:|
 | dev *       | dev.ca.celidor.io  |                    http://dev.ca.celidor.io/serverless-root-ca-dev.crl                     |                      http://dev.ca.celidor.io/serverless-issuing-ca-dev.crl                      |
-| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crl](http://ca.celidor.io/serverless-root-ca.crl) | [http://ca.celidor.io/serverless-issuing-ca.crl](http://ca.celidor.io/serverless-issuing-ca.crl) |
+| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crl](https://ca.celidor.io/serverless-root-ca.crl) | [http://ca.celidor.io/serverless-issuing-ca.crl](https://ca.celidor.io/serverless-issuing-ca.crl) |
 
 * `dev` environment not deployed, for illustration only
 
@@ -37,7 +37,7 @@ See [Revocation](revocation.md) for details of how to enable public CRLs and CA 
 | environment | hosted zone domain |                                       AIA - Root CA                                        |                                       AIA - Issuing CA                                        |
 |-------------|:------------------:|:------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------:|
 | dev *       | dev.ca.celidor.io  |                    http://dev.ca.celidor.io/serverless-root-ca-dev.crt                     |                    http://dev.ca.celidor.io/serverless-issuing-ca-dev.crt                     |
-| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crt](http://ca.celidor.io/serverless-root-ca.crt) | [http://ca.celidor.io/serverless-issuing-ca.crt](http://ca.celidor.io/serverless-root-ca.crt) |
+| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crt](https://ca.celidor.io/serverless-root-ca.crt) | [http://ca.celidor.io/serverless-issuing-ca.crt](https://ca.celidor.io/serverless-root-ca.crt) |
 
 * `dev` environment not deployed, for illustration only
 
@@ -46,6 +46,6 @@ See [Revocation](revocation.md) for details of how to enable public CRLs and CA 
 | environment | hosted zone domain |                                          CA Bundle                                           |
 |-------------|:------------------:|:--------------------------------------------------------------------------------------------:|
 | dev *       | dev.ca.celidor.io  |                      http://dev.ca.celidor.io/serverless-ca-bundle-dev.pem                       |
-| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-ca-bundle.pem](http://ca.celidor.io/serverless-root-ca.crt) |
+| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-ca-bundle.pem](https://ca.celidor.io/serverless-root-ca.crt) |
 
 * `dev` environment not deployed, for illustration only
