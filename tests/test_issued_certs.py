@@ -14,8 +14,7 @@ from utils.modules.certs.crypto import (
 from utils.modules.certs.kms import kms_generate_key_pair
 from utils.modules.aws.kms import get_kms_details
 from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
-from utils.modules.aws.s3 import get_s3_bucket, put_s3_object, delete_s3_object
-
+from utils.modules.aws.s3 import get_s3_bucket, put_s3_object
 
 def test_cert_issued_no_passphrase():
     """
