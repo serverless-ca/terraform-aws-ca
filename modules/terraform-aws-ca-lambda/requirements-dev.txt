@@ -3,5 +3,5 @@ black==24.3.0
 cryptography==42.0.4
 prospector==1.10.3
 bandit==1.7.5
-requests==2.31.0
+requests==2.32.2
 validators==0.22.0
