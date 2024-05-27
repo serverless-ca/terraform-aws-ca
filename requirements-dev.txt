@@ -1,5 +1,5 @@
 -r requirements-docs.txt
-setuptools==69.5.1
+setuptools==70.0.0
 assertpy==1.1
 boto3==1.34.108
 black==24.4.2
