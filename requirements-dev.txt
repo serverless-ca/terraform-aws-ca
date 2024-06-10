@@ -1,7 +1,7 @@
 -r requirements-docs.txt
 setuptools==70.0.0
 assertpy==1.1
-boto3==1.34.117
+boto3==1.34.122
 black==24.4.2
 cryptography == 42.0.7
 asn1crypto == 1.5.1
