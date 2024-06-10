@@ -103,7 +103,7 @@ python utils/server-csr.py
   }
 ]
 ```
-* add Terraform variable:
+* add Terraform variable when calling the module:
 ```
  csr_files = ["server-cert-request.csr"]
 ```
