@@ -1,6 +1,7 @@
 import boto3
 import os
 from datetime import datetime
+from cryptography.x509 import load_pem_x509_certificate
 
 project = os.environ["PROJECT"]
 env_name = os.environ["ENVIRONMENT_NAME"]
@@ -32,7 +33,7 @@ def db_list_certificates(common_name):
     return response["Items"]
 
 
-def db_issue_certificate(common_name, days_before_expiry=30):
+def db_issue_certificate(common_name, request_public_key, grace_period_days=10):
     """Determines whether certificate should be issued"""
 
     certificates = db_list_certificates(common_name)
@@ -41,30 +42,31 @@ def db_issue_certificate(common_name, days_before_expiry=30):
     if not certificates:
         return True
 
-    # check each certificate to see if it is revoked, or within x days of expiry
-    number_of_certs = 0
+    # if this is a request with a new public key, issue a certificate
     for certificate in certificates:
         serial_number = certificate["SerialNumber"]["S"]
-        expires = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
-        now = datetime.utcnow()
-        delta = expires - now
-        delta_days = delta.days
-        if delta_days < days_before_expiry:
-            print(f"{common_name} certificate {serial_number} due to expire in {delta_days} days")
+        pem_certificate = certificate["Certificate"]["B"]
+        cert = load_pem_x509_certificate(pem_certificate)
+        public_key = cert.public_key()
 
-        elif certificate.get("Revoked"):
-            print(f"{common_name} certificate {serial_number} has been revoked")
+        if public_key == request_public_key:
+            print(f"{common_name} certificate serial number {serial_number} already exists with this public key")
+            issued = datetime.strptime(certificate["Issued"]["S"], "%Y-%m-%d %H:%M:%S")
+            now = datetime.now(datetime.UTC)
+            delta = now - issued
+            delta_days = delta.days
+            if delta_days > grace_period_days:
+                print(
+                    f"{common_name} certificate serial number {serial_number} with same public key issued {delta_days} days ago"
+                )
+                print("Grace period for issue with same public key has expired, certificate request rejected")
+                print("Submit a new request with a new public / private key pair")
+                return False
 
-        else:
-            print(f"{common_name} certificate {serial_number} exists valid for over {days_before_expiry} days")
-            number_of_certs = number_of_certs + 1
+            print(
+                f"{common_name} certificate serial number {serial_number} with same public key issued {delta_days} days ago, within grace period"
+            )
 
-    # if there's an existing cert valid for over x days, don't issue a new one
-    if number_of_certs:
-        return False
-
-    # if all certs are due to expire within x days, issue a new one
-    print(f"all {common_name} certificates revoked or due to expire in less than {days_before_expiry} days")
     return True
 
 

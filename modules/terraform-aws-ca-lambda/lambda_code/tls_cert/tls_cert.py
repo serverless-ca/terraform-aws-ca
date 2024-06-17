@@ -81,12 +81,23 @@ def sign_csr(csr, ca_name, csr_info_1, csr_info_2):
     return base64.b64encode(pem_certificate), info
 
 
-def is_invalid_certificate_request(ca_name, common_name, lifetime, force_issue):
+def get_public_key(base64_csr_data):
+    # base64 decode CSR
+    csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
+
+    # get public key from CSR
+    return csr.public_key()
+
+
+def is_invalid_certificate_request(ca_name, common_name, lifetime, base64_csr_data, force_issue):
     if not db_list_certificates(ca_name):
         return {"error": f"CA {ca_name} not found"}
 
+    # get public key from CSR
+    request_public_key = get_public_key(base64_csr_data)
+
     # check if certificate already exists or is within 30 days of expiry
-    if not force_issue and not db_issue_certificate(common_name):
+    if not force_issue and not db_issue_certificate(common_name, request_public_key):
         return {"error": "Certificate already issued"}
 
     if lifetime < 1:
@@ -159,7 +170,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument, too-many-
     cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
 
-    validation_error = is_invalid_certificate_request(issuing_ca_name, common_name, lifetime, force_issue)
+    validation_error = is_invalid_certificate_request(
+        issuing_ca_name, common_name, lifetime, base64_csr_data, force_issue
+    )
     if validation_error:
         return validation_error
 
