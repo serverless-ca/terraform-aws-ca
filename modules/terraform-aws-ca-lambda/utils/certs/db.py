@@ -33,7 +33,7 @@ def db_list_certificates(common_name):
     return response["Items"]
 
 
-def db_issue_certificate(common_name, request_public_key, grace_period_days=10):
+def db_issue_certificate(common_name, request_public_key):
     """Determines whether certificate should be issued"""
 
     certificates = db_list_certificates(common_name)
@@ -42,7 +42,7 @@ def db_issue_certificate(common_name, request_public_key, grace_period_days=10):
     if not certificates:
         return True
 
-    # if this is a request with a new public key, issue a certificate
+    # if this is a request with a public key that's been used before, reject the request
     for certificate in certificates:
         serial_number = certificate["SerialNumber"]["S"]
         pem_certificate = certificate["Certificate"]["B"]
@@ -50,23 +50,11 @@ def db_issue_certificate(common_name, request_public_key, grace_period_days=10):
         public_key = cert.public_key()
 
         if public_key == request_public_key:
-            print(f"{common_name} certificate serial number {serial_number} already exists with this public key")
-            issued = datetime.strptime(certificate["Issued"]["S"], "%Y-%m-%d %H:%M:%S")
-            now = datetime.now(datetime.UTC)
-            delta = now - issued
-            delta_days = delta.days
-            if delta_days > grace_period_days:
-                print(
-                    f"{common_name} certificate serial number {serial_number} with same public key issued {delta_days} days ago"
-                )
-                print("Grace period for issue with same public key has expired, certificate request rejected")
-                print("Submit a new request with a new public / private key pair")
-                return False
+            print(f"{common_name} certificate serial number {serial_number} already exists with the same public key")
+            print("Certificate request rejected, please submit a new request with a new private / public key pair")
+            return False
 
-            print(
-                f"{common_name} certificate serial number {serial_number} with same public key issued {delta_days} days ago, within grace period"
-            )
-
+    # public key hasn't been used before, approve certificate request
     return True
 
 
