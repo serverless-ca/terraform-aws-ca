@@ -1,5 +1,6 @@
 import boto3
 import os
+import base64
 from datetime import datetime
 from cryptography.x509 import load_pem_x509_certificate
 
@@ -45,8 +46,8 @@ def db_issue_certificate(common_name, request_public_key):
     # if this is a request with a public key that's been used before, reject the request
     for certificate in certificates:
         serial_number = certificate["SerialNumber"]["S"]
-        pem_certificate = certificate["Certificate"]["B"]
-        cert = load_pem_x509_certificate(pem_certificate)
+        b64_encoded_certificate = certificate["Certificate"]["B"]
+        cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
         public_key = cert.public_key()
 
         if public_key == request_public_key:

@@ -660,3 +660,51 @@ def test_csr_uploaded_to_s3():
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
     print(f"Issued certificate Subject: {issued_cert.subject.rfc4514_string()}")
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
+
+
+def test_no_private_key_reuse():
+    """
+    Test certificate request rejected if private key has already been used for a certificate
+    """
+    common_name = "pipeline-test-private-key-reuse.example.com"
+    purposes = ["server_auth"]
+
+    # Get KMS details for key generation KMS key
+    key_alias, kms_arn = get_kms_details("-tls-keygen")
+    print(f"Generating key pair using KMS key {key_alias}")
+
+    # Generate key pair using KMS key to ensure randomness
+    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+
+    csr_info = create_csr_info(common_name)
+
+    # Generate Certificate Signing Request
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    # Construct JSON data to pass to Lambda function
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "purposes": purposes,
+        "base64_csr_data": base64_csr_data,
+        "passphrase": False,
+        "lifetime": 1,
+        "cert_bundle": True,
+    }
+
+    # Identify TLS certificate Lambda function
+    function_name = get_lambda_name("-tls")
+    print(f"Invoking Lambda function {function_name}")
+
+    # Invoke TLS certificate Lambda function
+    response = invoke_lambda(function_name, json_data)
+    print(response)
+
+    # Inspect the response which includes the signed certificate
+    # issued_common_name = response["CertificateInfo"]["CommonName"]
+    # print(f"Certificate issued for {issued_common_name}")
+
+    # check client auth extension is not present in certificate
+    # assert_that(invoke_lambda).raises(InvalidCertificateError).when_called_with(
+    #    function_name, json_data
+    # ).is_equal_to("The X.509 certificate provided is not valid for the purpose of client auth")
