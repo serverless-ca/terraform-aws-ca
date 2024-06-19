@@ -47,7 +47,6 @@ def test_cert_issued_no_passphrase():
         "base64_csr_data": base64_csr_data,
         "passphrase": False,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -108,7 +107,6 @@ def test_client_cert_issued_only_includes_client_auth_extension():
         "base64_csr_data": base64_csr_data,
         "passphrase": False,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -165,7 +163,6 @@ def test_cert_issued_with_passphrase():
         "common_name": common_name,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -233,7 +230,6 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
         "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -301,7 +297,6 @@ def test_issued_cert_includes_correct_dns_names():
         "sans": sans,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -369,7 +364,6 @@ def test_issued_cert_with_no_san_includes_correct_dns_name():
         "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -437,7 +431,6 @@ def test_cert_issued_without_san_if_common_name_invalid_dns():
         "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -509,7 +502,6 @@ def test_issued_cert_lifetime_as_expected():
         "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 1,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -570,7 +562,6 @@ def test_max_cert_lifetime():
         "purposes": purposes,
         "base64_csr_data": base64_csr_data,
         "lifetime": 500,
-        "force_issue": True,
         "cert_bundle": True,
     }
 
@@ -645,7 +636,6 @@ def test_csr_uploaded_to_s3():
         "locality": override_locality,
         "organization": override_organization,
         "csr_file": csr_file,
-        "force_issue": True,
     }
 
     # Identify TLS certificate Lambda function
@@ -682,36 +672,10 @@ def test_no_private_key_reuse():
     csr_info = create_csr_info(common_name)
 
     # Generate Certificate Signing Request
-    csr_bytes = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Convert from bytes to CertificateSigningRequest object
-    # Assuming `csr` is your bytes object containing the CSR
-    csr = x509.load_pem_x509_csr(csr_bytes, default_backend())
-    public_key = csr.public_key()
-
-    # Convert public key to PEM format
-    public_key_pem = (
-        public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
-    ).decode("utf-8")
-
-    print(public_key_pem)
-
-    # Convert the CSR object to PEM format
-    # csr_pem = csr_object.public_bytes(serialization.Encoding.PEM)
-
-    # Load the CSR
-    # csr = x509.load_pem_x509_csr(csr_pem, default_backend())
-
-    # Extract the public key from the CSR
-    # public_key = csr.public_key()
-
-    # print(f"public key: {csr_pem.public_key()}")
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
 
     # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr_bytes).decode("utf-8")
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
     json_data = {
         "common_name": common_name,
         "purposes": purposes,
@@ -733,10 +697,18 @@ def test_no_private_key_reuse():
     issued_common_name = response["CertificateInfo"]["CommonName"]
     print(f"Certificate issued for {issued_common_name}")
 
-    response = invoke_lambda(function_name, json_data)
-    print(response)
+    # Check 2nd request using same private key is rejected
+    response_2 = invoke_lambda(function_name, json_data)
+    print(response_2)
+    assert_that(response_2["error"]).is_equal_to("Private key has already been used for a certificate")
 
-    # check client auth extension is not present in certificate
-    # assert_that(invoke_lambda).raises(InvalidCertificateError).when_called_with(
-    #    function_name, json_data
-    # ).is_equal_to("The X.509 certificate provided is not valid for the purpose of client auth")
+    # Check override works
+    json_data["force_issue"] = True
+
+    # Invoke TLS certificate Lambda function
+    response_3 = invoke_lambda(function_name, json_data)
+    print(response_3)
+
+    # Inspect the response which includes the signed certificate
+    issued_common_name = response_3["CertificateInfo"]["CommonName"]
+    assert_that(issued_common_name).is_equal_to(common_name)
