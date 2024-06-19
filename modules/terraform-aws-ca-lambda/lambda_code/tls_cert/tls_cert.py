@@ -13,7 +13,7 @@ from utils.certs.db import db_tls_cert_issued, db_list_certificates, db_issue_ce
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-
+from cryptography.hazmat.primitives import serialization
 
 # support legacy capability - to be removed in future release
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
@@ -81,14 +81,26 @@ def sign_csr(csr, ca_name, csr_info_1, csr_info_2):
     return base64.b64encode(pem_certificate), info
 
 
-def is_invalid_certificate_request(ca_name, common_name, lifetime, force_issue):
+def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_issue):
     if not db_list_certificates(ca_name):
         return {"error": f"CA {ca_name} not found"}
 
-    # check if certificate already exists or is within 30 days of expiry
-    if not force_issue and not db_issue_certificate(common_name):
-        return {"error": "Certificate already issued"}
+    # get public key from CSR
+    public_key = csr.public_key()
 
+    # Convert public key to PEM format
+    request_public_key_pem = (
+        public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    ).decode("utf-8")
+
+    # check for private key reuse
+    if not force_issue and not db_issue_certificate(common_name, request_public_key_pem):
+        return {"error": "Private key has already been used for a certificate"}
+
+    # check lifetime is at least 1 day
     if lifetime < 1:
         return {"error": f"{lifetime} is too short"}
 
@@ -159,14 +171,14 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument, too-many-
     cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
 
-    validation_error = is_invalid_certificate_request(issuing_ca_name, common_name, lifetime, force_issue)
-    if validation_error:
-        return validation_error
-
     if csr_file:
         csr = load_pem_x509_csr(s3_download(f"csrs/{csr_file}")["Body"].read())
     else:
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
+
+    validation_error = is_invalid_certificate_request(issuing_ca_name, common_name, csr, lifetime, force_issue)
+    if validation_error:
+        return validation_error
 
     base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, csr_info_1, csr_info_2)
 

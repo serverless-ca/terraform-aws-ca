@@ -148,3 +148,25 @@ $filepath = "c:\tmp\test-example-com.crt"
 $decoded = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($input))
 $cert = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($decoded)) | Out-File -FilePath $filepath
 ```
+
+## Renewing Certificates
+
+**Renew certificate (Lambda)**
+
+* Create a new CSR using a new private key
+* Invoke the TLS Lambda function
+
+**Renew certificate (GitOps)**
+
+* Create a new CSR using a new private key
+* Overwrite the old CSR for the same common name
+* Run the pipeline
+
+**Private Key reuse**
+
+Best practice cryptographic security is not to reuse private keys.
+* If a private key has already been used for a previous certificate, the CA will reject the request
+* This behaviour can be overridden by adding a line to the JSON certificate request information:
+```json
+force_issue = True
+```

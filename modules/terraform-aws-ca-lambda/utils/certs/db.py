@@ -1,6 +1,9 @@
 import boto3
 import os
+import base64
 from datetime import datetime
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.primitives import serialization
 
 project = os.environ["PROJECT"]
 env_name = os.environ["ENVIRONMENT_NAME"]
@@ -32,7 +35,7 @@ def db_list_certificates(common_name):
     return response["Items"]
 
 
-def db_issue_certificate(common_name, days_before_expiry=30):
+def db_issue_certificate(common_name, request_public_key_pem):
     """Determines whether certificate should be issued"""
 
     certificates = db_list_certificates(common_name)
@@ -41,30 +44,27 @@ def db_issue_certificate(common_name, days_before_expiry=30):
     if not certificates:
         return True
 
-    # check each certificate to see if it is revoked, or within x days of expiry
-    number_of_certs = 0
+    # if this is a request with a private key that's been used before, reject the request
     for certificate in certificates:
         serial_number = certificate["SerialNumber"]["S"]
-        expires = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
-        now = datetime.utcnow()
-        delta = expires - now
-        delta_days = delta.days
-        if delta_days < days_before_expiry:
-            print(f"{common_name} certificate {serial_number} due to expire in {delta_days} days")
+        b64_encoded_certificate = certificate["Certificate"]["B"]
+        cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
+        public_key = cert.public_key()
 
-        elif certificate.get("Revoked"):
-            print(f"{common_name} certificate {serial_number} has been revoked")
+        # Convert public key to PEM format
+        public_key_pem = (
+            public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+        ).decode("utf-8")
 
-        else:
-            print(f"{common_name} certificate {serial_number} exists valid for over {days_before_expiry} days")
-            number_of_certs = number_of_certs + 1
+        if public_key_pem == request_public_key_pem:
+            print(f"Private key has been used before for {common_name} certificate serial number {serial_number}")
+            print("Certificate request rejected, submit request using new private key")
+            return False
 
-    # if there's an existing cert valid for over x days, don't issue a new one
-    if number_of_certs:
-        return False
-
-    # if all certs are due to expire within x days, issue a new one
-    print(f"all {common_name} certificates revoked or due to expire in less than {days_before_expiry} days")
+    # private key hasn't been used before, approve certificate request
     return True
 
 
