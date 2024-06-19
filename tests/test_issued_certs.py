@@ -690,10 +690,13 @@ def test_no_private_key_reuse():
     public_key = csr.public_key()
 
     # Convert public key to PEM format
-    public_key_pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+    public_key_pem = (
+        public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    ).decode("utf-8")
+
     print(public_key_pem)
 
     # Convert the CSR object to PEM format

@@ -91,10 +91,12 @@ def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_is
     public_key = csr.public_key()
 
     # Convert public key to PEM format
-    request_public_key_pem = public_key.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo,
-    )
+    request_public_key_pem = (
+        public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    ).decode("utf-8")
 
     # check for private key reuse
     if not force_issue and not db_issue_certificate(common_name, request_public_key_pem):

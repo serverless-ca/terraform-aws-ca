@@ -52,10 +52,12 @@ def db_issue_certificate(common_name, request_public_key_pem):
         public_key = cert.public_key()
 
         # Convert public key to PEM format
-        public_key_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
+        public_key_pem = (
+            public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+        ).decode("utf-8")
 
         if public_key_pem == request_public_key_pem:
             print(f"Private key has been used before for {common_name} certificate serial number {serial_number}")
