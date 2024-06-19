@@ -13,8 +13,6 @@ from utils.certs.db import db_tls_cert_issued, db_list_certificates, db_issue_ce
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 # support legacy capability - to be removed in future release
