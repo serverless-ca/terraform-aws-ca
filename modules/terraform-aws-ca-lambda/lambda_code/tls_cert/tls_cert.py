@@ -13,7 +13,9 @@ from utils.certs.db import db_tls_cert_issued, db_list_certificates, db_issue_ce
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 # support legacy capability - to be removed in future release
 client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
@@ -86,10 +88,16 @@ def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_is
         return {"error": f"CA {ca_name} not found"}
 
     # get public key from CSR
-    request_public_key = csr.public_key()
+    public_key = csr.public_key()
+
+    # Convert public key to PEM format
+    request_public_key_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
 
     # check for private key reuse
-    if not force_issue and not db_issue_certificate(common_name, request_public_key):
+    if not force_issue and not db_issue_certificate(common_name, request_public_key_pem):
         return {"error": "Private key has already been used for a certificate"}
 
     # check lifetime is at least 1 day

@@ -3,6 +3,7 @@ import os
 import base64
 from datetime import datetime
 from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.primitives import serialization
 
 project = os.environ["PROJECT"]
 env_name = os.environ["ENVIRONMENT_NAME"]
@@ -34,7 +35,7 @@ def db_list_certificates(common_name):
     return response["Items"]
 
 
-def db_issue_certificate(common_name, request_public_key):
+def db_issue_certificate(common_name, request_public_key_pem):
     """Determines whether certificate should be issued"""
 
     certificates = db_list_certificates(common_name)
@@ -43,19 +44,25 @@ def db_issue_certificate(common_name, request_public_key):
     if not certificates:
         return True
 
-    # if this is a request with a public key that's been used before, reject the request
+    # if this is a request with a private key that's been used before, reject the request
     for certificate in certificates:
         serial_number = certificate["SerialNumber"]["S"]
         b64_encoded_certificate = certificate["Certificate"]["B"]
         cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
         public_key = cert.public_key()
 
-        if public_key == request_public_key:
-            print(f"{common_name} certificate serial number {serial_number} already exists with the same public key")
-            print("Certificate request rejected, please submit a new request with a new private / public key pair")
+        # Convert public key to PEM format
+        public_key_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        if public_key_pem == request_public_key_pem:
+            print(f"Private key has been used before for {common_name} certificate serial number {serial_number}")
+            print("Certificate request rejected, submit request using new private key")
             return False
 
-    # public key hasn't been used before, approve certificate request
+    # private key hasn't been used before, approve certificate request
     return True
 
 

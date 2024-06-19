@@ -4,7 +4,10 @@ from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.backends import default_backend
+from cryptography import x509
 from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
@@ -679,10 +682,33 @@ def test_no_private_key_reuse():
     csr_info = create_csr_info(common_name)
 
     # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+    csr_bytes = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    # Convert from bytes to CertificateSigningRequest object
+    # Assuming `csr` is your bytes object containing the CSR
+    csr = x509.load_pem_x509_csr(csr_bytes, default_backend())
+    public_key = csr.public_key()
+
+    # Convert public key to PEM format
+    public_key_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    print(public_key_pem)
+
+    # Convert the CSR object to PEM format
+    # csr_pem = csr_object.public_bytes(serialization.Encoding.PEM)
+
+    # Load the CSR
+    # csr = x509.load_pem_x509_csr(csr_pem, default_backend())
+
+    # Extract the public key from the CSR
+    # public_key = csr.public_key()
+
+    # print(f"public key: {csr_pem.public_key()}")
 
     # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    base64_csr_data = base64.b64encode(csr_bytes).decode("utf-8")
     json_data = {
         "common_name": common_name,
         "purposes": purposes,
@@ -701,8 +727,11 @@ def test_no_private_key_reuse():
     print(response)
 
     # Inspect the response which includes the signed certificate
-    # issued_common_name = response["CertificateInfo"]["CommonName"]
-    # print(f"Certificate issued for {issued_common_name}")
+    issued_common_name = response["CertificateInfo"]["CommonName"]
+    print(f"Certificate issued for {issued_common_name}")
+
+    response = invoke_lambda(function_name, json_data)
+    print(response)
 
     # check client auth extension is not present in certificate
     # assert_that(invoke_lambda).raises(InvalidCertificateError).when_called_with(
