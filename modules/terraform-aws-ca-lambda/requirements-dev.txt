@@ -6,3 +6,4 @@ prospector==1.10.3
 bandit==1.7.5
 requests==2.32.2
 validators==0.22.0
+pytest==8.2.2
