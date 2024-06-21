@@ -2,7 +2,11 @@ from cryptography.hazmat.primitives import serialization
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_ca_key_info, crypto_revoked_certificate
 from utils.certs.ca import ca_name, ca_kms_publish_crl
-from utils.certs.db import db_list_certificates, db_update_crl_number, db_revocation_date
+from utils.certs.db import (
+    db_list_certificates,
+    db_update_crl_number,
+    db_revocation_date,
+)
 from utils.certs.s3 import s3_download, s3_upload
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import datetime

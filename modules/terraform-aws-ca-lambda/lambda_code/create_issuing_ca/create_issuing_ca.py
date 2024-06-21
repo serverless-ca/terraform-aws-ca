@@ -52,7 +52,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
 
     # sign certificate
     pem_certificate = ca_kms_sign_ca_certificate_request(
-        csr, root_ca_cert, root_ca_kms_key_id, kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0]
+        csr,
+        root_ca_cert,
+        root_ca_kms_key_id,
+        kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0],
     )
     base64_certificate = base64.b64encode(pem_certificate)
 
