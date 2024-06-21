@@ -30,6 +30,10 @@ jobs:
         run: |
           black --check --line-length 120 .
 
+      - name: Pytest
+        run: |
+          pytest -v modules/terraform-aws-ca-lambda
+
       - name: Prospector
         run: |
           prospector
@@ -53,4 +57,5 @@ jobs:
 
       - name: Bandit
         run: >
-          bandit -r src --ini .config/sast_python_bandit_cli.yml 
+          bandit -r modules/terraform-aws-ca-lambda/lambda_code modules/terraform-aws-ca-lambda/utils scripts tests utils
+          --ini .config/sast_python_bandit_cli.yml
