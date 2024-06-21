@@ -335,7 +335,7 @@ def subject_from_ca_info(ca_info, default_common_name=None):
     return subject
 
 
-def ca_kms_publish_crl(  # pylint:disable=too-many-locals
+def ca_kms_publish_crl(
     ca_key_info,
     time_delta,
     revoked_certs,
