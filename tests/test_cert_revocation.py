@@ -45,6 +45,9 @@ def test_certificate_revoked():
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
 
+    if "CertificateInfo" not in response:
+        raise RuntimeError(f"Failed to find 'CertificateInfo' in {response}")
+
     # Inspect the response which includes the signed certificate
     serial_number = response["CertificateInfo"]["SerialNumber"]
     print(f"Certificate serial number {serial_number} issued for {common_name}")
