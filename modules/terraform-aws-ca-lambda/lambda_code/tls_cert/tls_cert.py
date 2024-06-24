@@ -117,7 +117,7 @@ def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_is
     return None
 
 
-def create_cert_bundle(base64_certificate):
+def create_cert_bundle_from_certificate(base64_certificate):
     """
     Creates a certificate bundle in PEM format containing Client Issuing CA and Root CA Certificates
     """
@@ -193,7 +193,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     db_tls_cert_issued(cert_info, base64_certificate)
 
     if create_cert_bundle:
-        cert_bundle = create_cert_bundle(base64_certificate)
+        cert_bundle = create_cert_bundle_from_certificate(base64_certificate)
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
     response_data = {
