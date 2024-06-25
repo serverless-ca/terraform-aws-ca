@@ -57,6 +57,7 @@ nav:
   - Security: security.md
   - How-to guides:
     - Application load balancer: how-to-guides/alb.md
+    - IAM Roles Anywhere: how-to-guides/iam.md
   - Terraform reference: reference.md
 
 plugins:
