@@ -106,6 +106,8 @@ The default setting for CRL lifetime of 1 day should be appropriate for most use
 ### How do I renew a certificate?
 Create a new Certificate Signing Request (CSR) using a new private key. Resubmit as detailed in [Client Certificates](client-certificates.md#renewing-certificates).
 
-
 ### Can the CA be used for Application Load Balancer mTLS?
 A walkthrough with configuration of certificate authentication for AWS Application Load Balancer is provided in [How-to Guides](https://serverlessca.com/how-to-guides/alb/) and [this blog post](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7).
+
+### Can the CA be used for AWS IAM Roles Anywhere?
+A walkthrough showing how to configure AWS IAM Roles Anywhere with the CA is provided in [How-to Guides](https://serverlessca.com/how-to-guides/iam/) and [this blog post](https://medium.com/@paulschwarzenberger/aws-iam-roles-anywhere-with-open-source-private-ca-6c0ec5758b2b).
