@@ -23,6 +23,8 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 
 > 📖 [AWS Application Load Balancer mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7)
 
+> 📖 [AWS IAM Roles Anywhere with open-source private CA](https://medium.com/@paulschwarzenberger/aws-iam-roles-anywhere-with-open-source-private-ca-6c0ec5758b2b)
+
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
