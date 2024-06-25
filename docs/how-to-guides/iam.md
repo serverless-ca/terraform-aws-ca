@@ -162,7 +162,7 @@ certs/client-cert-key.pem
 ```json
 {
   "Version":1,
-  "AccessKeyId":"ASIA6ODU3UF5KBW4YLLC",
+  "AccessKeyId":"XXXXXXXXXXXX",
   "SecretAccessKey":"XXXXXXXXXXXX",
   "SessionToken":"XXXXXXXXXXXX",
   "Expiration":"2024-06-13T21:35:23Z"
