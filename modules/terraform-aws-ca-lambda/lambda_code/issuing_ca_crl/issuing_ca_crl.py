@@ -14,7 +14,7 @@ import json
 import os
 
 
-def build_list_of_revoked_certs():
+def build_list_of_revoked_certs(project, env_name):
     """Build list of revoked certificates for CRL"""
     # handle certificate revocation not enabled
     if not s3_download("revoked.json"):
@@ -30,7 +30,7 @@ def build_list_of_revoked_certs():
     for revocation_detail in revocation_details:
         common_name = revocation_detail["common_name"]
         serial_number = revocation_detail["serial_number"]
-        revocation_date = db_revocation_date(common_name, serial_number)
+        revocation_date = db_revocation_date(project, env_name, common_name, serial_number)
         revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
         revoked_certs.append(revoked_cert)
 
@@ -39,10 +39,13 @@ def build_list_of_revoked_certs():
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
+    project = os.environ["PROJECT"]
+    env_name = os.environ["ENVIRONMENT_NAME"]
+
     ca_slug = ca_name("issuing")
 
     # check CA exists
-    if not db_list_certificates(ca_slug):
+    if not db_list_certificates(project, env_name, ca_slug):
         print(f"CA {ca_slug} not found")
 
         return
@@ -60,8 +63,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     crl = ca_kms_publish_crl(
         ca_key_info,
         timedelta,
-        build_list_of_revoked_certs(),
-        db_update_crl_number(ca_slug, db_list_certificates(ca_slug)[0]["SerialNumber"]["S"]),
+        build_list_of_revoked_certs(project, env_name),
+        db_update_crl_number(
+            project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
+        ),
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)
 

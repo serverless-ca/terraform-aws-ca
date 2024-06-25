@@ -25,9 +25,10 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives import serialization
 
-def sign_tls_certificate(csr, ca_name, csr_info):
+
+def sign_tls_certificate(project, env_name, csr, ca_name, csr_info):
     # get CA cert from DynamoDB
-    ca_cert_bytes_b64 = db_list_certificates(ca_name)[0]["Certificate"]["B"]
+    ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
     ca_cert_bytes = base64.b64decode(ca_cert_bytes_b64)
     ca_cert = load_pem_x509_certificate(ca_cert_bytes)
 
@@ -77,9 +78,9 @@ def create_csr(csr_info, ca_slug, generate_passphrase):
     return (csr, base64_private_key, base64_passphrase)
 
 
-def sign_csr(csr, ca_name, csr_info):
+def sign_csr(project, env_name, csr, ca_name, csr_info):
     # sign certificate
-    pem_certificate = sign_tls_certificate(csr, ca_name, csr_info)
+    pem_certificate = sign_tls_certificate(project, env_name, csr, ca_name, csr_info)
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), csr_info.subject.common_name)
@@ -87,8 +88,8 @@ def sign_csr(csr, ca_name, csr_info):
     return base64.b64encode(pem_certificate), info
 
 
-def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_issue):
-    if not db_list_certificates(ca_name):
+def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr, lifetime, force_issue):
+    if not db_list_certificates(project, env_name, ca_name):
         return {"error": f"CA {ca_name} not found"}
 
     # get public key from CSR
@@ -103,7 +104,7 @@ def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_is
     ).decode("utf-8")
 
     # check for private key reuse
-    if not force_issue and not db_issue_certificate(common_name, request_public_key_pem):
+    if not force_issue and not db_issue_certificate(project, env_name, common_name, request_public_key_pem):
         return {"error": "Private key has already been used for a certificate"}
 
     # check lifetime is at least 1 day
@@ -113,7 +114,7 @@ def is_invalid_certificate_request(ca_name, common_name, csr, lifetime, force_is
     return None
 
 
-def create_cert_bundle_from_certificate(base64_certificate):
+def create_cert_bundle_from_certificate(project, env_name, base64_certificate):
     """
     Creates a certificate bundle in PEM format containing Client Issuing CA and Root CA Certificates
     """
@@ -123,8 +124,12 @@ def create_cert_bundle_from_certificate(base64_certificate):
     return cert_bundle.join(
         [
             base64.b64decode(base64_certificate.decode("utf-8")).decode("utf-8"),
-            base64.b64decode(db_list_certificates(issuing_ca_name)[0]["Certificate"]["B"]).decode("utf-8"),
-            base64.b64decode(db_list_certificates(root_ca_name)[0]["Certificate"]["B"]).decode("utf-8"),
+            base64.b64decode(db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]).decode(
+                "utf-8"
+            ),
+            base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]).decode(
+                "utf-8"
+            ),
         ]
     )
 
@@ -141,7 +146,11 @@ def create_csr_subject(event):
 
 
 def create_csr_info(event):
-    csr_info = CsrInfo(event["common_name"])
+    lifetime = int(lifetime=event.get("lifetime", 30))
+    purposes = event.get("purposes")
+    sans = event.get("sans")
+
+    csr_info = CsrInfo(event["common_name"], lifetime=lifetime, purposes=purposes, sans=sans)
 
     csr_info.subject = create_csr_subject(event)
 
@@ -155,6 +164,8 @@ def create_csr_info(event):
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
+    project = os.environ["PROJECT"]
+    env_name = os.environ["ENVIRONMENT_NAME"]
 
     # get Issuing CA name
     issuing_ca_name = ca_name("issuing")
@@ -175,6 +186,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 
     validation_error = is_invalid_certificate_request(
+        project,
+        env_name,
         issuing_ca_name,
         csr_info.subject.common_name,
         csr,
@@ -184,12 +197,12 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     if validation_error:
         return validation_error
 
-    base64_certificate, cert_info = sign_csr(csr, issuing_ca_name, csr_info)
+    base64_certificate, cert_info = sign_csr(project, env_name, csr, issuing_ca_name, csr_info)
 
-    db_tls_cert_issued(cert_info, base64_certificate)
+    db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
 
     if create_cert_bundle:
-        cert_bundle = create_cert_bundle_from_certificate(base64_certificate)
+        cert_bundle = create_cert_bundle_from_certificate(project, env_name, base64_certificate)
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
     response_data = {
