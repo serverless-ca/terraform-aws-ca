@@ -1,6 +1,6 @@
 import base64
 import os
-from utils.certs.kms_ca import kms_ca_generate_key_pair
+
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_cert_request_info,
@@ -57,25 +57,6 @@ def select_csr_crypto(ca_slug):
         return "ECC_NIST_P256", "ECDSA_SHA_256"
 
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
-
-
-def create_csr(csr_info, ca_slug, generate_passphrase):
-    """Creates a private key and CSR using KMS Key Pair Generation"""
-    key_pair_spec, csr_algorithm = select_csr_crypto(ca_slug)
-    response = kms_ca_generate_key_pair(key_pair_spec)
-    private_key = load_der_private_key(response["PrivateKeyPlaintext"], None)
-    csr = load_pem_x509_csr(ca_client_tls_cert_signing_request(private_key, csr_info, csr_algorithm))
-
-    passphrase = None
-    base64_passphrase = None
-    if generate_passphrase:
-        passphrase = crypto_random_string(30)
-        base64_passphrase = base64.b64encode(passphrase.encode("utf-8"))
-
-    private_key_bytes = crypto_encode_private_key(private_key, passphrase)
-    base64_private_key = base64.b64encode(private_key_bytes)
-
-    return (csr, base64_private_key, base64_passphrase)
 
 
 def sign_csr(project, env_name, csr, ca_name, csr_info):
