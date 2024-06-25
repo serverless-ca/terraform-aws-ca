@@ -25,10 +25,6 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives import serialization
 
-# support legacy capability - to be removed in future release
-client_keys_in_db = os.environ.get("CLIENT_KEYS_IN_DB")
-
-
 def sign_tls_certificate(csr, ca_name, csr_info):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(ca_name)[0]["Certificate"]["B"]
