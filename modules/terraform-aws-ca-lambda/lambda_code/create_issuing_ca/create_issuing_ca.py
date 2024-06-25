@@ -18,8 +18,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
 
-    root_ca_name = ca_name("root")
-    ca_slug = ca_name("issuing")
+    root_ca_name = ca_name(project, env_name, "root")
+    ca_slug = ca_name(project, env_name, "issuing")
 
     # check Root CA exists
     if not db_list_certificates(project, env_name, root_ca_name):
@@ -55,6 +55,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
 
     # sign certificate
     pem_certificate = ca_kms_sign_ca_certificate_request(
+        project,
+        env_name,
         csr,
         root_ca_cert,
         root_ca_kms_key_id,
@@ -74,6 +76,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
 
     # upload certificate and CA bundle to S3
     s3_upload(pem_certificate, f"{ca_slug}.crt")
-    s3_upload(cert_bundle_pem, f"{ca_bundle_name()}.pem")
+    s3_upload(cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem")
 
     return

@@ -34,7 +34,7 @@ def build_list_of_revoked_certs(project, env_name):
         revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
         revoked_certs.append(revoked_cert)
 
-    print(f"CA {ca_name('issuing')} has {len(revoked_certs)} revoked certificates")
+    print(f"CA {ca_name(project, env_name, 'issuing')} has {len(revoked_certs)} revoked certificates")
     return revoked_certs
 
 
@@ -42,7 +42,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
 
-    ca_slug = ca_name("issuing")
+    ca_slug = ca_name(project, env_name, "issuing")
 
     # check CA exists
     if not db_list_certificates(project, env_name, ca_slug):

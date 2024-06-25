@@ -40,6 +40,8 @@ def sign_tls_certificate(project, env_name, csr, ca_name, csr_info):
 
     # sign certificate
     return ca_kms_sign_tls_certificate_request(
+        project,
+        env_name,
         cert_request_info,
         ca_cert,
         issuing_ca_kms_key_id,
@@ -99,8 +101,8 @@ def create_cert_bundle_from_certificate(project, env_name, base64_certificate):
     """
     Creates a certificate bundle in PEM format containing Client Issuing CA and Root CA Certificates
     """
-    root_ca_name = ca_name("root")
-    issuing_ca_name = ca_name("issuing")
+    root_ca_name = ca_name(project, env_name, "root")
+    issuing_ca_name = ca_name(project, env_name, "issuing")
     cert_bundle = ""
     return cert_bundle.join(
         [
@@ -149,7 +151,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     env_name = os.environ["ENVIRONMENT_NAME"]
 
     # get Issuing CA name
-    issuing_ca_name = ca_name("issuing")
+    issuing_ca_name = ca_name(project, env_name, "issuing")
 
     # process input
     print(f"Input: {event}")

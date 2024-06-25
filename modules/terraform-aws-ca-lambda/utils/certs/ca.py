@@ -21,15 +21,13 @@ from .crypto import (
 
 # TODO: How can we get rid of these globals?
 domain = os.environ.get("DOMAIN")
-env_name = os.environ["ENVIRONMENT_NAME"]
 issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
 max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
-project = os.environ["PROJECT"]
 public_crl = os.environ["PUBLIC_CRL"]
 root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
 
-def ca_name(hierarchy):
+def ca_name(project, env_name, hierarchy):
     if env_name in ["prd", "prod"]:
         return f"{project}-{hierarchy.lower()}-ca"
 
@@ -65,7 +63,7 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
 
 
 def ca_kms_sign_ca_certificate_request(
-    csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    project, env_name, csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
@@ -75,7 +73,7 @@ def ca_kms_sign_ca_certificate_request(
     subject = ca_construct_subject_name(issuing_ca_info, "issuing")
 
     crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crl")],
+        [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crl")],
         relative_name=None,
         reasons=None,
         crl_issuer=None,
@@ -85,7 +83,7 @@ def ca_kms_sign_ca_certificate_request(
         [
             AccessDescription(
                 AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crt"),
+                UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crt"),
             )
         ]
     )
@@ -193,6 +191,8 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
 
 
 def ca_kms_sign_tls_certificate_request(
+    project,
+    env_name,
     cert_request_info,
     ca_cert,
     kms_key_id,
@@ -219,7 +219,7 @@ def ca_kms_sign_tls_certificate_request(
 
         # construct CRL distribution point
         crl_dp = x509.DistributionPoint(
-            [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
+            [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crl")],
             relative_name=None,
             reasons=None,
             crl_issuer=None,
@@ -230,7 +230,7 @@ def ca_kms_sign_tls_certificate_request(
             [
                 AccessDescription(
                     AuthorityInformationAccessOID.CA_ISSUERS,
-                    UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
+                    UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crt"),
                 )
             ]
         )
@@ -247,7 +247,7 @@ def ca_kms_sign_tls_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_bundle_name():
+def ca_bundle_name(project, env_name):
     """Returns CA bundle name for uploading to S3"""
     if env_name in ["prd", "prod"]:
         return f"{project}-ca-bundle"
