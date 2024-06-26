@@ -17,6 +17,8 @@ lifetime = 3650
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
+    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
     root_ca_name = ca_name(project, env_name, "root")
     ca_slug = ca_name(project, env_name, "issuing")
@@ -75,7 +77,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     cert_bundle_pem = crypto_create_ca_bundle([root_ca_cert_pem, pem_certificate])
 
     # upload certificate and CA bundle to S3
-    s3_upload(pem_certificate, f"{ca_slug}.crt")
-    s3_upload(cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem")
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
+    s3_upload(
+        external_s3_bucket_name, internal_s3_bucket_name, cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem"
+    )
 
     return

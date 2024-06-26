@@ -14,6 +14,8 @@ lifetime = 7300
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
+    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
     ca_slug = ca_name(project, env_name, "root")
 
@@ -43,6 +45,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     db_ca_cert_issued(project, env_name, info, base64_certificate)
 
     # upload CRL to S3
-    s3_upload(pem_certificate, f"{ca_slug}.crt")
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
 
     return
