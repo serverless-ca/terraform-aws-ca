@@ -22,7 +22,6 @@ from .crypto import (
 # TODO: How can we get rid of these globals?
 domain = os.environ.get("DOMAIN")
 issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
-max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
 public_crl = os.environ["PUBLIC_CRL"]
 root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
@@ -193,6 +192,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
 def ca_kms_sign_tls_certificate_request(
     project,
     env_name,
+    max_cert_lifetime,
     cert_request_info,
     ca_cert,
     kms_key_id,
