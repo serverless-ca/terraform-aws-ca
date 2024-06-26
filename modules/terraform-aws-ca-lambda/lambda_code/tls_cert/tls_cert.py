@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives import serialization
 
 
-def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, max_cert_lifetime):
+def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
     ca_cert_bytes = base64.b64decode(ca_cert_bytes_b64)
@@ -42,6 +42,7 @@ def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, max_cert_lif
     return ca_kms_sign_tls_certificate_request(
         project,
         env_name,
+        domain,
         max_cert_lifetime,
         cert_request_info,
         ca_cert,
@@ -62,9 +63,9 @@ def select_csr_crypto(ca_slug):
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
 
 
-def sign_csr(project, env_name, csr, ca_name, csr_info, max_cert_lifetime):
+def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime):
     # sign certificate
-    pem_certificate = sign_tls_certificate(project, env_name, csr, ca_name, csr_info, max_cert_lifetime)
+    pem_certificate = sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime)
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), csr_info.subject.common_name)
@@ -153,6 +154,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
     max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
+    domain = os.environ.get("DOMAIN")
 
     # get Issuing CA name
     issuing_ca_name = ca_name(project, env_name, "issuing")
@@ -187,7 +189,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     if validation_error:
         return validation_error
 
-    base64_certificate, cert_info = sign_csr(project, env_name, csr, issuing_ca_name, csr_info, max_cert_lifetime)
+    base64_certificate, cert_info = sign_csr(
+        project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime
+    )
 
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
 

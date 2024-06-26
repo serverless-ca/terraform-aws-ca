@@ -20,7 +20,6 @@ from .crypto import (
 )
 
 # TODO: How can we get rid of these globals?
-domain = os.environ.get("DOMAIN")
 issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
 public_crl = os.environ["PUBLIC_CRL"]
 root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
@@ -62,7 +61,7 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
 
 
 def ca_kms_sign_ca_certificate_request(
-    project, env_name, csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    project, env_name, domain, csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
@@ -192,6 +191,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
 def ca_kms_sign_tls_certificate_request(
     project,
     env_name,
+    domain,
     max_cert_lifetime,
     cert_request_info,
     ca_cert,
