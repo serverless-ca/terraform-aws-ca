@@ -1,8 +1,7 @@
 import os
 import boto3
 
-project = os.environ["PROJECT"]
-env_name = os.environ["ENVIRONMENT_NAME"]
+
 external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
 internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
