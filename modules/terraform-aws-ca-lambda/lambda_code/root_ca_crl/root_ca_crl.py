@@ -1,6 +1,7 @@
 from cryptography.hazmat.primitives import serialization
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_ca_key_info, crypto_revoked_certificate
+from utils.certs.config import Config
 from utils.certs.ca import ca_name, ca_kms_publish_crl
 from utils.certs.db import (
     db_list_certificates,
@@ -14,15 +15,15 @@ import json
 import os
 
 
-def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
+def build_list_of_revoked_certs(cfg: Config):
     """Build list of revoked certificates for CRL"""
     # handle certificate revocation not enabled
-    if not s3_download(external_s3_bucket_name, internal_s3_bucket_name, "revoked-root-ca.json"):
+    if not s3_download(cfg.external_s3_bucket, cfg.internal_s3_bucket, "revoked-root-ca.json"):
         print("revoked-root-ca.json not found")
         return []
 
     # get list of certificates to be revoked
-    revocation_file = s3_download(external_s3_bucket_name, internal_s3_bucket_name, "revoked-root-ca.json")["Body"]
+    revocation_file = s3_download(cfg.external_s3_bucket, cfg.internal_s3_bucket, "revoked-root-ca.json")["Body"]
 
     revocation_details = json.load(revocation_file)
 
@@ -30,24 +31,21 @@ def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, inte
     for revocation_detail in revocation_details:
         common_name = revocation_detail["common_name"]
         serial_number = revocation_detail["serial_number"]
-        revocation_date = db_revocation_date(project, env_name, common_name, serial_number)
+        revocation_date = db_revocation_date(cfg.project, cfg.environment_name, common_name, serial_number)
         revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
         revoked_certs.append(revoked_cert)
 
-    print(f"CA {ca_name(project, env_name, 'root')} has {len(revoked_certs)} revoked certificates")
+    print(f"CA {ca_name(cfg.project, cfg.environment_name, 'root')} has {len(revoked_certs)} revoked certificates")
     return revoked_certs
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
-    project = os.environ["PROJECT"]
-    env_name = os.environ["ENVIRONMENT_NAME"]
-    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
-    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
+    cfg = Config.from_env()
 
-    ca_slug = ca_name(project, env_name, "root")
+    ca_slug = ca_name(cfg.project, cfg.environment_name, "root")
 
     # check CA exists
-    if not db_list_certificates(project, env_name, ca_slug):
+    if not db_list_certificates(cfg.project, cfg.environment_name, ca_slug):
         print(f"CA {ca_slug} not found")
 
         return
@@ -65,14 +63,17 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     crl = ca_kms_publish_crl(
         ca_key_info,
         timedelta,
-        build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
+        build_list_of_revoked_certs(cfg),
         db_update_crl_number(
-            project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
+            cfg.project,
+            cfg.environment_name,
+            ca_slug,
+            db_list_certificates(cfg.project, cfg.environment_name, ca_slug)[0]["SerialNumber"]["S"],
         ),
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)
 
     # upload CRL to S3
-    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl, f"{ca_slug}.crl")
+    s3_upload(cfg.external_s3_bucket, cfg.internal_s3_bucket, crl, f"{ca_slug}.crl")
 
     return

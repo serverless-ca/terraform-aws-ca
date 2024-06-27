@@ -12,6 +12,7 @@ from utils.certs.ca import (
     ca_name,
     ca_kms_sign_tls_certificate_request,
 )
+from utils.certs.config import Config
 from utils.certs.db import (
     db_tls_cert_issued,
     db_list_certificates,
@@ -22,9 +23,9 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 
 
-def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
+def sign_tls_certificate(cfg, csr, ca_name, csr_info):
     # get CA cert from DynamoDB
-    ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
+    ca_cert_bytes_b64 = db_list_certificates(cfg.project, cfg.environment_name, ca_name)[0]["Certificate"]["B"]
     ca_cert_bytes = base64.b64decode(ca_cert_bytes_b64)
     ca_cert = load_pem_x509_certificate(ca_cert_bytes)
 
@@ -36,14 +37,10 @@ def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_
 
     # sign certificate
     return ca_kms_sign_tls_certificate_request(
-        project,
-        env_name,
-        domain,
-        max_cert_lifetime,
+        cfg,
         cert_request_info,
         ca_cert,
         issuing_ca_kms_key_id,
-        enable_public_crl,
         kms_describe_key(issuing_ca_kms_key_id)["SigningAlgorithms"][0],
     )
 
@@ -60,11 +57,9 @@ def select_csr_crypto(ca_slug):
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
 
 
-def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
+def sign_csr(cfg, csr, ca_name, csr_info):
     # sign certificate
-    pem_certificate = sign_tls_certificate(
-        project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
-    )
+    pem_certificate = sign_tls_certificate(cfg, csr, ca_name, csr_info)
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), csr_info.subject.common_name)
@@ -141,20 +136,10 @@ def create_csr_info(event):
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
-    project = os.environ["PROJECT"]
-    env_name = os.environ["ENVIRONMENT_NAME"]
-    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
-    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
-    max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
-    domain = os.environ.get("DOMAIN")
-
-    public_crl = os.environ.get("PUBLIC_CRL")
-    enable_public_crl = False
-    if public_crl == "enabled":
-        enable_public_crl = True
+    cfg = Config.from_env()
 
     # get Issuing CA name
-    issuing_ca_name = ca_name(project, env_name, "issuing")
+    issuing_ca_name = ca_name(cfg.project, cfg.environment_name, "issuing")
 
     # process input
     print(f"Input: {event}")
@@ -167,7 +152,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
 
     if csr_file:
-        csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")[
+        csr_file_contents = s3_download(cfg.external_s3_bucket, cfg.internal_s3_bucket, f"csrs/{csr_file}")[
             "Body"
         ].read()
         csr = load_pem_x509_csr(csr_file_contents)
@@ -175,8 +160,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 
     validation_error = is_invalid_certificate_request(
-        project,
-        env_name,
+        cfg.project,
+        cfg.environment_name,
         issuing_ca_name,
         csr_info.subject.common_name,
         csr,
@@ -186,14 +171,12 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     if validation_error:
         return validation_error
 
-    base64_certificate, cert_info = sign_csr(
-        project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
-    )
+    base64_certificate, cert_info = sign_csr(cfg, csr, issuing_ca_name, csr_info)
 
-    db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
+    db_tls_cert_issued(cfg.project, cfg.environment_name, cert_info, base64_certificate)
 
     if create_cert_bundle:
-        cert_bundle = create_cert_bundle_from_certificate(project, env_name, base64_certificate)
+        cert_bundle = create_cert_bundle_from_certificate(cfg.project, cfg.environment_name, base64_certificate)
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
     response_data = {

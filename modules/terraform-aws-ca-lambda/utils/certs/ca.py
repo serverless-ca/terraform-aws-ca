@@ -14,6 +14,7 @@ from .crypto import (
     crypto_hash_class,
     Subject,
 )
+from .config import Config
 
 
 def ca_name(project, env_name, hierarchy):
@@ -52,25 +53,21 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
 
 
 def ca_kms_sign_ca_certificate_request(
-    project,
-    env_name,
-    domain,
+    cfg: Config,
     csr_cert,
     ca_cert,
     kms_key_id,
-    enable_public_crl,
-    issuing_ca_info,
     kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
     # get Issuing CA info
-    path_length_constraint = issuing_ca_info.get("pathLengthConstraint")
-    lifetime = issuing_ca_info.get("lifetime") or 3650
-    subject = ca_construct_subject_name(issuing_ca_info, "issuing")
+    path_length_constraint = cfg.issuing_ca_info.get("pathLengthConstraint")
+    lifetime = cfg.issuing_ca_info.get("lifetime") or 3650
+    subject = ca_construct_subject_name(cfg.issuing_ca_info, "issuing")
 
     crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crl")],
+        [UniformResourceIdentifier(f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'root')}.crl")],
         relative_name=None,
         reasons=None,
         crl_issuer=None,
@@ -80,7 +77,9 @@ def ca_kms_sign_ca_certificate_request(
         [
             AccessDescription(
                 AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crt"),
+                UniformResourceIdentifier(
+                    f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'root')}.crt"
+                ),
             )
         ]
     )
@@ -124,7 +123,7 @@ def ca_kms_sign_ca_certificate_request(
         )
     )
 
-    if enable_public_crl:
+    if cfg.enable_public_crl():
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
@@ -188,14 +187,10 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
 
 
 def ca_kms_sign_tls_certificate_request(
-    project,
-    env_name,
-    domain,
-    max_cert_lifetime,
+    cfg: Config,
     cert_request_info,
     ca_cert,
     kms_key_id,
-    enable_public_crl,
     kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     csr_cert = cert_request_info["CsrCert"]
@@ -203,7 +198,7 @@ def ca_kms_sign_tls_certificate_request(
     lifetime = cert_request_info["Lifetime"]
 
     # reduce lifetime to maximum allowed if needed
-    lifetime = min(lifetime, max_cert_lifetime)
+    lifetime = min(lifetime, cfg.max_cert_lifetime)
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
@@ -215,11 +210,15 @@ def ca_kms_sign_tls_certificate_request(
             critical=False,
         )
 
-    if enable_public_crl:
+    if cfg.enable_public_crl():
 
         # construct CRL distribution point
         crl_dp = x509.DistributionPoint(
-            [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crl")],
+            [
+                UniformResourceIdentifier(
+                    f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crl"
+                )
+            ],
             relative_name=None,
             reasons=None,
             crl_issuer=None,
@@ -230,7 +229,9 @@ def ca_kms_sign_tls_certificate_request(
             [
                 AccessDescription(
                     AuthorityInformationAccessOID.CA_ISSUERS,
-                    UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crt"),
+                    UniformResourceIdentifier(
+                        f"http://{cfg.omain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crt"
+                    ),
                 )
             ]
         )

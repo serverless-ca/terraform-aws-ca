@@ -82,7 +82,6 @@ class CsrInfo:
         if sans is not None:
             self._sans = sans
 
-
     def get_purposes(self):
         # only allowed purposes are client_auth and server_auth
         purposes = list(filter(lambda x: x in ["client_auth", "server_auth"], self._purposes))
