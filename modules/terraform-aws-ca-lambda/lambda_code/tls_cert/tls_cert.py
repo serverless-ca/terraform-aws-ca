@@ -134,15 +134,8 @@ def create_csr_info(event):
     purposes = event.get("purposes")
     sans = event.get("sans")
 
-    csr_info = CsrInfo(event["common_name"], lifetime=lifetime, purposes=purposes, sans=sans)
-
-    csr_info.subject = create_csr_subject(event)
-
-    lifetime = event.get("lifetime", 30)
-
-    csr_info.lifetime = int(lifetime)
-    csr_info.purposes = event.get("purposes")
-    csr_info.sans = event.get("sans")
+    subject = create_csr_subject(event)
+    csr_info = CsrInfo(subject=subject, lifetime=lifetime, purposes=purposes, sans=sans)
 
     return csr_info
 

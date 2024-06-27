@@ -69,8 +69,8 @@ class Subject:
 
 
 class CsrInfo:
-    def __init__(self, common_name, lifetime: int = 30, purposes=None, sans=None):
-        self.subject = Subject(common_name)
+    def __init__(self, subject, lifetime: int = 30, purposes=None, sans=None):
+        self.subject = subject
 
         self.lifetime: int = lifetime
 
@@ -81,6 +81,7 @@ class CsrInfo:
         self._sans = []
         if sans is not None:
             self._sans = sans
+
 
     def get_purposes(self):
         # only allowed purposes are client_auth and server_auth

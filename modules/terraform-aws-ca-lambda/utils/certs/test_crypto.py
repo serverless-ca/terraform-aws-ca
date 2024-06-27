@@ -5,7 +5,8 @@ from .crypto import CsrInfo, Subject
 
 # test defaults
 def test_csr_info_defaults():
-    csr_info = CsrInfo("blah.example.com")
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject)
 
     assert csr_info.lifetime == 30
     assert csr_info.get_purposes() == ["client_auth"]
@@ -13,34 +14,39 @@ def test_csr_info_defaults():
 
 
 def test_csr_info_with_sans():
-    csr_info = CsrInfo("blah.example.com", sans=["foo.example.com"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, sans=["foo.example.com"])
 
     assert csr_info.get_sans() == ["foo.example.com"]
 
 
 # If an invalid SAN is supplied we ignore it
 def test_csr_info_with_invalid_sans():
-    csr_info = CsrInfo("blah.example.com", sans=["foo.example com"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, sans=["foo.example com"])
 
     assert csr_info.get_sans() == []
 
 
 # if invalid and valid SANs are specified we filter out the invalid ones
 def test_csr_info_with_invalid_and_valid_sans():
-    csr_info = CsrInfo("blah.example.com", sans=["foo.example com", "bar.example.com"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, sans=["foo.example com", "bar.example.com"])
 
     assert csr_info.get_sans() == ["bar.example.com"]
 
 
 def test_csr_info_with_purpose():
-    csr_info = CsrInfo("blah.example.com", purposes=["server_auth"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, purposes=["server_auth"])
 
     assert csr_info.get_purposes() == ["server_auth"]
 
 
 # If an invalid purpose is specified, we default to 'client_auth'
 def test_csr_info_with_invalid_purpose():
-    csr_info = CsrInfo("blah.example.com", purposes=["code_sign"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, purposes=["code_sign"])
 
     assert csr_info.get_purposes() == ["client_auth"]
 
@@ -48,9 +54,17 @@ def test_csr_info_with_invalid_purpose():
 # If valid and invalid purposes are specified, we filter out invalid/unsupported purposes
 # and keep the valid / supported ones
 def test_csr_info_with_invalid_and_valid_purposes():
-    csr_info = CsrInfo("blah.example.com", purposes=["code_sign", "server_auth"])
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, purposes=["code_sign", "server_auth"])
 
     assert csr_info.get_purposes() == ["server_auth"]
+
+
+def test_csr_info_with_both_purposes():
+    subject = Subject("blah.example.com")
+    csr_info = CsrInfo(subject, purposes=["client_auth", "server_auth"])
+
+    assert set(csr_info.get_purposes()) == {"client_auth", "server_auth"}
 
 
 def test_subject_x509_name_simple():
