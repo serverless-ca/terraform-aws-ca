@@ -1,4 +1,6 @@
 import base64
+import os
+
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_kms_ca_cert_signing_request,

@@ -1,4 +1,5 @@
 import base64
+import os
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_cert_info
 from utils.certs.ca import ca_name, ca_create_kms_root_ca

@@ -54,7 +54,7 @@ class Subject:
         return x509.Name(attributes)
 
     @staticmethod
-    def from_x509_subject(x509_subject: "Subject"):
+    def from_x509_subject(x509_subject: x509.Name):
         common_name = x509_subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
 
         subject = Subject(common_name)

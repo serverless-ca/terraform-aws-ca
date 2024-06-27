@@ -22,7 +22,6 @@ from utils.certs.db import (
 )
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
-from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives import serialization
 
 
@@ -131,7 +130,7 @@ def create_csr_subject(event):
 
 
 def create_csr_info(event):
-    lifetime = int(lifetime=event.get("lifetime", 30))
+    lifetime = int(event.get("lifetime", 30))
     purposes = event.get("purposes")
     sans = event.get("sans")
 
