@@ -4,16 +4,13 @@ import os
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_cert_request_info,
-    crypto_encode_private_key,
     crypto_cert_info,
-    crypto_random_string,
     Subject,
     CsrInfo,
 )
 from utils.certs.ca import (
     ca_name,
     ca_kms_sign_tls_certificate_request,
-    ca_client_tls_cert_signing_request,
 )
 from utils.certs.db import (
     db_tls_cert_issued,
@@ -25,7 +22,7 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 
 
-def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime):
+def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
     ca_cert_bytes = base64.b64decode(ca_cert_bytes_b64)
@@ -46,6 +43,7 @@ def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_
         cert_request_info,
         ca_cert,
         issuing_ca_kms_key_id,
+        enable_public_crl,
         kms_describe_key(issuing_ca_kms_key_id)["SigningAlgorithms"][0],
     )
 
@@ -62,9 +60,11 @@ def select_csr_crypto(ca_slug):
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
 
 
-def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime):
+def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # sign certificate
-    pem_certificate = sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime)
+    pem_certificate = sign_tls_certificate(
+        project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
+    )
 
     # get details to upload to DynamoDB
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), csr_info.subject.common_name)
@@ -155,6 +155,11 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
     domain = os.environ.get("DOMAIN")
 
+    public_crl = os.environ.get("PUBLIC_CRL")
+    enable_public_crl = False
+    if public_crl == "enabled":
+        enable_public_crl = True
+
     # get Issuing CA name
     issuing_ca_name = ca_name(project, env_name, "issuing")
 
@@ -189,7 +194,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         return validation_error
 
     base64_certificate, cert_info = sign_csr(
-        project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime
+        project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
     )
 
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)

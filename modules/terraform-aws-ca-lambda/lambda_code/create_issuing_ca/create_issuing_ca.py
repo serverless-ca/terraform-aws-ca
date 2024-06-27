@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
@@ -22,6 +23,13 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
     domain = os.environ.get("DOMAIN")
+
+    public_crl = os.environ.get("PUBLIC_CRL")
+    enable_public_crl = False
+    if public_crl == "enabled":
+        enable_public_crl = True
+
+    issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
 
     root_ca_name = ca_name(project, env_name, "root")
     ca_slug = ca_name(project, env_name, "issuing")
@@ -66,6 +74,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         csr,
         root_ca_cert,
         root_ca_kms_key_id,
+        enable_public_crl,
+        issuing_ca_info,
         kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0],
     )
     base64_certificate = base64.b64encode(pem_certificate)
