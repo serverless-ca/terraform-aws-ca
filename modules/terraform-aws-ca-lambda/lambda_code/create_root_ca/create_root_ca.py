@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_cert_info
@@ -17,6 +18,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
+    root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
     ca_slug = ca_name(project, env_name, "root")
 
@@ -34,7 +36,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     print(f"using {cipher} key pair in KMS for {ca_slug}")
 
     pem_certificate = ca_create_kms_root_ca(
-        public_key, kms_key_id, kms_describe_key(kms_key_id)["SigningAlgorithms"][0]
+        public_key, kms_key_id, root_ca_info, kms_describe_key(kms_key_id)["SigningAlgorithms"][0]
     )
     base64_certificate = base64.b64encode(pem_certificate)
 

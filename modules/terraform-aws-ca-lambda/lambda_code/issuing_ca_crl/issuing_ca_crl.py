@@ -1,8 +1,12 @@
 from cryptography.hazmat.primitives import serialization
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_ca_key_info, crypto_revoked_certificate
-from utils.certs.ca import ca_name, ca_kms_publish_crl
-from utils.certs.db import db_list_certificates, db_update_crl_number, db_revocation_date
+from utils.certs.ca import ca_name, ca_kms_publish_crl, ca_get_ca_info
+from utils.certs.db import (
+    db_list_certificates,
+    db_update_crl_number,
+    db_revocation_date,
+)
 from utils.certs.s3 import s3_download, s3_upload
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import datetime
@@ -40,6 +44,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
+    issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
+    root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
+
     ca_slug = ca_name(project, env_name, "issuing")
 
     # check CA exists
@@ -58,7 +65,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     # issue CRL valid for one day 10 minutes
     timedelta = datetime.timedelta(issuing_crl_days, issuing_crl_seconds, 0)
     ca_key_info = crypto_ca_key_info(public_key, kms_key_id, ca_slug)
+    ca_info = ca_get_ca_info(issuing_ca_info, root_ca_info)
+
     crl = ca_kms_publish_crl(
+        ca_info,
         ca_key_info,
         timedelta,
         build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),

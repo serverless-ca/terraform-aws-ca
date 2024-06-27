@@ -1,6 +1,3 @@
-import os
-import json
-
 from datetime import datetime, timezone, timedelta
 from cryptography import x509
 from cryptography.x509 import (
@@ -11,18 +8,12 @@ from cryptography.x509 import (
 )
 from cryptography.x509.oid import AuthorityInformationAccessOID, ExtendedKeyUsageOID
 from cryptography.hazmat.primitives import serialization
-from validators import domain as domain_validator
 from .crypto import (
     crypto_select_class,
     crypto_hash_algorithm,
     crypto_hash_class,
 )
 from .types import Subject
-
-# TODO: How can we get rid of these globals?
-issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
-public_crl = os.environ["PUBLIC_CRL"]
-root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
 
 def ca_name(project, env_name, hierarchy):
@@ -61,7 +52,15 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
 
 
 def ca_kms_sign_ca_certificate_request(
-    project, env_name, domain, csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    project,
+    env_name,
+    domain,
+    csr_cert,
+    ca_cert,
+    kms_key_id,
+    enable_public_crl,
+    issuing_ca_info,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
@@ -119,7 +118,7 @@ def ca_kms_sign_ca_certificate_request(
         )
     )
 
-    if public_crl == "enabled":
+    if enable_public_crl:
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
@@ -187,6 +186,7 @@ def ca_kms_sign_tls_certificate_request(
     cert_request_info,
     ca_cert,
     kms_key_id,
+    enable_public_crl,
     kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     csr_cert = cert_request_info["CsrCert"]
@@ -206,7 +206,7 @@ def ca_kms_sign_tls_certificate_request(
             critical=False,
         )
 
-    if public_crl == "enabled":
+    if enable_public_crl:
 
         # construct CRL distribution point
         crl_dp = x509.DistributionPoint(
@@ -245,7 +245,7 @@ def ca_bundle_name(project, env_name):
     return f"{project}-ca-bundle-{env_name}"
 
 
-def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with defined private key"""
 
     # get Root CA info
@@ -292,11 +292,11 @@ def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKC
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_create_kms_root_ca(public_key, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with private key in KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 
-    return ca_create_root_ca(public_key, private_key, kms_signing_algorithm)
+    return ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm)
 
 
 def ca_get_ca_info(issuing_ca_info, root_ca_info):
@@ -324,13 +324,16 @@ def subject_from_ca_info(ca_info, default_common_name=None):
 
 
 def ca_kms_publish_crl(
-    ca_key_info, time_delta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    ca_info,
+    ca_key_info,
+    time_delta,
+    revoked_certs,
+    crl_number,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
     kms_key_id = ca_key_info["KmsKeyId"]
     public_key = ca_key_info["PublicKey"]
-
-    ca_info = ca_get_ca_info(issuing_ca_info, root_ca_info)
 
     subject = subject_from_ca_info(ca_info, "Serverless Root CA")
 
