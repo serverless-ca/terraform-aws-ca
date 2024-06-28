@@ -201,7 +201,7 @@ aws sts get-caller-identity --profile secops
 
 ```
 {
-    "UserId": "AROA6ODU3UF5DTDLJCYVE:61d5692c1982239b82255b38e6ced2aa34712ff0",
+    "UserId": "AXXX6ODU3UF5DTDLJCYVE:61d5692c1982239b82255b38e6ced2aa34712ff0",
     "Account": "992382525818",
     "Arn": "arn:aws:sts::992382525818:assumed-role/roles-anywhere-s3-full-access/61d5692c1982239b82255b38e6ced2aa34712ff0"
 }
