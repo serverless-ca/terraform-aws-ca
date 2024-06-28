@@ -20,7 +20,7 @@ If you haven’t already, set up the open-source serverless CA as detailed in th
 ![Alt text](../assets/images/iam/download-bundle.png?raw=true "Download certificate bundle")
 
 * Download the CA bundle, in the above example `serverless-ca-bundle-dev.pem`
-* The buncle consists of the Root CA and Issuing CA certificates, combined into a single file
+* The bundle consists of the Root CA and Issuing CA certificates, combined into a single file
 * Open with a text editor and copy to your clipboard
 
 ## Create Trust Anchor
@@ -89,7 +89,7 @@ The optional condition statement requires the client certificate to include the 
 
 ## Create Roles Anywhere Profile
 
-The IAM Roles Anywhere profile restricts access to a subset of permissions included in the policy assigned to the IAM role.
+The optional IAM Roles Anywhere profile restricts access to a subset of permissions included in the policy assigned to the IAM role.
 
 * Search for IAM Roles Anywhere
 * This will take you to IAM, Roles, Roles Anywhere
@@ -169,53 +169,49 @@ certs/client-cert-key.pem
 }
 ```
 
-### Set variables automatically
-[Roy Ben Yosef’s article](https://medium.com/cyberark-engineering/calling-aws-services-from-your-on-premises-servers-using-iam-roles-anywhere-3e335ed648be) on IAM Roles Anywhere includes a useful script for setting variables automatically.
+### Set AWS CLI profile
+While we could extract these values and set as environment variables, a more convenient approach is to permanently configure a new AWS CLI profile.
 
-* create a python script in your home directory named `get_creds.py`:
+Using a text editor such as `vi` edit `~/.aws/config` and insert:
 
-```python
-import json
-import syscreds = json.loads(sys.stdin.read())print(f"AWS_ACCESS_KEY_ID={creds['AccessKeyId']} AWS_SECRET_ACCESS_KEY={creds['SecretAccessKey']} AWS_SESSION_TOKEN={creds['SessionToken']}")
 ```
-* And then set all three variables using a single command:
-
-```bash
-export $(./aws_signing_helper credential-process \
-    --certificate certs/client-cert.pem \
-    --private-key certs/client-key.pem \
-    --trust-anchor-arn <anchor-arn> \
-    --profile-arn <profile-arn> \
-    --role-arn <role-arn> | python get_creds.py)
+[profile secops]
+    credential_process = ./aws_signing_helper credential-process --certificate certs/client-cert.pem --private-key certs/client-key.pem --trust-anchor-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:trust-anchor/TRUST_ANCHOR_ID --profile-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:profile/PROFILE_ID --role-arn arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
 ```
 
 * for example:
 
-```bash
-export $(./aws_signing_helper credential-process \
-    --certificate certs/client-cert.pem \
-    --private-key certs/client-key.pem \
-    --trust-anchor-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:trust-anchor/2de9dfa7-9f39-40c2-ae31-aaf843684dc9" \
-    --profile-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:profile/86227258-a142-433d-a4bc-6015c99b39b9" \
-    --role-arn "arn:aws:iam::992382525818:role/roles-anywhere-s3-full-access" | python get_creds.py)
+```
+[profile secops]
+    credential_process = ./aws_signing_helper credential-process --certificate certs/client-cert.pem --private-key certs/client-key.pem --trust-anchor-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:trust-anchor/2de9dfa7-9f39-40c2-ae31-aaf843684dc9" --profile-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:profile/86227258-a142-433d-a4bc-6015c99b39b9" --role-arn "arn:aws:iam::992382525818:role/roles-anywhere-s3-full-access"
 ```
 
 * substitute your ARNs
-* copy and paste the script to your terminal
-* press enter
+* save changes
 
 ## Test access
 
-* check AWS identity, this should succeed
+* check AWS identity:
 
 ```bash
-aws sts get-caller-identity
+aws sts get-caller-identity --profile secops
+```
+
+* you should get a response like this:
+
+```
+{
+    "UserId": "AROA6ODU3UF5DTDLJCYVE:61d5692c1982239b82255b38e6ced2aa34712ff0",
+    "Account": "992382525818",
+    "Arn": "arn:aws:sts::992382525818:assumed-role/roles-anywhere-s3-full-access/61d5692c1982239b82255b38e6ced2aa34712ff0"
+}
+
 ```
 
 * list all S3 buckets, this should fail as access is only allowed to a single bucket
 
 ```bash
-aws s3 ls
+aws s3 ls --profile secops
 An error occurred (AccessDenied) when calling the ListBuckets operation: Access Denied
 ```
 
@@ -223,9 +219,11 @@ An error occurred (AccessDenied) when calling the ListBuckets operation: Access 
 * replace the example below with your own S3 bucket and object
 
 ```bash
-aws s3 cp s3://cloud-apps-confidential/confidential.png confidential.png
+aws s3 cp s3://cloud-apps-confidential/confidential.png confidential.png --profile secops
 download: s3://cloud-apps-confidential/confidential.png to ./confidential.png
 ```
+
+Optionally you can set this AWS CLI profile as your default, in which case you don’t need to include the profile argument.
 
 ## View connection details
 
