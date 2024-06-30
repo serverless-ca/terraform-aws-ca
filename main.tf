@@ -60,12 +60,12 @@ module "internal_s3" {
   # S3 bucket for internal processing of JSON files for certificates to be issued and revoked
   source = "./modules/terraform-aws-ca-s3"
 
-  purpose          = "${var.project}-ca-internal-${var.env}"
-  global_bucket    = true
-  bucket_prefix    = var.bucket_prefix
-  access_logs      = var.access_logs
-  log_bucket       = var.log_bucket
-  kms_key_alias    = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_arn : var.kms_key_alias
+  purpose       = "${var.project}-ca-internal-${var.env}"
+  global_bucket = true
+  bucket_prefix = var.bucket_prefix
+  access_logs   = var.access_logs
+  log_bucket    = var.log_bucket
+  kms_key_alias = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_arn : var.kms_key_alias
 }
 
 resource "aws_s3_object" "cert_info" {
