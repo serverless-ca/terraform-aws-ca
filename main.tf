@@ -65,7 +65,6 @@ module "internal_s3" {
   bucket_prefix    = var.bucket_prefix
   access_logs      = var.access_logs
   log_bucket       = var.log_bucket
-  lifecycle_policy = false
   kms_key_alias    = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_arn : var.kms_key_alias
 }
 
