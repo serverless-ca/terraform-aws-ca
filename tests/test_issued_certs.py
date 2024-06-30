@@ -3,11 +3,10 @@ import base64
 from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 from cryptography.hazmat.primitives.serialization import load_der_private_key
+from cryptography.x509 import DNSName, load_pem_x509_certificate
+from cryptography.x509.oid import ExtensionOID
 from cryptography.hazmat.backends import default_backend
-from cryptography import x509
-from cryptography.x509 import DNSName, ExtensionOID, load_pem_x509_certificate
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+
 from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
@@ -20,36 +19,16 @@ from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
 from utils.modules.aws.s3 import get_s3_bucket, put_s3_object
 
 
-def test_cert_issued_no_passphrase():
-    """
-    Test certificate issued from a Certificate Signing Request with no passphrase
-    """
-    common_name = "pipeline-test-csr-no-passphrase.example.com"
-    purposes = ["server_auth"]
-
+def helper_generate_kms_private_key(key_purpose, password=None):
     # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
+    key_alias, kms_arn = get_kms_details(key_purpose)
     print(f"Generating key pair using KMS key {key_alias}")
 
     # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+    return load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], password=password)
 
-    csr_info = create_csr_info(common_name)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "passphrase": False,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
+def helper_invoke_cert_lambda(json_data, common_name=None):
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
     print(f"Invoking Lambda function {function_name}")
@@ -57,16 +36,114 @@ def test_cert_issued_no_passphrase():
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
 
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
+    if common_name is not None:
+        # Inspect the response which includes the signed certificate
+        result = response["CertificateInfo"]["CommonName"]
+        print(f"Certificate issued for {common_name}")
 
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
+        # Assert that the certificate was issued for the correct domain name
+        assert_that(result).is_equal_to(common_name)
 
     # extract certificate from response including bundled certificate chain
     base64_cert_data = response["Base64Certificate"]
     cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+
+    return cert_data
+
+
+def helper_generate_csr(csr_info):
+    # Generate key pair using KMS key to ensure randomness
+    private_key = helper_generate_kms_private_key("-tls-keygen", password=None)
+
+    # Generate Certificate Signing Request
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    return csr
+
+
+def helper_construct_json_data(
+    csr,
+    common_name,
+    purposes=None,
+    passphrase=None,
+    lifetime=1,
+    cert_bundle=True,
+    sans=None,
+    override_locality=None,
+    override_organization=None,
+    csr_file=None,
+):
+    # Construct JSON data to pass to Lambda function
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "base64_csr_data": base64_csr_data,
+        "lifetime": lifetime,
+        "cert_bundle": cert_bundle,
+    }
+
+    if sans is not None:
+        json_data["sans"] = sans
+
+    if purposes is not None:
+        json_data["purposes"] = purposes
+
+    if passphrase is not None:
+        json_data["passphrase"] = passphrase
+
+    if override_locality:
+        json_data["locality"] = override_locality
+
+    if override_organization:
+        json_data["organization"] = override_organization
+
+    if csr_file:
+        json_data["csr_file"] = csr_file
+
+    return json_data
+
+
+def helper_get_certificate(
+    csr_info,
+    purposes=None,
+    passphrase=None,
+    lifetime=1,
+    cert_bundle=True,
+    sans=None,
+    override_locality=None,
+    override_organization=None,
+    csr_file=None,
+):
+    common_name = csr_info["commonName"]
+
+    csr = helper_generate_csr(csr_info)
+
+    json_data = helper_construct_json_data(
+        csr,
+        common_name,
+        purposes=purposes,
+        passphrase=passphrase,
+        lifetime=lifetime,
+        cert_bundle=cert_bundle,
+        sans=sans,
+        override_locality=override_locality,
+        override_organization=override_organization,
+        csr_file=csr_file,
+    )
+
+    return helper_invoke_cert_lambda(json_data, common_name)
+
+
+def test_cert_issued_no_passphrase():
+    """
+    Test certificate issued from a Certificate Signing Request with no passphrase
+    """
+    common_name = "pipeline-test-csr-no-passphrase.example.com"
+    purposes = ["server_auth"]
+
+    csr_info = create_csr_info(common_name)
+
+    cert_data = helper_get_certificate(csr_info, purposes, passphrase=False)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -87,46 +164,9 @@ def test_client_cert_issued_only_includes_client_auth_extension():
     common_name = "My test client"
     purposes = ["client_auth"]
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
     csr_info = create_csr_info(common_name)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "passphrase": False,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes, passphrase=False)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -146,43 +186,9 @@ def test_cert_issued_with_passphrase():
     """
     common_name = "pipeline-test-csr-passphrase.example.com"
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
-    # Generate Certificate Signing Request
     csr_info = create_csr_info(common_name)
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
 
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=None, passphrase=None)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -211,45 +217,9 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
     )
     purposes = ["client_auth", "server_auth"]
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -275,54 +245,12 @@ def test_issued_cert_includes_correct_dns_names():
     state = "England"
     sans = ["test1.example.com", "test2.example.com", "invalid DNS name"]
     expected_result = ["test1.example.com", "test2.example.com"]
+
     purposes = ["server_auth"]
-
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
 
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "sans": sans,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
-
-    # convert bundle to trust store format
-    trust_roots = convert_truststore(cert_data)
-
-    # validate certificate
-    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
+    cert_data = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -344,46 +272,12 @@ def test_issued_cert_with_no_san_includes_correct_dns_name():
     organization = "Serverless Inc"
     organizational_unit = "DevOps"
     state = "New York"
-    purposes = ["server_auth"]
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
 
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+    purposes = ["server_auth"]
 
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -412,45 +306,10 @@ def test_cert_issued_without_san_if_common_name_invalid_dns():
     organizational_unit = "DevOps"
     state = "New York"
     purposes = ["server_auth"]
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
 
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # Inspect the response which includes the signed certificate
-    result = response["CertificateInfo"]["CommonName"]
-    print(f"Certificate issued for {common_name}")
-
-    # Assert that the certificate was issued for the correct domain name
-    assert_that(result).is_equal_to(common_name)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -481,48 +340,21 @@ def test_issued_cert_lifetime_as_expected():
     organization = "Acme Inc"
     organizational_unit = "Animation Department"
     state = "England"
+
     purposes = ["client_auth", "server_auth"]
-
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
+    lifetime = 1
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 1,
-        "cert_bundle": True,
-    }
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=purposes, lifetime=lifetime)
 
     # calculate issued certificate lifetime
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+
     issued_cert_lifetime = issued_cert.not_valid_after_utc - issued_cert.not_valid_before_utc
     print(f"Issued certificate lifetime: {issued_cert_lifetime}")
 
     # Expected cert lifetime is lifetime in days plus 5 minutes for clock skew
-    expected_cert_lifetime = timedelta(days=json_data["lifetime"], minutes=5)
+    expected_cert_lifetime = timedelta(days=lifetime, minutes=5)
     print(f"Expected certificate lifetime: {expected_cert_lifetime}")
 
     # Assert that issued certificate lifetime is as expected
@@ -543,40 +375,9 @@ def test_max_cert_lifetime():
 
     max_cert_lifetime = 365
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
-
-    # Construct JSON data to pass to Lambda function
-    base64_csr_data = base64.b64encode(csr).decode("utf-8")
-    json_data = {
-        "common_name": common_name,
-        "purposes": purposes,
-        "base64_csr_data": base64_csr_data,
-        "lifetime": 500,
-        "cert_bundle": True,
-    }
-
-    print(f"Requested certificate lifetime: {json_data['lifetime']} days")
-
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_get_certificate(csr_info, purposes=purposes, lifetime=500)
 
     # calculate issued certificate lifetime
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -608,12 +409,8 @@ def test_csr_uploaded_to_s3():
 
     expected_subject = f"ST={state},OU={organizational_unit},O={override_organization},L={override_locality},C={country},CN={common_name}"
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
     # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
+    private_key = helper_generate_kms_private_key("-tls-keygen", password=None)
 
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
 
@@ -638,19 +435,11 @@ def test_csr_uploaded_to_s3():
         "csr_file": csr_file,
     }
 
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
-
-    # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-
-    # extract certificate from response including bundled certificate chain
-    base64_cert_data = response["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
+    cert_data = helper_invoke_cert_lambda(json_data)
 
     # check subject of issued certificate with correct overrides
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+
     print(f"Issued certificate Subject: {issued_cert.subject.rfc4514_string()}")
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
 
@@ -662,17 +451,9 @@ def test_no_private_key_reuse():
     common_name = "pipeline-test-private-key-reuse.example.com"
     purposes = ["server_auth"]
 
-    # Get KMS details for key generation KMS key
-    key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
-
-    # Generate key pair using KMS key to ensure randomness
-    private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
-
     csr_info = create_csr_info(common_name)
 
-    # Generate Certificate Signing Request
-    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+    csr = helper_generate_csr(csr_info)
 
     # Construct JSON data to pass to Lambda function
     base64_csr_data = base64.b64encode(csr).decode("utf-8")

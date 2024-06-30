@@ -1,9 +1,5 @@
-import os
-import json
-
 from datetime import datetime, timezone, timedelta
 from cryptography import x509
-from cryptography.x509.oid import NameOID
 from cryptography.x509 import (
     AccessDescription,
     UniformResourceIdentifier,
@@ -12,20 +8,16 @@ from cryptography.x509 import (
 )
 from cryptography.x509.oid import AuthorityInformationAccessOID, ExtendedKeyUsageOID
 from cryptography.hazmat.primitives import serialization
-from validators import domain as domain_validator
-from utils.certs.crypto import crypto_select_class, crypto_hash_algorithm, crypto_hash_class
+from .crypto import (
+    crypto_select_class,
+    crypto_hash_algorithm,
+    crypto_hash_class,
+    Subject,
+)
+from .config import Config
 
 
-domain = os.environ.get("DOMAIN")
-env_name = os.environ["ENVIRONMENT_NAME"]
-issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
-max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
-project = os.environ["PROJECT"]
-public_crl = os.environ["PUBLIC_CRL"]
-root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
-
-
-def ca_name(hierarchy):
+def ca_name(project, env_name, hierarchy):
     if env_name in ["prd", "prod"]:
         return f"{project}-{hierarchy.lower()}-ca"
 
@@ -34,98 +26,48 @@ def ca_name(hierarchy):
 
 def ca_construct_subject_name(ca_info, ca_hierarchy_type="root"):
     """Constructs subject name for CA certificate"""
-    country = ca_info.get("country")
-    state = ca_info.get("state")
-    locality = ca_info.get("locality")
-    organization = ca_info.get("organization")
-    organizational_unit = ca_info.get("organizationalUnit")
-    common_name = ca_info.get("commonName") or f"Serverless {ca_hierarchy_type.title()} CA"
-    email_address = ca_info.get("emailAddress")
+    default_common_name = f"Serverless {ca_hierarchy_type.title()} CA"
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    subject = subject_from_ca_info(ca_info, default_common_name=default_common_name)
 
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    return x509.Name(attributes)
-
-
-def get_subject_attribute_or_none(csr_cert, attribute):
-    if csr_cert.subject.get_attributes_for_oid(attribute):
-        return csr_cert.subject.get_attributes_for_oid(attribute)[0].value
-    return None
+    return subject.x509_name()
 
 
 def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     """Constructs subject name for end entity certificate"""
     # subject values from CSR
-    common_name = csr_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-    country = get_subject_attribute_or_none(csr_cert, NameOID.COUNTRY_NAME)
-    email_address = get_subject_attribute_or_none(csr_cert, NameOID.EMAIL_ADDRESS)
-    locality = get_subject_attribute_or_none(csr_cert, NameOID.LOCALITY_NAME)
-    state = get_subject_attribute_or_none(csr_cert, NameOID.STATE_OR_PROVINCE_NAME)
-    organization = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATION_NAME)
-    organizational_unit = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATIONAL_UNIT_NAME)
+    orig_subject = Subject.from_x509_subject(csr_cert.subject)
 
     # overwrite subject values from CSR with cert_request_info values if present
-    common_name = cert_request_info.get("CommonName") or common_name
-    country = cert_request_info.get("Country") or country
-    email_address = cert_request_info.get("EmailAddress") or email_address
-    state = cert_request_info.get("State") or state
-    locality = cert_request_info.get("Locality") or locality
-    organization = cert_request_info.get("Organization") or organization
-    organizational_unit = cert_request_info.get("OrganizationalUnit") or organizational_unit
+    common_name = cert_request_info.get("CommonName") or orig_subject.common_name
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    subject = Subject(common_name)
+    subject.country = cert_request_info.get("Country") or orig_subject.country
+    subject.email_address = cert_request_info.get("EmailAddress") or orig_subject.email_address
+    subject.state = cert_request_info.get("State") or orig_subject.state
+    subject.locality = cert_request_info.get("Locality") or orig_subject.locality
+    subject.organization = cert_request_info.get("Organization") or orig_subject.organization
+    subject.organizational_unit = cert_request_info.get("OrganizationalUnit") or orig_subject.organizational_unit
 
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    return x509.Name(attributes)
+    return subject.x509_name()
 
 
 def ca_kms_sign_ca_certificate_request(
-    csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    cfg: Config,
+    csr_cert,
+    ca_cert,
+    kms_key_id,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
     # get Issuing CA info
-    path_length_constraint = issuing_ca_info.get("pathLengthConstraint")
-    lifetime = issuing_ca_info.get("lifetime") or 3650
-    subject = ca_construct_subject_name(issuing_ca_info, "issuing")
+    path_length_constraint = cfg.issuing_ca_info.get("pathLengthConstraint")
+    lifetime = cfg.issuing_ca_info.get("lifetime") or 3650
+    subject = ca_construct_subject_name(cfg.issuing_ca_info, "issuing")
 
     crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crl")],
+        [UniformResourceIdentifier(f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'root')}.crl")],
         relative_name=None,
         reasons=None,
         crl_issuer=None,
@@ -135,7 +77,9 @@ def ca_kms_sign_ca_certificate_request(
         [
             AccessDescription(
                 AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crt"),
+                UniformResourceIdentifier(
+                    f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'root')}.crt"
+                ),
             )
         ]
     )
@@ -148,8 +92,14 @@ def ca_kms_sign_ca_certificate_request(
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(timezone.utc))
         .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()),
+            critical=False,
+        )
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -173,7 +123,7 @@ def ca_kms_sign_ca_certificate_request(
         )
     )
 
-    if public_crl == "enabled":
+    if cfg.enable_public_crl():
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
@@ -229,19 +179,26 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
             x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
             critical=False,
         )
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()),
+            critical=False,
+        )
     )
 
 
 def ca_kms_sign_tls_certificate_request(
-    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    cfg: Config,
+    cert_request_info,
+    ca_cert,
+    kms_key_id,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     csr_cert = cert_request_info["CsrCert"]
     x509_dns_names = cert_request_info["x509Sans"]
     lifetime = cert_request_info["Lifetime"]
 
     # reduce lifetime to maximum allowed if needed
-    lifetime = min(lifetime, max_cert_lifetime)
+    lifetime = min(lifetime, cfg.max_cert_lifetime)
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
@@ -253,11 +210,15 @@ def ca_kms_sign_tls_certificate_request(
             critical=False,
         )
 
-    if public_crl == "enabled":
+    if cfg.enable_public_crl():
 
         # construct CRL distribution point
         crl_dp = x509.DistributionPoint(
-            [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
+            [
+                UniformResourceIdentifier(
+                    f"http://{cfg.domain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crl"
+                )
+            ],
             relative_name=None,
             reasons=None,
             crl_issuer=None,
@@ -268,7 +229,9 @@ def ca_kms_sign_tls_certificate_request(
             [
                 AccessDescription(
                     AuthorityInformationAccessOID.CA_ISSUERS,
-                    UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
+                    UniformResourceIdentifier(
+                        f"http://{cfg.omain}/{ca_name(cfg.project, cfg.environment_name, 'issuing')}.crt"
+                    ),
                 )
             ]
         )
@@ -285,14 +248,14 @@ def ca_kms_sign_tls_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_bundle_name():
+def ca_bundle_name(project, env_name):
     """Returns CA bundle name for uploading to S3"""
     if env_name in ["prd", "prod"]:
         return f"{project}-ca-bundle"
     return f"{project}-ca-bundle-{env_name}"
 
 
-def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with defined private key"""
 
     # get Root CA info
@@ -330,7 +293,10 @@ def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKC
             critical=True,
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(public_key), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key),
+            critical=False,
+        )
         .sign(private_key, crypto_hash_class(kms_signing_algorithm))
     )
 
@@ -339,11 +305,11 @@ def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKC
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_create_kms_root_ca(public_key, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with private key in KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 
-    return ca_create_root_ca(public_key, private_key, kms_signing_algorithm)
+    return ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm)
 
 
 def ca_get_ca_info(issuing_ca_info, root_ca_info):
@@ -354,44 +320,37 @@ def ca_get_ca_info(issuing_ca_info, root_ca_info):
     return root_ca_info
 
 
-def ca_kms_publish_crl(  # pylint:disable=too-many-locals
-    ca_key_info, time_delta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+def subject_from_ca_info(ca_info, default_common_name=None):
+    common_name = ca_info.get("commonName")
+    if default_common_name:
+        common_name = common_name or default_common_name
+
+    subject = Subject(common_name)
+    subject.country = ca_info.get("country")
+    subject.state = ca_info.get("state")
+    subject.locality = ca_info.get("locality")
+    subject.organization = ca_info.get("organization")
+    subject.organizational_unit = ca_info.get("organizationalUnit")
+    subject.email_address = ca_info.get("emailAddress")
+
+    return subject
+
+
+def ca_kms_publish_crl(
+    ca_info,
+    ca_key_info,
+    time_delta,
+    revoked_certs,
+    crl_number,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
     kms_key_id = ca_key_info["KmsKeyId"]
     public_key = ca_key_info["PublicKey"]
 
-    ca_info = ca_get_ca_info(issuing_ca_info, root_ca_info)
+    subject = subject_from_ca_info(ca_info, "Serverless Root CA")
 
-    country = ca_info.get("country")
-    state = ca_info.get("state")
-    locality = ca_info.get("locality")
-    organization = ca_info.get("organization")
-    organizational_unit = ca_info.get("organizationalUnit")
-    common_name = ca_info.get("commonName") or "Serverless Root CA"
-    email_address = ca_info.get("emailAddress")
-
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
-
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    issuer = x509.Name(attributes)
+    issuer = subject.x509_name()
 
     builder = x509.CertificateRevocationListBuilder()
     builder = builder.issuer_name(x509.Name(issuer))
@@ -407,65 +366,3 @@ def ca_kms_publish_crl(  # pylint:disable=too-many-locals
         crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
         crypto_hash_class(kms_signing_algorithm),
     )
-
-
-def ca_client_tls_cert_signing_request(private_key, csr_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
-
-    # get CSR info, using Issuing CA info if needed
-    country = csr_info.get("country") or issuing_ca_info.get("country")
-    state = csr_info.get("state") or issuing_ca_info.get("state")
-    locality = csr_info.get("locality") or issuing_ca_info.get("locality")
-    organization = csr_info.get("organization") or issuing_ca_info.get("organization")
-    organizational_unit = csr_info.get("organizationalUnit")
-    common_name = csr_info.get("commonName")
-    email_address = csr_info.get("emailAddress")
-
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
-
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    subject = x509.Name(attributes)
-
-    if domain_validator(common_name):
-        csr = (
-            x509.CertificateSigningRequestBuilder()
-            .subject_name(
-                x509.Name(subject),
-            )
-            .add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        x509.DNSName(common_name),
-                    ]
-                ),
-                critical=False,
-            )
-            .sign(private_key, crypto_hash_class(kms_signing_algorithm))
-        )
-
-    else:
-        csr = (
-            x509.CertificateSigningRequestBuilder()
-            .subject_name(
-                x509.Name(subject),
-            )
-            .sign(private_key, crypto_hash_class(kms_signing_algorithm))
-        )
-
-    return csr.public_bytes(serialization.Encoding.PEM)
