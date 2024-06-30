@@ -41,6 +41,7 @@ module "dynamodb" {
 }
 
 module "external_s3" {
+  #checkov:skip=CKV2_AWS_61:Lifecycle configuration not needed for long-lived static content
   # S3 bucket for CRL and CA certificate publication
   source = "./modules/terraform-aws-ca-s3"
 
