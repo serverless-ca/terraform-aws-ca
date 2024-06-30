@@ -121,7 +121,7 @@ variable "filter_suffix" {
 
 variable "lifecycle_policy" {
   description = "Include lifecycle policy"
-  default     = true
+  default     = false
 }
 
 variable "ia_transition" {
