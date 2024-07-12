@@ -1,7 +1,8 @@
-boto3==1.34.64
-black==24.3.0
-cryptography==42.0.4
+setuptools==70.2.0
+boto3==1.34.141
+black==24.4.2
+cryptography==42.0.8
 prospector==1.10.3
-bandit==1.7.5
-requests==2.32.2
-validators==0.22.0
+bandit==1.7.9
+validators==0.31.0
+requests==2.32.3
