@@ -1,6 +1,6 @@
 import os
 import boto3
-from utils.certs.kms import kms_get_kms_key_id
+from .kms import kms_get_kms_key_id
 
 project = os.environ["PROJECT"]
 env_name = os.environ["ENVIRONMENT_NAME"]

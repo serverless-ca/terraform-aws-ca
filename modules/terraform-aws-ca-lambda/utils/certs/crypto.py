@@ -5,8 +5,10 @@ import base64
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
-from utils.certs.crypto_kms_classes import AWSKMSEllipticCurvePrivateKey, AWSKMSRSAPrivateKey
-from validators import domain as domain_validator
+from .crypto_kms_classes import (
+    AWSKMSEllipticCurvePrivateKey,
+    AWSKMSRSAPrivateKey,
+)
 
 
 def crypto_cert_info(cert, common_name):
@@ -26,37 +28,14 @@ def crypto_ca_key_info(public_key, kms_key_id, common_name):
     }
 
 
-def crypto_cert_request_info(csr_cert, csr_info_1, csr_info_2):
+def crypto_cert_request_info(csr_cert, csr_info):
     """Creates a dictionary with the information needed to sign a certificate"""
-    # get common name from csr_info_1
-    common_name = csr_info_1["commonName"]
+    # get common name from csr_info
+    common_name = csr_info.subject.common_name
 
-    # get values from csr_info_2
-    purposes = csr_info_2.get("purposes")
-    lifetime = csr_info_2.get("lifetime")
-    sans = csr_info_2.get("sans")
-
-    # if no purposes are specified, default to both client auth
-    if purposes is None:
-        purposes = ["client_auth"]
-
-    # only allowed purposes are client_auth and server_auth
-    purposes = [p for p in purposes if p in ["client_auth", "server_auth"]]
-
-    # if purposes list is empty, default to client auth
-    if purposes == []:
-        purposes = ["client_auth"]
-
-    # no SANs and common name is not a valid domain
-    if (sans is None or sans == []) and not domain_validator(common_name):
-        sans = []
-
-    # no SANs and common name is a valid domain
-    if (sans is None or sans == []) and domain_validator(common_name):
-        sans = [common_name]
-
-    # remove invalid SANs
-    sans = [s for s in sans if domain_validator(s)]
+    # get values from csr_info
+    purposes = csr_info.purposes
+    sans = csr_info.sans
 
     # convert to x509 cryptography format
     x509_sans = []
@@ -65,15 +44,15 @@ def crypto_cert_request_info(csr_cert, csr_info_1, csr_info_2):
 
     return {
         "CommonName": common_name,
-        "Country": csr_info_1["country"],
+        "Country": csr_info.subject.country,
         "CsrCert": csr_cert,
-        "EmailAddress": csr_info_2["emailAddress"],
-        "Lifetime": lifetime,
-        "Locality": csr_info_1["locality"],
-        "Organization": csr_info_1["organization"],
-        "OrganizationalUnit": csr_info_1["organizationalUnit"],
+        "EmailAddress": csr_info.subject.email_address,
+        "Lifetime": csr_info.lifetime,
+        "Locality": csr_info.subject.locality,
+        "Organization": csr_info.subject.organization,
+        "OrganizationalUnit": csr_info.subject.organizational_unit,
         "Purposes": purposes,
-        "State": csr_info_2["state"],
+        "State": csr_info.subject.state,
         "x509Sans": x509_sans,
     }
 
