@@ -72,11 +72,13 @@ lambda_handler({"common_name": "test-client-cert","lifetime": 1,"csr_file": "cli
 ```python
 lambda_handler({"common_name": "test-client-cert", "organization": "Acme Inc.", "organizational_unit": "Animation Department","lifetime": 1,"csr_file": "client-cert-request.csr","force_issue": True},{})
 ```
-* format and linting checks
+* unit testing, format and linting checks
 ```commandline
+pytest -v .
 black --line-length 120 .
 prospector
 bandit -r lambda_code utils
+
 ```
 
 ## Local Python development - Windows
@@ -144,8 +146,9 @@ lambda_handler({"common_name": "test-client-cert","lifetime": 1,"csr_file": "cli
 ```python
 lambda_handler({"common_name": "test-client-cert", "organization": "Acme Inc.", "organizational_unit": "Animation Department","lifetime": 1,"csr_file": "client-cert-request.csr","force_issue": True},{})
 ```
-* format and linting checks
+* unit testing, format and linting checks
 ```commandline
+pytest -v .
 black --line-length 120 .
 prospector
 bandit -r lambda_code utils
