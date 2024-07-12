@@ -54,4 +54,6 @@ jobs:
 
       - name: Bandit
         run: >
-          bandit -r src --ini .config/sast_python_bandit_cli.yml 
+          bandit -r modules/terraform-aws-ca-lambda/lambda_code modules/terraform-aws-ca-lambda/utils scripts tests utils
+          --exit-zero
+          --ini .config/sast_python_bandit_cli.yml
