@@ -3,7 +3,6 @@ import json
 
 from datetime import datetime, timezone, timedelta
 from cryptography import x509
-from cryptography.x509.oid import NameOID
 from cryptography.x509 import (
     AccessDescription,
     UniformResourceIdentifier,
@@ -13,9 +12,14 @@ from cryptography.x509 import (
 from cryptography.x509.oid import AuthorityInformationAccessOID, ExtendedKeyUsageOID
 from cryptography.hazmat.primitives import serialization
 from validators import domain as domain_validator
-from utils.certs.crypto import crypto_select_class, crypto_hash_algorithm, crypto_hash_class
+from .crypto import (
+    crypto_select_class,
+    crypto_hash_algorithm,
+    crypto_hash_class,
+)
+from .types import Subject
 
-
+# TODO: How can we get rid of these globals?
 domain = os.environ.get("DOMAIN")
 env_name = os.environ["ENVIRONMENT_NAME"]
 issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
@@ -34,84 +38,30 @@ def ca_name(hierarchy):
 
 def ca_construct_subject_name(ca_info, ca_hierarchy_type="root"):
     """Constructs subject name for CA certificate"""
-    country = ca_info.get("country")
-    state = ca_info.get("state")
-    locality = ca_info.get("locality")
-    organization = ca_info.get("organization")
-    organizational_unit = ca_info.get("organizationalUnit")
-    common_name = ca_info.get("commonName") or f"Serverless {ca_hierarchy_type.title()} CA"
-    email_address = ca_info.get("emailAddress")
+    default_common_name = f"Serverless {ca_hierarchy_type.title()} CA"
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    subject = subject_from_ca_info(ca_info, default_common_name=default_common_name)
 
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    return x509.Name(attributes)
-
-
-def get_subject_attribute_or_none(csr_cert, attribute):
-    if csr_cert.subject.get_attributes_for_oid(attribute):
-        return csr_cert.subject.get_attributes_for_oid(attribute)[0].value
-    return None
+    return subject.x509_name()
 
 
 def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     """Constructs subject name for end entity certificate"""
     # subject values from CSR
-    common_name = csr_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
-    country = get_subject_attribute_or_none(csr_cert, NameOID.COUNTRY_NAME)
-    email_address = get_subject_attribute_or_none(csr_cert, NameOID.EMAIL_ADDRESS)
-    locality = get_subject_attribute_or_none(csr_cert, NameOID.LOCALITY_NAME)
-    state = get_subject_attribute_or_none(csr_cert, NameOID.STATE_OR_PROVINCE_NAME)
-    organization = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATION_NAME)
-    organizational_unit = get_subject_attribute_or_none(csr_cert, NameOID.ORGANIZATIONAL_UNIT_NAME)
+    orig_subject = Subject.from_x509_subject(csr_cert.subject)
 
     # overwrite subject values from CSR with cert_request_info values if present
-    common_name = cert_request_info.get("CommonName") or common_name
-    country = cert_request_info.get("Country") or country
-    email_address = cert_request_info.get("EmailAddress") or email_address
-    state = cert_request_info.get("State") or state
-    locality = cert_request_info.get("Locality") or locality
-    organization = cert_request_info.get("Organization") or organization
-    organizational_unit = cert_request_info.get("OrganizationalUnit") or organizational_unit
+    common_name = cert_request_info.get("CommonName") or orig_subject.common_name
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    subject = Subject(common_name)
+    subject.country = cert_request_info.get("Country") or orig_subject.country
+    subject.email_address = cert_request_info.get("EmailAddress") or orig_subject.email_address
+    subject.state = cert_request_info.get("State") or orig_subject.state
+    subject.locality = cert_request_info.get("Locality") or orig_subject.locality
+    subject.organization = cert_request_info.get("Organization") or orig_subject.organization
+    subject.organizational_unit = cert_request_info.get("OrganizationalUnit") or orig_subject.organizational_unit
 
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    return x509.Name(attributes)
+    return subject.x509_name()
 
 
 def ca_kms_sign_ca_certificate_request(
@@ -354,7 +304,23 @@ def ca_get_ca_info(issuing_ca_info, root_ca_info):
     return root_ca_info
 
 
-def ca_kms_publish_crl(  # pylint:disable=too-many-locals
+def subject_from_ca_info(ca_info, default_common_name=None):
+    common_name = ca_info.get("commonName")
+    if default_common_name:
+        common_name = common_name or default_common_name
+
+    subject = Subject(common_name)
+    subject.country = ca_info.get("country")
+    subject.state = ca_info.get("state")
+    subject.locality = ca_info.get("locality")
+    subject.organization = ca_info.get("organization")
+    subject.organizational_unit = ca_info.get("organizationalUnit")
+    subject.email_address = ca_info.get("emailAddress")
+
+    return subject
+
+
+def ca_kms_publish_crl(
     ca_key_info, time_delta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
@@ -363,35 +329,9 @@ def ca_kms_publish_crl(  # pylint:disable=too-many-locals
 
     ca_info = ca_get_ca_info(issuing_ca_info, root_ca_info)
 
-    country = ca_info.get("country")
-    state = ca_info.get("state")
-    locality = ca_info.get("locality")
-    organization = ca_info.get("organization")
-    organizational_unit = ca_info.get("organizationalUnit")
-    common_name = ca_info.get("commonName") or "Serverless Root CA"
-    email_address = ca_info.get("emailAddress")
+    subject = subject_from_ca_info(ca_info, "Serverless Root CA")
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
-
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    issuer = x509.Name(attributes)
+    issuer = subject.x509_name()
 
     builder = x509.CertificateRevocationListBuilder()
     builder = builder.issuer_name(x509.Name(issuer))
@@ -412,41 +352,23 @@ def ca_kms_publish_crl(  # pylint:disable=too-many-locals
 def ca_client_tls_cert_signing_request(private_key, csr_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
 
     # get CSR info, using Issuing CA info if needed
-    country = csr_info.get("country") or issuing_ca_info.get("country")
-    state = csr_info.get("state") or issuing_ca_info.get("state")
-    locality = csr_info.get("locality") or issuing_ca_info.get("locality")
-    organization = csr_info.get("organization") or issuing_ca_info.get("organization")
-    organizational_unit = csr_info.get("organizationalUnit")
     common_name = csr_info.get("commonName")
-    email_address = csr_info.get("emailAddress")
+    subject = Subject(common_name)
+    subject.country = csr_info.get("country") or issuing_ca_info.get("country")
+    subject.state = csr_info.get("state") or issuing_ca_info.get("state")
+    subject.locality = csr_info.get("locality") or issuing_ca_info.get("locality")
+    subject.organization = csr_info.get("organization") or issuing_ca_info.get("organization")
+    subject.organizational_unit = csr_info.get("organizationalUnit")
 
-    attributes = [x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    subject.email_address = csr_info.get("emailAddress")
 
-    if country:
-        attributes.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-
-    if email_address:
-        attributes.append(x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
-
-    if locality:
-        attributes.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
-
-    if organization:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
-
-    if organizational_unit:
-        attributes.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, organizational_unit))
-
-    if state:
-        attributes.append(x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
-
-    subject = x509.Name(attributes)
+    subject_x509_name = subject.x509_name()
 
     if domain_validator(common_name):
         csr = (
             x509.CertificateSigningRequestBuilder()
             .subject_name(
-                x509.Name(subject),
+                x509.Name(subject_x509_name),
             )
             .add_extension(
                 x509.SubjectAlternativeName(
@@ -463,7 +385,7 @@ def ca_client_tls_cert_signing_request(private_key, csr_info, kms_signing_algori
         csr = (
             x509.CertificateSigningRequestBuilder()
             .subject_name(
-                x509.Name(subject),
+                x509.Name(subject_x509_name),
             )
             .sign(private_key, crypto_hash_class(kms_signing_algorithm))
         )

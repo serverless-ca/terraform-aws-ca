@@ -26,7 +26,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-          
+
+      - name: Pytest
+        run: |
+          pytest -v modules/terraform-aws-ca-lambda      
+    
       - name: Black
         run: |
           black --check --line-length 120 .
