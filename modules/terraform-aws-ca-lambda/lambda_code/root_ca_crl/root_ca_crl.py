@@ -39,6 +39,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
+    root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
     ca_slug = ca_name(project, env_name, "root")
 
@@ -58,7 +59,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     # issue CRL valid for one day 10 minutes
     timedelta = datetime.timedelta(root_crl_days, root_crl_seconds, 0)
     ca_key_info = crypto_ca_key_info(public_key, kms_key_id, ca_slug)
+
     crl = ca_kms_publish_crl(
+        root_ca_info,
         ca_key_info,
         timedelta,
         build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
