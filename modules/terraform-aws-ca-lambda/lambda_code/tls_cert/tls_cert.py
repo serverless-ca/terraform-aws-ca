@@ -145,6 +145,8 @@ def create_csr_info(event) -> CsrInfo:
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
+    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
     # get Issuing CA name
     issuing_ca_name = ca_name(project, env_name, "issuing")
@@ -160,7 +162,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
 
     if csr_file:
-        csr = load_pem_x509_csr(s3_download(f"csrs/{csr_file}")["Body"].read())
+        csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")[
+            "Body"
+        ].read()
+        csr = load_pem_x509_csr(csr_file_contents)
     else:
         csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
 

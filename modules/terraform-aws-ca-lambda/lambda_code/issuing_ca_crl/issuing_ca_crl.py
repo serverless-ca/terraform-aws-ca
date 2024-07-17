@@ -10,15 +10,15 @@ import json
 import os
 
 
-def build_list_of_revoked_certs(project, env_name):
+def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
     """Build list of revoked certificates for CRL"""
     # handle certificate revocation not enabled
-    if not s3_download("revoked.json"):
+    if not s3_download(external_s3_bucket_name, internal_s3_bucket_name, "revoked.json"):
         print("revoked.json not found")
         return []
 
     # get list of certificates to be revoked
-    revocation_file = s3_download("revoked.json")["Body"]
+    revocation_file = s3_download(external_s3_bucket_name, internal_s3_bucket_name, "revoked.json")["Body"]
 
     revocation_details = json.load(revocation_file)
 
@@ -37,6 +37,8 @@ def build_list_of_revoked_certs(project, env_name):
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
+    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
     ca_slug = ca_name(project, env_name, "issuing")
 
@@ -59,7 +61,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     crl = ca_kms_publish_crl(
         ca_key_info,
         timedelta,
-        build_list_of_revoked_certs(project, env_name),
+        build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
         db_update_crl_number(
             project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
         ),
@@ -67,6 +69,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     ).public_bytes(encoding=serialization.Encoding.DER)
 
     # upload CRL to S3
-    s3_upload(crl, f"{ca_slug}.crl")
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl, f"{ca_slug}.crl")
 
     return
