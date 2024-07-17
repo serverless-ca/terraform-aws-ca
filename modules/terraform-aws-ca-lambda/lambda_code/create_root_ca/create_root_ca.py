@@ -16,7 +16,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
 
-    ca_slug = ca_name("root")
+    ca_slug = ca_name(project, env_name, "root")
 
     # check if CA already exists
     if db_list_certificates(project, env_name, ca_slug):
