@@ -1,6 +1,3 @@
-import os
-import json
-
 from datetime import datetime, timezone, timedelta
 from cryptography import x509
 from cryptography.x509 import (
@@ -11,7 +8,6 @@ from cryptography.x509 import (
 )
 from cryptography.x509.oid import AuthorityInformationAccessOID, ExtendedKeyUsageOID
 from cryptography.hazmat.primitives import serialization
-from validators import domain as domain_validator
 from .crypto import (
     crypto_select_class,
     crypto_hash_algorithm,
@@ -19,17 +15,8 @@ from .crypto import (
 )
 from .types import Subject
 
-# TODO: How can we get rid of these globals?
-domain = os.environ.get("DOMAIN")
-env_name = os.environ["ENVIRONMENT_NAME"]
-issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
-max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
-project = os.environ["PROJECT"]
-public_crl = os.environ["PUBLIC_CRL"]
-root_ca_info = json.loads(os.environ["ROOT_CA_INFO"])
 
-
-def ca_name(hierarchy):
+def ca_name(project, env_name, hierarchy):
     if env_name in ["prd", "prod"]:
         return f"{project}-{hierarchy.lower()}-ca"
 
@@ -64,8 +51,17 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     return subject.x509_name()
 
 
+# pylint:disable=too-many-arguments
 def ca_kms_sign_ca_certificate_request(
-    csr_cert, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    project,
+    env_name,
+    domain,
+    csr_cert,
+    ca_cert,
+    kms_key_id,
+    enable_public_crl,
+    issuing_ca_info,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
@@ -75,7 +71,7 @@ def ca_kms_sign_ca_certificate_request(
     subject = ca_construct_subject_name(issuing_ca_info, "issuing")
 
     crl_dp = x509.DistributionPoint(
-        [UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crl")],
+        [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crl")],
         relative_name=None,
         reasons=None,
         crl_issuer=None,
@@ -85,7 +81,7 @@ def ca_kms_sign_ca_certificate_request(
         [
             AccessDescription(
                 AuthorityInformationAccessOID.CA_ISSUERS,
-                UniformResourceIdentifier(f"http://{domain}/{ca_name('root')}.crt"),
+                UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'root')}.crt"),
             )
         ]
     )
@@ -123,7 +119,7 @@ def ca_kms_sign_ca_certificate_request(
         )
     )
 
-    if public_crl == "enabled":
+    if enable_public_crl:
         cert = cert.add_extension(x509.CRLDistributionPoints([crl_dp]), critical=False)
         cert = cert.add_extension(aia, critical=False)
 
@@ -183,8 +179,17 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
     )
 
 
+# pylint:disable=too-many-arguments,too-many-locals
 def ca_kms_sign_tls_certificate_request(
-    cert_request_info, ca_cert, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    project,
+    env_name,
+    domain,
+    max_cert_lifetime,
+    cert_request_info,
+    ca_cert,
+    kms_key_id,
+    enable_public_crl,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     csr_cert = cert_request_info["CsrCert"]
     x509_dns_names = cert_request_info["x509Sans"]
@@ -203,11 +208,11 @@ def ca_kms_sign_tls_certificate_request(
             critical=False,
         )
 
-    if public_crl == "enabled":
+    if enable_public_crl:
 
         # construct CRL distribution point
         crl_dp = x509.DistributionPoint(
-            [UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crl")],
+            [UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crl")],
             relative_name=None,
             reasons=None,
             crl_issuer=None,
@@ -218,7 +223,7 @@ def ca_kms_sign_tls_certificate_request(
             [
                 AccessDescription(
                     AuthorityInformationAccessOID.CA_ISSUERS,
-                    UniformResourceIdentifier(f"http://{domain}/{ca_name('issuing')}.crt"),
+                    UniformResourceIdentifier(f"http://{domain}/{ca_name(project, env_name, 'issuing')}.crt"),
                 )
             ]
         )
@@ -235,14 +240,14 @@ def ca_kms_sign_tls_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_bundle_name():
+def ca_bundle_name(project, env_name):
     """Returns CA bundle name for uploading to S3"""
     if env_name in ["prd", "prod"]:
         return f"{project}-ca-bundle"
     return f"{project}-ca-bundle-{env_name}"
 
 
-def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with defined private key"""
 
     # get Root CA info
@@ -289,11 +294,11 @@ def ca_create_root_ca(public_key, private_key, kms_signing_algorithm="RSASSA_PKC
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_create_kms_root_ca(public_key, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with private key in KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 
-    return ca_create_root_ca(public_key, private_key, kms_signing_algorithm)
+    return ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm)
 
 
 def ca_get_ca_info(issuing_ca_info, root_ca_info):
@@ -320,14 +325,18 @@ def subject_from_ca_info(ca_info, default_common_name=None):
     return subject
 
 
+# pylint:disable=too-many-arguments
 def ca_kms_publish_crl(
-    ca_key_info, time_delta, revoked_certs, crl_number, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"
+    ca_info,
+    ca_key_info,
+    time_delta,
+    revoked_certs,
+    crl_number,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
     kms_key_id = ca_key_info["KmsKeyId"]
     public_key = ca_key_info["PublicKey"]
-
-    ca_info = ca_get_ca_info(issuing_ca_info, root_ca_info)
 
     subject = subject_from_ca_info(ca_info, "Serverless Root CA")
 
@@ -347,47 +356,3 @@ def ca_kms_publish_crl(
         crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
         crypto_hash_class(kms_signing_algorithm),
     )
-
-
-def ca_client_tls_cert_signing_request(private_key, csr_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
-
-    # get CSR info, using Issuing CA info if needed
-    common_name = csr_info.get("commonName")
-    subject = Subject(common_name)
-    subject.country = csr_info.get("country") or issuing_ca_info.get("country")
-    subject.state = csr_info.get("state") or issuing_ca_info.get("state")
-    subject.locality = csr_info.get("locality") or issuing_ca_info.get("locality")
-    subject.organization = csr_info.get("organization") or issuing_ca_info.get("organization")
-    subject.organizational_unit = csr_info.get("organizationalUnit")
-
-    subject.email_address = csr_info.get("emailAddress")
-
-    subject_x509_name = subject.x509_name()
-
-    if domain_validator(common_name):
-        csr = (
-            x509.CertificateSigningRequestBuilder()
-            .subject_name(
-                x509.Name(subject_x509_name),
-            )
-            .add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        x509.DNSName(common_name),
-                    ]
-                ),
-                critical=False,
-            )
-            .sign(private_key, crypto_hash_class(kms_signing_algorithm))
-        )
-
-    else:
-        csr = (
-            x509.CertificateSigningRequestBuilder()
-            .subject_name(
-                x509.Name(subject_x509_name),
-            )
-            .sign(private_key, crypto_hash_class(kms_signing_algorithm))
-        )
-
-    return csr.public_bytes(serialization.Encoding.PEM)

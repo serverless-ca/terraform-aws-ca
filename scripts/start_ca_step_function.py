@@ -31,24 +31,26 @@ def monitor_step_function_execution(execution_arn):
 
     stepfunctions_client = client("stepfunctions")
 
-    execution_status = stepfunctions_client.describe_execution(executionArn=execution_arn)["status"]
+    execution_details = stepfunctions_client.describe_execution(executionArn=execution_arn)
 
-    while execution_status == "RUNNING":
-        execution_status = stepfunctions_client.describe_execution(executionArn=execution_arn)["status"]
-        print(f"CA Step Function status: {execution_status}")
+    while execution_details["status"] == "RUNNING":
+        execution_details = stepfunctions_client.describe_execution(executionArn=execution_arn)
+        print(f'"CA Step Function status: {execution_details["status"]}')
         sleep(5)
 
-    return execution_status
+    return execution_details
 
 
 if __name__ == "__main__":
     step_function_arn, step_function_name = get_ca_step_function_details()
     print(f"Starting {step_function_name}...")
     execution_arn = start_ca_step_function(step_function_arn)["executionArn"]
-    execution_status = monitor_step_function_execution(execution_arn)
+    execution_details = monitor_step_function_execution(execution_arn)
 
-    if execution_status == "SUCCEEDED":
+    exec_status = execution_details["status"]
+    if exec_status == "SUCCEEDED":
         print(f"Step Function {step_function_name} completed successfully")
 
-    if execution_status == "FAILED":
+    if exec_status == "FAILED":
+        print(f"Step Function Output: {execution_details}")
         raise SystemExit(f"Step Function {step_function_name} failed")

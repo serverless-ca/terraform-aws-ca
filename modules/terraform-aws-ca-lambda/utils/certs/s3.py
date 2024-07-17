@@ -1,49 +1,41 @@
-import os
 import boto3
 
-project = os.environ["PROJECT"]
-env_name = os.environ["ENVIRONMENT_NAME"]
-external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
-internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
 
-
-def s3_download(key, internal=True):
+def s3_download_file(bucket_name, key):
     client = boto3.client("s3")
 
-    if internal:
-        print(f"downloading {key} from s3 bucket {internal_s3_bucket_name}")
-
-        try:
-            return client.get_object(
-                Bucket=internal_s3_bucket_name,
-                Key=key,
-            )
-        except client.exceptions.NoSuchKey:
-            print(f"file {key} not found in s3 bucket {internal_s3_bucket_name}")
-            return None
-
-    print(f"downloading {key} from s3 bucket {external_s3_bucket_name}")
+    print(f"downloading {key} from s3 bucket {bucket_name}")
 
     try:
         return client.get_object(
-            Bucket=external_s3_bucket_name,
+            Bucket=bucket_name,
             Key=key,
         )
     except client.exceptions.NoSuchKey:
-        print(f"file {key} not found in s3 bucket {external_s3_bucket_name}")
-        return None
+        print(f"file {key} not found in s3 bucket {bucket_name}")
+
+    return None
 
 
-def s3_upload(file, key, content_type="application/x-pkcs7-crl", external=True):
+def s3_download(external_s3_bucket_name, internal_s3_bucket_name, key, internal=True):
+    if internal:
+        return s3_download_file(internal_s3_bucket_name, key)
+
+    return s3_download_file(external_s3_bucket_name, key)
+
+
+def s3_upload_file(file, bucket_name, key, content_type):
     client = boto3.client("s3")
 
+    client.put_object(Body=file, Bucket=bucket_name, Key=key, ContentType=content_type)
+    print(f"uploaded {key} to s3 bucket {bucket_name}")
+
+
+# pylint:disable=too-many-arguments
+def s3_upload(
+    external_s3_bucket_name, internal_s3_bucket_name, file, key, content_type="application/x-pkcs7-crl", external=True
+):
     if external:
-        client.put_object(Body=file, Bucket=external_s3_bucket_name, Key=key, ContentType=content_type)
-        print(f"uploaded {key} to s3 bucket {external_s3_bucket_name}")
+        return s3_upload_file(file, external_s3_bucket_name, key, content_type)
 
-        return
-
-    client.put_object(Body=file, Bucket=internal_s3_bucket_name, Key=key, ContentType=content_type)
-    print(f"uploaded {key} to s3 bucket {internal_s3_bucket_name}")
-
-    return
+    return s3_upload_file(file, internal_s3_bucket_name, key, content_type)
