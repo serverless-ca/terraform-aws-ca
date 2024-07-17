@@ -16,7 +16,7 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 lifetime = 3650
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument
+def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]

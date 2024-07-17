@@ -5,7 +5,6 @@ from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_cert_request_info,
     crypto_cert_info,
-    crypto_random_string,
 )
 from utils.certs.types import (
     Subject,
@@ -24,7 +23,7 @@ from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 
-
+# pylint:disable=too-many-arguments
 def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
@@ -62,7 +61,7 @@ def select_csr_crypto(ca_slug):
 
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
 
-
+# pylint:disable=too-many-arguments
 def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # sign certificate
     pem_certificate = sign_tls_certificate(
@@ -74,7 +73,7 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
 
     return base64.b64encode(pem_certificate), info
 
-
+# pylint:disable=too-many-arguments
 def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr, lifetime, force_issue):
     if not db_list_certificates(project, env_name, ca_name):
         return {"error": f"CA {ca_name} not found"}
@@ -144,7 +143,7 @@ def create_csr_info(event) -> CsrInfo:
     return csr_info
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument
+def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]

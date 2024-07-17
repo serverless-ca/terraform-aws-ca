@@ -30,7 +30,7 @@ def s3_upload_file(file, bucket_name, key, content_type):
     client.put_object(Body=file, Bucket=bucket_name, Key=key, ContentType=content_type)
     print(f"uploaded {key} to s3 bucket {bucket_name}")
 
-
+# pylint:disable=too-many-arguments
 def s3_upload(
     external_s3_bucket_name, internal_s3_bucket_name, file, key, content_type="application/x-pkcs7-crl", external=True
 ):
