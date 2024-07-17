@@ -29,7 +29,6 @@ def certificate_validated(pem_cert, trust_roots, purposes=None, check_crl=True):
     cert = pem_cert.encode(encoding="utf-8")
     if check_crl:
         cert_context = ValidationContext(allow_fetching=True, revocation_mode="hard-fail", trust_roots=trust_roots)
-
     else:
         cert_context = ValidationContext(trust_roots=trust_roots)
 
