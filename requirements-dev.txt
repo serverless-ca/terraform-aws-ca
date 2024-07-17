@@ -11,3 +11,4 @@ bandit==1.7.9
 pytest==8.2.2
 validators==0.33.0
 requests==2.32.3
+structlog==24.2.0

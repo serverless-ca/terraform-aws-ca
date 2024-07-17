@@ -1,11 +1,13 @@
 from assertpy import assert_that
 import base64
+import structlog
 from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 
 from cryptography.x509 import DNSName, load_pem_x509_certificate
 from cryptography.x509.oid import ExtensionOID
 from cryptography.hazmat.backends import default_backend
+
 
 from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
@@ -25,6 +27,22 @@ from .helper import (
     helper_generate_kms_private_key,
     helper_assert_expected_lifetime,
 )
+
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer(),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+log = structlog.get_logger()
 
 
 def test_cert_issued_no_passphrase():
@@ -116,6 +134,7 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.debug("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
 
@@ -136,9 +155,11 @@ def test_issued_cert_includes_correct_dns_names():
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.debug("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
     sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
     sans_in_issued_cert = sans_extension.value.get_values_for_type(DNSName)
+    log.debug("issued certificate", subject_alternative_names=sans_in_issued_cert)
 
     assert_that(sans_in_issued_cert).is_equal_to(expected_result)
 
@@ -162,10 +183,11 @@ def test_issued_cert_with_no_san_includes_correct_dns_name():
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.debug("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
-    sans_in_issued_cert = issued_cert.extensions.get_extension_for_oid(
-        ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-    ).value.get_values_for_type(DNSName)
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    sans_in_issued_cert = sans_extension.value.get_values_for_type(DNSName)
+    log.debug("issued_certificate", subject_alternative_names=sans_in_issued_cert)
 
     assert_that(sans_in_issued_cert).is_equal_to([common_name])
 
@@ -194,6 +216,7 @@ def test_cert_issued_without_san_if_common_name_invalid_dns():
 
     # check SAN extension not present in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.debug("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
     assert_that(issued_cert.extensions.get_extension_for_oid).raises(Exception).when_called_with(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME
@@ -211,6 +234,7 @@ def test_issued_cert_lifetime_as_expected():
 
     # Expected cert lifetime is lifetime in days plus 5 minutes for clock skew
     expected_cert_lifetime = timedelta(days=lifetime, minutes=5)
+    log.debug("expected certificate lifetime", lifetime=expected_cert_lifetime)
 
     csr_info = helper_create_csr_info(common_name)
 
@@ -228,6 +252,7 @@ def test_max_cert_lifetime():
 
     max_cert_lifetime = 365  # need to fix this magic number
     expected_cert_lifetime = timedelta(days=max_cert_lifetime, minutes=5)
+    log.debug("expected certificate lifetime", lifetime=expected_cert_lifetime)
 
     csr_info = helper_create_csr_info(common_name)
 
@@ -277,6 +302,7 @@ def test_csr_uploaded_to_s3():
 
     # check subject of issued certificate with correct overrides
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.debug("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
 
@@ -305,16 +331,19 @@ def test_no_private_key_reuse():
 
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
-
+    log.debug("invoking lambda function", function_name=function_name)
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
+    log.debug("lambda response #1", response=response)
 
     # Inspect the response which includes the signed certificate
     issued_common_name = response["CertificateInfo"]["CommonName"]
+    log.debug("certificate issued", common_name=issued_common_name)
     assert_that(issued_common_name).is_equal_to(common_name)
 
     # Check 2nd request using same private key is rejected
     response_2 = invoke_lambda(function_name, json_data)
+    log.debug("lambda response #2", response=response_2)
     assert_that(response_2["error"]).is_equal_to("Private key has already been used for a certificate")
 
     # Check override works
@@ -322,7 +351,9 @@ def test_no_private_key_reuse():
 
     # Invoke TLS certificate Lambda function
     response_3 = invoke_lambda(function_name, json_data)
+    log.debug("lambda response #3", response=response_3)
 
     # Inspect the response which includes the signed certificate
     issued_common_name = response_3["CertificateInfo"]["CommonName"]
+    log.debug("certificate issued", common_name=issued_common_name)
     assert_that(issued_common_name).is_equal_to(common_name)
