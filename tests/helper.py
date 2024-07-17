@@ -34,7 +34,7 @@ log = structlog.get_logger()
 def helper_generate_kms_private_key(key_purpose: str, password: Optional[str] = None):
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details(key_purpose)
-    log.debug("generating key pair using KMS key", kms_key_alias=key_alias, kms_key_arn=kms_arn)
+    log.info("generating key pair using KMS key", kms_key_alias=key_alias, kms_key_arn=kms_arn)
 
     # Generate key pair using KMS key to ensure randomness
     return load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], password=password)
@@ -64,14 +64,14 @@ def helper_assert_expected_lifetime(cert_data: str, expected_lifetime: timedelta
 def helper_invoke_cert_lambda(json_data: dict[str, int | str], common_name: Optional[str] = None):
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
-    log.debug("invoking lambda function", function_name=function_name)
+    log.info("invoking lambda function", function_name=function_name)
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
 
     if common_name is not None:
         # Inspect the response which includes the signed certificate
         result = response["CertificateInfo"]["CommonName"]
-        log.debug("certificate issued", common_name=common_name)
+        log.info("certificate issued", common_name=common_name)
 
         # Assert that the certificate was issued for the correct domain name
         assert_that(result).is_equal_to(common_name)

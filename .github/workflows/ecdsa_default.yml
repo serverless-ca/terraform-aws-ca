@@ -221,4 +221,4 @@ jobs:
 
       - name: Integration tests
         run: |
-          pytest --log-cli-level debug -v tests
+          pytest --log-cli-level info -v tests

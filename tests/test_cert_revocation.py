@@ -34,7 +34,7 @@ def test_certificate_revoked():
 
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
-    log.debug("generating key pair using KMS key", kms_key_alias=key_alias, kms_key_arn=kms_arn)
+    log.info("generating key pair using KMS key", kms_key_alias=key_alias, kms_key_arn=kms_arn)
 
     # Generate key pair using KMS key to ensure randomness
     private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
@@ -56,13 +56,13 @@ def test_certificate_revoked():
 
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
-    log.debug("invoking lambda function", function_name=function_name)
+    log.info("invoking lambda function", function_name=function_name)
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
 
     # Inspect the response which includes the signed certificate
     serial_number = response["CertificateInfo"]["SerialNumber"]
-    log.debug("certificate serial number issued", serial_number=serial_number, common_name=common_name)
+    log.info("certificate serial number issued", serial_number=serial_number, common_name=common_name)
 
     # Identify S3 buckets
     external_bucket_name = get_s3_bucket("external")
@@ -73,7 +73,7 @@ def test_certificate_revoked():
     crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
-    log.debug(
+    log.info(
         "retrieved CRL (pre-revocation)",
         bucket=external_bucket_name,
         key=crl_file_name,
@@ -85,14 +85,14 @@ def test_certificate_revoked():
     if gitops_revocation_config_file_name in list_s3_object_keys(internal_bucket_name):
         gitops = True
         revoked_json = json.loads(get_s3_object(internal_bucket_name, gitops_revocation_config_file_name))
-        log.debug(
+        log.info(
             "loaded git managed revocation file",
             bucket=internal_bucket_name,
             key=gitops_revocation_config_file_name,
             revoked_certificate_count=len(revoked_json),
         )
     else:
-        log.debug(
+        log.info(
             "git managed revocation file not found", bucket=internal_bucket_name, key=gitops_revocation_config_file_name
         )
         gitops = False
@@ -108,7 +108,7 @@ def test_certificate_revoked():
 
     # Upload revoked list to S3 bucket
     revoked = json.dumps(revoked_json)
-    log.debug(
+    log.info(
         "uploading revocation data to s3 bucket",
         bucket_name=internal_bucket_name,
         key=gitops_revocation_config_file_name,
@@ -119,7 +119,7 @@ def test_certificate_revoked():
 
     # Revoke certificate
     function_name = get_lambda_name("issuing-ca-crl")
-    log.debug("invoking lambda function", function_name=function_name)
+    log.info("invoking lambda function", function_name=function_name)
 
     # Invoke Issuing CA CRL Lambda function
     response = invoke_lambda(function_name, {})
@@ -127,7 +127,7 @@ def test_certificate_revoked():
     # Get CRL after revocation
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
-    log.debug(
+    log.info(
         "retrieved CRL (post-revocation)",
         bucket=external_bucket_name,
         key=crl_file_name,
@@ -136,7 +136,7 @@ def test_certificate_revoked():
 
     # Delete revoked.json S3 object if GitOps is not enabled
     if not gitops:
-        log.debug(
+        log.info(
             "deleting revocation data from s3 bucket",
             bucket=internal_bucket_name,
             key=gitops_revocation_config_file_name,
