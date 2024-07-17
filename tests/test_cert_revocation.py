@@ -18,7 +18,6 @@ def test_certificate_revoked():
 
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
-    print(f"Generating key pair using KMS key {key_alias}")
 
     # Generate key pair using KMS key to ensure randomness
     private_key = load_der_private_key(kms_generate_key_pair(kms_arn)["PrivateKeyPlaintext"], None)
@@ -40,14 +39,12 @@ def test_certificate_revoked():
 
     # Identify TLS certificate Lambda function
     function_name = get_lambda_name("-tls")
-    print(f"Invoking Lambda function {function_name}")
 
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
 
     # Inspect the response which includes the signed certificate
     serial_number = response["CertificateInfo"]["SerialNumber"]
-    print(f"Certificate serial number {serial_number} issued for {common_name}")
 
     # Identify S3 buckets
     external_bucket_name = get_s3_bucket("external")
@@ -56,18 +53,14 @@ def test_certificate_revoked():
     # Get CRL before revocation
     objects = list_s3_object_keys(external_bucket_name)
     crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
-    crl_data = get_s3_object(external_bucket_name, crl_file_name)
-    crl = load_der_x509_crl(crl_data)
-    print(f"Retrieved CRL {crl_file_name} with {len(crl)} revoked certificates")
+    # crl_data = get_s3_object(external_bucket_name, crl_file_name)
+    # crl = load_der_x509_crl(crl_data)
 
     # Get revoked certificate JSON data
     if "revoked.json" in list_s3_object_keys(internal_bucket_name):
         gitops = True
         revoked_json = json.loads(get_s3_object(internal_bucket_name, "revoked.json"))
-        print(f"Downloaded revoked.json from {internal_bucket_name} with {len(revoked_json)} revoked certificates")
-
     else:
-        print("No revoked.json found in S3 bucket")
         gitops = False
         revoked_json = []
 
@@ -81,12 +74,10 @@ def test_certificate_revoked():
 
     # Upload revoked list to S3 bucket
     revoked = json.dumps(revoked_json)
-    print(f"Uploading revocation data to S3 bucket {internal_bucket_name}")
     put_s3_object(internal_bucket_name, kms_arn, "revoked.json", revoked)
 
     # Revoke certificate
     function_name = get_lambda_name("issuing-ca-crl")
-    print(f"Invoking Lambda function {function_name}")
 
     # Invoke Issuing CA CRL Lambda function
     response = invoke_lambda(function_name, {})
@@ -94,11 +85,9 @@ def test_certificate_revoked():
     # Get CRL after revocation
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
-    print(f"Retrieved CRL {crl_file_name} with {len(crl)} revoked certificates")
 
     # Delete revoked.json S3 object if GitOps is not enabled
     if not gitops:
-        print(f"Deleting revoked.json from S3 bucket {internal_bucket_name}")
         delete_s3_object(internal_bucket_name, "revoked.json")
 
     # Check that certificate has been revoked
