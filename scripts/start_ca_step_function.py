@@ -51,4 +51,5 @@ if __name__ == "__main__":
         print(f"Step Function {step_function_name} completed successfully")
 
     if execution_status == "FAILED":
+        print(f"Step Function Output: {execution_status}")
         raise SystemExit(f"Step Function {step_function_name} failed")
