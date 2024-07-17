@@ -23,6 +23,7 @@ from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 
+
 # pylint:disable=too-many-arguments
 def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # get CA cert from DynamoDB
@@ -61,6 +62,7 @@ def select_csr_crypto(ca_slug):
 
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"
 
+
 # pylint:disable=too-many-arguments
 def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # sign certificate
@@ -72,6 +74,7 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
     info = crypto_cert_info(load_pem_x509_certificate(pem_certificate), csr_info.subject.common_name)
 
     return base64.b64encode(pem_certificate), info
+
 
 # pylint:disable=too-many-arguments
 def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr, lifetime, force_issue):
