@@ -20,6 +20,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
+    domain = os.environ.get("DOMAIN")
 
     root_ca_name = ca_name(project, env_name, "root")
     ca_slug = ca_name(project, env_name, "issuing")
@@ -60,6 +61,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     pem_certificate = ca_kms_sign_ca_certificate_request(
         project,
         env_name,
+        domain,
         csr,
         root_ca_cert,
         root_ca_kms_key_id,
