@@ -9,9 +9,6 @@ import datetime
 import json
 import os
 
-issuing_crl_days = int(os.environ["ISSUING_CRL_DAYS"])
-issuing_crl_seconds = int(os.environ["ISSUING_CRL_SECONDS"])
-
 
 def build_list_of_revoked_certs():
     """Build list of revoked certificates for CRL"""
@@ -49,6 +46,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     # get key details from KMS
     kms_key_id = kms_get_kms_key_id(ca_slug)
     public_key = load_der_public_key(kms_get_public_key(kms_key_id))
+
+    issuing_crl_days = int(os.environ["ISSUING_CRL_DAYS"])
+    issuing_crl_seconds = int(os.environ["ISSUING_CRL_SECONDS"])
 
     # issue CRL valid for one day 10 minutes
     timedelta = datetime.timedelta(issuing_crl_days, issuing_crl_seconds, 0)

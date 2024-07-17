@@ -135,7 +135,7 @@ def create_cert_bundle_from_certificate(base64_certificate):
     )
 
 
-def create_csr_subject(event):
+def create_csr_subject(event) -> Subject:
     subject = Subject(event["common_name"])
     subject.locality = event.get("locality")  # string, location
     subject.organization = event.get("organization")  # string, organization name
@@ -146,16 +146,14 @@ def create_csr_subject(event):
     return subject
 
 
-def create_csr_info(event):
-    csr_info = CsrInfo(Subject(event["common_name"]))
+def create_csr_info(event) -> CsrInfo:
+    lifetime = int(event.get("lifetime", 30))
+    purposes = event.get("purposes")
+    sans = event.get("sans")
 
-    csr_info.subject = create_csr_subject(event)
+    subject = create_csr_subject(event)
 
-    lifetime = event.get("lifetime", 30)
-
-    csr_info.lifetime = int(lifetime)
-    csr_info.purposes = event.get("purposes")
-    csr_info.sans = event.get("sans")
+    csr_info = CsrInfo(subject, lifetime=lifetime, purposes=purposes, sans=sans)
 
     return csr_info
 
