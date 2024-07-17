@@ -1,4 +1,5 @@
 import base64
+import os
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
 from utils.certs.crypto import crypto_cert_info
 from utils.certs.ca import ca_name, ca_create_kms_root_ca
@@ -12,10 +13,13 @@ lifetime = 7300
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
+    project = os.environ["PROJECT"]
+    env_name = os.environ["ENVIRONMENT_NAME"]
+
     ca_slug = ca_name("root")
 
     # check if CA already exists
-    if db_list_certificates(ca_slug):
+    if db_list_certificates(project, env_name, ca_slug):
         print(f"CA {ca_slug} already exists. To recreate, first delete item in DynamoDB")
 
         return
@@ -37,7 +41,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     info = crypto_cert_info(cert, ca_slug)
 
     # create entry in DynamoDB
-    db_ca_cert_issued(info, base64_certificate)
+    db_ca_cert_issued(project, env_name, info, base64_certificate)
 
     # upload CRL to S3
     s3_upload(pem_certificate, f"{ca_slug}.crt")

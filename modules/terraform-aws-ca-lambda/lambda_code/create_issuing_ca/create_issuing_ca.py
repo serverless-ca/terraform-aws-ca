@@ -1,4 +1,5 @@
 import base64
+import os
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_kms_ca_cert_signing_request,
@@ -15,17 +16,20 @@ lifetime = 3650
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
+    project = os.environ["PROJECT"]
+    env_name = os.environ["ENVIRONMENT_NAME"]
+
     root_ca_name = ca_name("root")
     ca_slug = ca_name("issuing")
 
     # check Root CA exists
-    if not db_list_certificates(root_ca_name):
+    if not db_list_certificates(project, env_name, root_ca_name):
         print(f"CA {root_ca_name} not found")
 
         return
 
     # check if Issuing CA already exists
-    if db_list_certificates(ca_slug):
+    if db_list_certificates(project, env_name, ca_slug):
         print(f"CA {ca_slug} already exists. To recreate, first delete item in DynamoDB")
 
         return
@@ -45,7 +49,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     )
 
     # get Root CA cert in PEM format
-    root_ca_cert_pem = base64.b64decode(db_list_certificates(root_ca_name)[0]["Certificate"]["B"])
+    root_ca_cert_pem = base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"])
 
     # deserialize Root CA cert
     root_ca_cert = load_pem_x509_certificate(root_ca_cert_pem)
@@ -61,7 +65,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     info = crypto_cert_info(cert, ca_slug)
 
     # create entry in DynamoDB
-    db_ca_cert_issued(info, base64_certificate)
+    db_ca_cert_issued(project, env_name, info, base64_certificate)
 
     # create CA bundle
     cert_bundle_pem = crypto_create_ca_bundle([root_ca_cert_pem, pem_certificate])

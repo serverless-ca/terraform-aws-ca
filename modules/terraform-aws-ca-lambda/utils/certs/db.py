@@ -1,16 +1,13 @@
 import boto3
-import os
 import base64
 from datetime import datetime
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives import serialization
 
-project = os.environ["PROJECT"]
-env_name = os.environ["ENVIRONMENT_NAME"]
 base_table_name = "CA"
 
 
-def db_get_table_name():
+def db_get_table_name(project, env_name):
     # constructs the DynamoDB table name, e.g. SecureEmailCADev
 
     capitalised_project = project.replace("-", " ").title().replace(" ", "")
@@ -20,14 +17,16 @@ def db_get_table_name():
     return table_name
 
 
-def db_list_certificates(common_name):
+def db_list_certificates(project, env_name, common_name):
     # returns list of certificates for a specified common_name
     client = boto3.client("dynamodb")
 
-    print(f"querying DynamoDB table {db_get_table_name()} for {common_name}")
+    table_name = db_get_table_name(project, env_name)
+
+    print(f"querying DynamoDB table {table_name} for {common_name}")
 
     response = client.query(
-        TableName=db_get_table_name(),
+        TableName=table_name,
         KeyConditionExpression="CommonName = :CommonName",
         ExpressionAttributeValues={":CommonName": {"S": common_name}},
     )
@@ -35,10 +34,10 @@ def db_list_certificates(common_name):
     return response["Items"]
 
 
-def db_issue_certificate(common_name, request_public_key_pem):
+def db_issue_certificate(project, env_name, common_name, request_public_key_pem):
     """Determines whether certificate should be issued"""
 
-    certificates = db_list_certificates(common_name)
+    certificates = db_list_certificates(project, env_name, common_name)
 
     # if there are no certificates with that name, issue a certificate
     if not certificates:
@@ -68,7 +67,7 @@ def db_issue_certificate(common_name, request_public_key_pem):
     return True
 
 
-def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
+def db_ca_cert_issued(project, env_name, cert_info, certificate, encrypted_private_key=None):
     # creates a new item in DynamoDB when a CA certificate is issued
 
     common_name = cert_info["CommonName"]
@@ -76,11 +75,13 @@ def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
     expires = cert_info["Expires"]
     serial_number = cert_info["SerialNumber"]
 
+    table_name = db_get_table_name(project, env_name)
+
     client = boto3.client("dynamodb")
-    print(f"adding {common_name} certificate details to DynamoDB table {db_get_table_name()}")
+    print(f"adding {common_name} certificate details to DynamoDB table {table_name}")
     if encrypted_private_key is None:
         client.put_item(
-            TableName=db_get_table_name(),
+            TableName=table_name,
             Item={
                 "SerialNumber": {"S": serial_number},
                 "CommonName": {"S": common_name},
@@ -94,7 +95,7 @@ def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
         return
 
     client.put_item(
-        TableName=db_get_table_name(),
+        TableName=table_name,
         Item={
             "SerialNumber": {"S": serial_number},
             "CommonName": {"S": common_name},
@@ -107,7 +108,7 @@ def db_ca_cert_issued(cert_info, certificate, encrypted_private_key=None):
     )
 
 
-def db_tls_cert_issued(cert_info, certificate):
+def db_tls_cert_issued(project, env_name, cert_info, certificate):
     """creates a new item in DynamoDB when a TLS certificate is issued"""
     # if a passphrase is used, private key must be encrypted
 
@@ -116,11 +117,13 @@ def db_tls_cert_issued(cert_info, certificate):
     expires = cert_info["Expires"]
     serial_number = cert_info["SerialNumber"]
 
+    table_name = db_get_table_name(project, env_name)
+
     client = boto3.client("dynamodb")
-    print(f"adding {common_name} certificate details to DynamoDB table {db_get_table_name()}")
+    print(f"adding {common_name} certificate details to DynamoDB table {table_name}")
 
     client.put_item(
-        TableName=db_get_table_name(),
+        TableName=table_name,
         Item={
             "SerialNumber": {"S": serial_number},
             "CommonName": {"S": common_name},
@@ -131,7 +134,7 @@ def db_tls_cert_issued(cert_info, certificate):
     )
 
 
-def db_update_crl_number(common_name, serial_number):
+def db_update_crl_number(project, env_name, common_name, serial_number):
     """increments CRL number by 1 and returns new value as integer"""
 
     client = boto3.client("dynamodb")
@@ -139,7 +142,7 @@ def db_update_crl_number(common_name, serial_number):
     print(f"updating {common_name} CRL number in DynamoDB")
 
     response = client.update_item(
-        TableName=db_get_table_name(),
+        TableName=db_get_table_name(project, env_name),
         ExpressionAttributeNames={"#N": "CRLNumber"},
         UpdateExpression="SET #N = #N + :n",
         ExpressionAttributeValues={":n": {"N": "1"}},
@@ -150,14 +153,16 @@ def db_update_crl_number(common_name, serial_number):
     return int(response["Attributes"]["CRLNumber"]["N"])
 
 
-def db_get_certificate(common_name, serial_number):
+def db_get_certificate(project, env_name, common_name, serial_number):
     """returns certificate with specified serial_number"""
     client = boto3.client("dynamodb")
 
-    print(f"querying DynamoDB table {db_get_table_name()} for {serial_number}")
+    table_name = db_get_table_name(project, env_name)
+
+    print(f"querying DynamoDB table {table_name} for {serial_number}")
 
     response = client.query(
-        TableName=db_get_table_name(),
+        TableName=table_name,
         KeyConditionExpression="CommonName = :CommonName",
         ExpressionAttributeValues={":CommonName": {"S": common_name}},
     )
@@ -166,11 +171,13 @@ def db_get_certificate(common_name, serial_number):
     return [i for i in items if i["SerialNumber"]["S"] == serial_number][0]
 
 
-def db_revocation_date(common_name, serial_number):
+def db_revocation_date(project, env_name, common_name, serial_number):
     """adds revocation date to existing item in DynamoDB, or returns date already revoked"""
     client = boto3.client("dynamodb")
 
-    certificate = db_get_certificate(common_name, serial_number)
+    table_name = db_get_table_name(project, env_name)
+
+    certificate = db_get_certificate(project, env_name, common_name, serial_number)
 
     # if certificate is already revoked, return revocation date
     if certificate.get("Revoked"):
@@ -184,7 +191,7 @@ def db_revocation_date(common_name, serial_number):
 
     # write today's date to DynamoDB to record revocation
     client.update_item(
-        TableName=db_get_table_name(),
+        TableName=table_name,
         Key={
             "CommonName": {"S": common_name},
             "SerialNumber": {"S": serial_number},
