@@ -1,14 +1,14 @@
 -r requirements-docs.txt
-setuptools==70.3.0
-assertpy==1.1
-boto3==1.34.144
-black==24.4.2
-cryptography == 42.0.8
 asn1crypto == 1.5.1
-certvalidator == 0.11.1
-prospector==1.10.3
+assertpy==1.1
 bandit==1.7.9
+black==24.4.2
+boto3==1.34.144
+certvalidator == 0.11.1
+cryptography == 42.0.8
+prospector==1.10.3
 pytest==8.2.2
-validators==0.33.0
 requests==2.32.3
+setuptools==70.3.0
 structlog==24.2.0
+validators==0.33.0
