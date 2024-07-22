@@ -9,6 +9,6 @@ cryptography == 42.0.8
 prospector==1.10.3
 pytest==8.2.2
 requests==2.32.3
-setuptools==70.3.0
+setuptools==71.1.0
 structlog==24.2.0
 validators==0.33.0
