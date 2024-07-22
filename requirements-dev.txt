@@ -3,7 +3,7 @@ asn1crypto == 1.5.1
 assertpy==1.1
 bandit==1.7.9
 black==24.4.2
-boto3==1.34.144
+boto3==1.34.145
 certvalidator == 0.11.1
 cryptography == 42.0.8
 prospector==1.10.3
