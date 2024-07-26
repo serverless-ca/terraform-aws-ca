@@ -13,6 +13,7 @@ from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
 from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
+    convert_pem_to_der,
 )
 
 structlog.configure(
@@ -61,12 +62,17 @@ def helper_assert_expected_lifetime(cert_data: str, expected_lifetime: timedelta
     assert_that(issued_cert_lifetime).is_equal_to(expected_lifetime)
 
 
-def helper_invoke_cert_lambda(json_data: dict[str, int | str], common_name: Optional[str] = None):
-    # Identify TLS certificate Lambda function
+def helper_invoke_tls_cert_lambda(json_data: dict[str, int | str]):
     function_name = get_lambda_name("-tls")
-    log.info("invoking lambda function", function_name=function_name)
+    log.info("invoking lambda function", function_name=function_name, json_data=json_data)
     # Invoke TLS certificate Lambda function
     response = invoke_lambda(function_name, json_data)
+    log.info("lambda response", function_name=function_name, response=response)
+    return response
+
+
+def helper_fetch_certificate(json_data: dict[str, int | str], common_name: Optional[str] = None):
+    response = helper_invoke_tls_cert_lambda(json_data)
 
     if common_name is not None:
         # Inspect the response which includes the signed certificate
@@ -80,7 +86,11 @@ def helper_invoke_cert_lambda(json_data: dict[str, int | str], common_name: Opti
     base64_cert_data = response["Base64Certificate"]
     cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
 
-    return cert_data
+    ca_chain = None
+    if "Base64CAChain" in response:
+        ca_chain = helper_ca_chain_der_from_response(response)
+
+    return cert_data, ca_chain
 
 
 def helper_generate_csr(csr_info: dict[str, str]):
@@ -91,6 +101,55 @@ def helper_generate_csr(csr_info: dict[str, str]):
     csr = crypto_tls_cert_signing_request(private_key, csr_info)
 
     return csr
+
+
+def _convert_ca_chain_pems(root_ca_pem, issuing_ca_pem, ca_chain_pem) -> (bytes, bytes, bytes):
+    root_ca = convert_pem_to_der(root_ca_pem.encode("utf-8"))[0]
+    issuing_ca = convert_pem_to_der(issuing_ca_pem.encode("utf-8"))[0]
+    ca_chain = convert_pem_to_der(ca_chain_pem.encode("utf-8"))
+
+    return root_ca, issuing_ca, ca_chain
+
+
+def helper_fetch_ca_chain_der():
+    root_ca_pem, issuing_ca_pem, ca_chain_pem = helper_fetch_ca_chain_pem()
+
+    return _convert_ca_chain_pems(root_ca_pem, issuing_ca_pem, ca_chain_pem)
+
+
+def helper_ca_chain_der_from_response(response):
+    root_ca_pem, issuing_ca_pem, ca_chain_pem = helper_ca_chain_pem_from_response(response)
+
+    root_ca, issuing_ca, ca_chain = _convert_ca_chain_pems(root_ca_pem, issuing_ca_pem, ca_chain_pem)
+
+    return ca_chain
+
+
+def helper_ca_chain_pem_from_response(response):
+    assert "Base64IssuingCACertificate" in response
+    assert "Base64RootCACertificate" in response
+    assert "Base64CAChain" in response
+
+    issuing_ca_certificate_b64 = response["Base64IssuingCACertificate"]
+    issuing_ca_certificate = base64.b64decode(issuing_ca_certificate_b64).decode("utf-8")
+
+    root_ca_certificate_b64 = response["Base64IssuingCACertificate"]
+    root_ca_certificate = base64.b64decode(root_ca_certificate_b64).decode("utf-8")
+
+    ca_chain_b64 = response["Base64CAChain"]
+    ca_chain = base64.b64decode(ca_chain_b64).decode("utf-8")
+
+    return root_ca_certificate, issuing_ca_certificate, ca_chain
+
+
+def helper_fetch_ca_chain_pem():
+    json_data = {
+        "ca_chain_only": True,
+    }
+
+    response = helper_invoke_tls_cert_lambda(json_data)
+
+    return helper_ca_chain_pem_from_response(response)
 
 
 def construct_json_data(
@@ -104,6 +163,8 @@ def construct_json_data(
     override_locality: Optional[str] = None,
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,
+    ca_chain_only: Optional[bool] = None,
+    include_ca_chain: Optional[bool] = None,
 ):
     # Construct JSON data to pass to Lambda function
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
@@ -132,6 +193,12 @@ def construct_json_data(
     if csr_file:
         json_data["csr_file"] = csr_file
 
+    if ca_chain_only is not None:
+        json_data["ca_chain_only"] = ca_chain_only
+
+    if include_ca_chain is not None:
+        json_data["include_ca_chain"] = include_ca_chain
+
     return json_data
 
 
@@ -145,6 +212,8 @@ def helper_get_certificate(
     override_locality: Optional[str] = None,
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,
+    ca_chain_only: Optional[bool] = None,
+    include_ca_chain: Optional[bool] = None,
 ):
     common_name = csr_info["commonName"]
 
@@ -161,6 +230,8 @@ def helper_get_certificate(
         override_locality=override_locality,
         override_organization=override_organization,
         csr_file=csr_file,
+        ca_chain_only=ca_chain_only,
+        include_ca_chain=include_ca_chain,
     )
 
-    return helper_invoke_cert_lambda(json_data, common_name)
+    return helper_fetch_certificate(json_data, common_name)

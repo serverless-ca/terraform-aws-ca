@@ -103,12 +103,10 @@ def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr,
     return None
 
 
-def create_cert_bundle_from_certificate(project, env_name, base64_certificate):
+def create_cert_bundle_from_certificate(project, env_name, root_ca_name, issuing_ca_name, base64_certificate):
     """
     Creates a certificate bundle in PEM format containing Client Issuing CA and Root CA Certificates
     """
-    root_ca_name = ca_name(project, env_name, "root")
-    issuing_ca_name = ca_name(project, env_name, "issuing")
     cert_bundle = ""
     return cert_bundle.join(
         [
@@ -146,6 +144,19 @@ def create_csr_info(event) -> CsrInfo:
     return csr_info
 
 
+def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, issuing_ca_name: str):
+    root_ca_b64 = db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]
+    issuing_ca_b64 = db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]
+
+    root_ca = base64.b64decode(root_ca_b64).decode("utf-8")
+    issuing_ca = base64.b64decode(issuing_ca_b64).decode("utf-8")
+    return {
+        "Base64IssuingCACertificate": issuing_ca_b64,
+        "Base64RootCACertificate": root_ca_b64,
+        "Base64CAChain": base64.b64encode("\n".join([issuing_ca.strip(), root_ca.strip()]).encode("utf-8")),
+    }
+
+
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
@@ -161,9 +172,14 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
 
     # get Issuing CA name
     issuing_ca_name = ca_name(project, env_name, "issuing")
+    root_ca_name = ca_name(project, env_name, "root")
 
     # process input
     print(f"Input: {event}")
+
+    ca_chain_only = event.get("ca_chain_only")  # boolean, only return CA chains
+    if ca_chain_only:
+        return create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
 
     csr_info = create_csr_info(event)
 
@@ -171,6 +187,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     force_issue = event.get("force_issue")  # boolean, force certificate generation even if one already exists
     create_cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
     base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
+    include_ca_chain = event.get("include_ca_chain")  # boolean, include CA chain in response
 
     if csr_file:
         csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")[
@@ -199,7 +216,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
 
     if create_cert_bundle:
-        cert_bundle = create_cert_bundle_from_certificate(project, env_name, base64_certificate)
+        cert_bundle = create_cert_bundle_from_certificate(
+            project, env_name, root_ca_name, issuing_ca_name, base64_certificate
+        )
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
     response_data = {
@@ -207,5 +226,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         "Base64Certificate": base64_certificate,
         "Subject": load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
     }
+
+    if include_ca_chain:
+        ca_chain_response = create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
+        response_data.update(ca_chain_response)
 
     return response_data

@@ -7,12 +7,18 @@ from validators import domain as domain_validator
 from certvalidator import CertificateValidator, ValidationContext
 
 
-def convert_truststore(cert_bundle):
+def convert_pem_to_der(pem_bytes: bytes):
+    all_certs = []
+    for _, _, der_bytes in pem.unarmor(pem_bytes, multiple=True):
+        all_certs.append(der_bytes)
+
+    return all_certs
+
+
+def convert_truststore(cert_bundle: str):
     """Convert bundle to trust store in correct format"""
 
-    all_certs = []
-    for _, _, der_bytes in pem.unarmor(cert_bundle.encode(encoding="utf-8"), multiple=True):
-        all_certs.append(der_bytes)
+    all_certs = convert_pem_to_der(cert_bundle.encode(encoding="utf-8"))
 
     # strip the 1st cert as that's the end entity certificate
     trust_roots = all_certs[1:]
