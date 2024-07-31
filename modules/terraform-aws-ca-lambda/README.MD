@@ -1,11 +1,12 @@
 # Terraform submodule for AWS Lambda
 * Deploys AWS Lambda functions forming part of serverless CA solution
 * Submodule of terraform-aws-ca
+* You need to have docker installed
 
 ## Local Python development - MacOS / Linux
 * create virtual environment
 ```bash
-cd modules\terraform-aws-ca-lambda
+cd modules/terraform-aws-ca-lambda
 python -m venv .venv
 ```
 * activate virtual environment
