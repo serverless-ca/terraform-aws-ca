@@ -14,15 +14,21 @@ resource "null_resource" "install_python_dependencies" {
     interpreter = ["/bin/sh", "-c"]
     command     = <<-EOT
       chmod +x ${path.module}/scripts/lambda-build/create-package.sh
-      ${path.module}/scripts/lambda-build/create-package.sh
+      docker build -t lambda-build-image ${path.module}
+      docker run --rm \
+        -e function_name=${local.file_name} \
+        -e runtime=${var.runtime} \
+        -e path_cwd=/workspace \
+        -e platform=${var.platform} \
+        -v $(realpath ${path.module}/build):/workspace/build \
+        lambda-build-image
     EOT
 
     environment = {
-      source_code_path = "${path.module}/lambda_code"
-      function_name    = local.file_name
-      runtime          = var.runtime
-      path_cwd         = path.module
-      platform         = var.platform
+      function_name = local.file_name
+      runtime       = var.runtime
+      path_cwd      = path.module
+      platform      = var.platform
     }
   }
 }
