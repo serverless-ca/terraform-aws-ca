@@ -15,13 +15,11 @@ ENV PATH_CWD=/workspace \
 
 WORKDIR /workspace
 
-# Copiar o script e arquivos necessários para o contêiner
 COPY scripts/lambda-build/create-package.sh /workspace/scripts/lambda-build/create-package.sh
 COPY lambda_code /workspace/lambda_code
 COPY utils /workspace/utils
 
-# Tornar o script executável
+
 RUN chmod +x /workspace/scripts/lambda-build/create-package.sh
 
-# Comando padrão para execução do contêiner
 CMD ["/workspace/scripts/lambda-build/create-package.sh"]
