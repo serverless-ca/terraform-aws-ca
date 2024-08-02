@@ -2,6 +2,28 @@
 * Deploys AWS Lambda functions forming part of serverless CA solution
 * Submodule of terraform-aws-ca
 
+## Lambda functions
+* create_root_ca - creates a root CA
+* create_issuing_ca - creates an issuing CA
+* issuing_ca_crl - creates a CRL for an issuing CA
+* root_ca_crl - creates a CRL for a root CA
+* tls_cert - creates a TLS certificate
+
+### tls_cert
+#### Input
+
+|| Property || Optional || Default ||  Description ||
+| common_name | No | | Common name for the certificate |
+| lifetime | No | | Lifetime of the certificate in days |
+| csr_file | No | | S3 object key for the CSR file |
+| force_issue | Yes | False | Force issue of certificate |
+
+#### Output
+
+|| Property || Description ||
+
+
+
 ## Local Python development - MacOS / Linux
 * create virtual environment
 ```bash

@@ -1,4 +1,8 @@
-from .tls_cert import create_csr_info, create_csr_subject
+# TODO:  need to figure out how to get rid of this grossness
+if __package__ is None:
+    from tls_cert import create_csr_info, create_csr_subject
+else:
+    from .tls_cert import create_csr_info, create_csr_subject
 
 
 def test_create_csr_info():
