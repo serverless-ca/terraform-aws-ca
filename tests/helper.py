@@ -87,7 +87,7 @@ def helper_fetch_certificate(json_data: dict[str, int | str], common_name: Optio
     cert_data = base64.b64decode(base64_cert_data).decode("utf-8")
 
     ca_chain = None
-    if "Base64CAChain" in response:
+    if "Base64CaChain" in response:
         ca_chain = helper_ca_chain_der_from_response(response)
 
     return cert_data, ca_chain
@@ -126,17 +126,17 @@ def helper_ca_chain_der_from_response(response):
 
 
 def helper_ca_chain_pem_from_response(response):
-    assert "Base64IssuingCACertificate" in response
-    assert "Base64RootCACertificate" in response
-    assert "Base64CAChain" in response
+    assert "Base64IssuingCaCertificate" in response
+    assert "Base64RootCaCertificate" in response
+    assert "Base64CaChain" in response
 
-    issuing_ca_certificate_b64 = response["Base64IssuingCACertificate"]
+    issuing_ca_certificate_b64 = response["Base64IssuingCaCertificate"]
     issuing_ca_certificate = base64.b64decode(issuing_ca_certificate_b64).decode("utf-8")
 
-    root_ca_certificate_b64 = response["Base64IssuingCACertificate"]
+    root_ca_certificate_b64 = response["Base64IssuingCaCertificate"]
     root_ca_certificate = base64.b64decode(root_ca_certificate_b64).decode("utf-8")
 
-    ca_chain_b64 = response["Base64CAChain"]
+    ca_chain_b64 = response["Base64CaChain"]
     ca_chain = base64.b64decode(ca_chain_b64).decode("utf-8")
 
     return root_ca_certificate, issuing_ca_certificate, ca_chain
