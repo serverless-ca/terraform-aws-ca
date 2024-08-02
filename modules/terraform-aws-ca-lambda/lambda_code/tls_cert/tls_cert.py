@@ -199,7 +199,7 @@ def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, iss
     ca_chain_b64_bytes = base64.b64encode(ca_chain.encode("utf-8"))
     ca_chain_b64 = ca_chain_b64_bytes.decode("utf-8")
 
-    return api.CaChainResponse(
+    return CaChainResponse(
         base64_issuing_ca_certificate=issuing_ca_b64,
         base64_root_ca_certificate=root_ca_b64,
         base64_ca_chain=ca_chain_b64,
@@ -223,7 +223,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     issuing_ca_name = ca_name(project, env_name, "issuing")
     root_ca_name = ca_name(project, env_name, "root")
 
-    request = api.Request.from_dict(event)
+    request = Request.from_dict(event)
 
     # process input
     print(f"Input: {event}")
@@ -267,7 +267,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         )
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
-    response = api.CertificateResponse(
+    response = CertificateResponse(
         certificate_info=cert_info,
         base64_certificate=base64_certificate.decode("utf-8"),
         subject=load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
