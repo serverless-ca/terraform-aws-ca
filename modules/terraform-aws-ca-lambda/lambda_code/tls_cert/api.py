@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, LetterCase
 from typing import Optional
 
@@ -16,13 +16,13 @@ class Request:
     email_address: Optional[str] = None
     state: Optional[str] = None
     lifetime: Optional[int] = 30
-    purposes: Optional[list[str]] = None
+    purposes: Optional[list[str]] = field(default_factory=lambda: ["client_auth"])
     sans: Optional[list[str]] = None
-    ca_chain_only: Optional[bool] = None
     csr_file: Optional[str] = None
-    force_issue: Optional[bool] = None
-    cert_bundle: Optional[bool] = None
     base64_csr_data: Optional[str] = None
+    force_issue: Optional[bool] = False
+    cert_bundle: Optional[bool] = False
+    ca_chain_only: Optional[bool] = False
 
 
 @dataclass_json(letter_case=LetterCase.PASCAL)

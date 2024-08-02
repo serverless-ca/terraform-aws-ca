@@ -12,15 +12,51 @@
 ### tls_cert
 #### Input
 
-|| Property || Optional || Default ||  Description ||
-| common_name | No | | Common name for the certificate |
-| lifetime | No | | Lifetime of the certificate in days |
-| csr_file | No | | S3 object key for the CSR file |
-| force_issue | Yes | False | Force issue of certificate |
+
+
+| Property              | Type                  | Default          | Description                                                                    |
+|-----------------------|-----------------------|------------------|--------------------------------------------------------------------------------|
+| `common_name`         | `str`                 |                  | The `CN` part of the certificate subject                                       |
+| `locality`            | `Optional[str]`       | `None`           | The `L` part of the certificate subject                                        |
+| `organization`        | `Optional[str]`       | `None`           | The `O` part of the certificate subject                                        |
+| `organizational_unit` | `Optional[str]`       | `None`           | The `OU` part of the certificate subject                                       |
+| `country`             | `Optional[str]`       | `None`           | The `C` part of the certificate subject                                        |
+| `email_address`       | `Optional[str]`       | `None`           | The `1.2.840.113549.1.9.1` part of the certificate subject                     |
+| `state`               | `Optional[str]`       | `None`           | The `ST` part of the certificate subject                                       |
+| `lifetime`            | `Optional[int]`       | `30`             | The lifetime of the generated certificate. In days.                            |
+| `purposes`            | `Optional[list[str]]` | `["client_auth"]` | The purposes to use the certificate for, e.g. `server_auth` or `client_auth`   |
+| `sans`                | `Optional[list[str]]` | `None`           | Subject Alternative Names. Invalid DNS names will be ignored.                  |
+| `ca_chain_only`       | `Optional[bool]`      | `False`          | Return only the root and issuing CA.                                           |
+| `csr_file`            | `Optional[str]`       | `None`           | A path to S3 object, relative to the `INTERNAL_S3_BUCKET` environment variable |
+| `force_issue`         | `Optional[bool]`      | `False`          | Force issue of certificate when private key has already been used              |
+| `cert_bundle`         | `Optional[bool]`      | `False`          | Include Root and Issuing CA in the returned certificate                        |
+| `base64_csr_data`     | `Optional[str]`       | `None`           | Base64 encoded CSR that will be used to generate the certificate               |
+
 
 #### Output
+If `ca_chain_only` is `True`:
 
-|| Property || Description ||
+| Property                     | Type  | Description                                                                              |
+|------------------------------|-------|------------------------------------------------------------------------------------------|
+| `Base64RootCaCertificate`    | `str` | Base64 encoded PEM containing the Root CA certificate                                    |
+| `Base64IssuingCaCertificate` | `str` | Base64 encoded PEM containing the Issuing CA certificate                                 |
+| `Base64CaChain`              | `str` | Base64 encoded PEM containing the Root and Issuing CA certificates. Issuing CA is first. |
+
+Otherwise:
+
+| Property                       | Type   | Description                                                                                                                |
+|--------------------------------|--------|----------------------------------------------------------------------------------------------------------------------------|
+| `CertificateInfo`              | `dict` | Contains the certificate information                                                                                       |
+| `CertificateInfo.CommonName`   | `str`  | The common name used to generate the certificate                                                                           |
+| `CertificateInfo.SerialNumber` | `str`  | The serial number of the certificate                                                                                       |
+| `CertificateInfo.Issued`       | `str`  | The date the certificate was issued, in the format `2021-01-01 00:00:00`                                                   |
+| `CertificateInfo.Expires`      | `str`  | The date the certificate expires in the format `2022-01-01 00:00:00`                                                       |
+| `Base64Certificate`            | `str`  | Base64 encoded PEM containing the certificate. If `cert_bundle` was `True` then contents also contains issuing and root CA |
+| `Subject`                      | `str`  | The subject string of the generated certificate                                                                            |
+| `Base64RootCaCertificate`      | `str`  | Base64 encoded PEM containing the Root CA certificate                                                                      |
+| `Base64IssuingCaCertificate`   | `str`  | Base64 encoded PEM containing the Issuing CA certificate                                                                   |
+| `Base64CaChain`                | `str`  | Base64 encoded PEM containing the Root and Issuing CA certificates. Issuing CA is first.                                   |
+
 
 
 
@@ -56,7 +92,7 @@ export PUBLIC_CRL="disabled"
 export ROOT_CRL_DAYS="1"
 export ROOT_CRL_SECONDS="600"
 ```
-* copy and paste AWS MacOS / Linux CLI variables to terminal
+* copy and paste AWS macOS / Linux CLI variables to terminal
 
 * test Lambda function locally
 * enter `python`
@@ -92,6 +128,7 @@ lambda_handler({"common_name": "test-client-cert","lifetime": 1,"csr_file": "cli
 ```
 * similar test with customised org and org unit
 ```python
+from lambda_code.tls_cert.tls_cert import lambda_handler
 lambda_handler({"common_name": "test-client-cert", "organization": "Acme Inc.", "organizational_unit": "Animation Department","lifetime": 1,"csr_file": "client-cert-request.csr","force_issue": True},{})
 ```
 * unit testing, format and linting checks
@@ -100,7 +137,6 @@ pytest -v .
 black --line-length 120 .
 prospector
 bandit -r lambda_code utils
-
 ```
 
 ## Local Python development - Windows
@@ -166,6 +202,7 @@ lambda_handler({"common_name": "test-client-cert","lifetime": 1,"csr_file": "cli
 ```
 * similar test with customised org and org unit
 ```python
+from lambda_code.tls_cert.tls_cert import lambda_handler
 lambda_handler({"common_name": "test-client-cert", "organization": "Acme Inc.", "organizational_unit": "Animation Department","lifetime": 1,"csr_file": "client-cert-request.csr","force_issue": True},{})
 ```
 * unit testing, format and linting checks
