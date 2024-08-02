@@ -70,10 +70,11 @@ def test_response_serialise_as_dict():
 
 
 def test_ca_chain_response_serialise_as_dict():
-    response = CaChainResponse()
-    response.base64_issuing_ca_certificate = "base64data"
-    response.base64_root_ca_certificate = "base64data"
-    response.base64_ca_chain = "base64data"
+    response = CaChainResponse(
+        base64_issuing_ca_certificate="base64data",
+        base64_root_ca_certificate="base64data",
+        base64_ca_chain="base64data",
+    )
 
     serialised = response.to_dict()
 
