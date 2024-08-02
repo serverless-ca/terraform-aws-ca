@@ -222,7 +222,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
 
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
 
-    if request.create_cert_bundle:
+    if request.cert_bundle:
         cert_bundle = create_cert_bundle_from_certificate(
             project, env_name, root_ca_name, issuing_ca_name, base64_certificate
         )
