@@ -22,6 +22,7 @@ from utils.certs.db import (
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
+from . import api
 
 
 # pylint:disable=too-many-arguments
@@ -148,13 +149,18 @@ def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, iss
     root_ca_b64 = db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]
     issuing_ca_b64 = db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]
 
+    # Need to decode base64 so we can append them together
     root_ca = base64.b64decode(root_ca_b64).decode("utf-8")
     issuing_ca = base64.b64decode(issuing_ca_b64).decode("utf-8")
-    return {
-        "Base64IssuingCACertificate": issuing_ca_b64,
-        "Base64RootCACertificate": root_ca_b64,
-        "Base64CAChain": base64.b64encode("\n".join([issuing_ca.strip(), root_ca.strip()]).encode("utf-8")),
-    }
+    ca_chain = "\n".join([issuing_ca.strip(), root_ca.strip()])
+    ca_chain_b64_bytes = base64.b64encode(ca_chain.encode("utf-8"))
+    ca_chain_b64 = ca_chain_b64_bytes.decode("utf-8")
+
+    return api.CaChainResponse(
+        base64_issuing_ca_certificate=issuing_ca_b64,
+        base64_root_ca_certificate=root_ca_b64,
+        base64_ca_chain=ca_chain_b64,
+    )
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
@@ -174,28 +180,25 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     issuing_ca_name = ca_name(project, env_name, "issuing")
     root_ca_name = ca_name(project, env_name, "root")
 
+    request = api.Request.from_dict(event)
+
     # process input
     print(f"Input: {event}")
 
-    ca_chain_only = event.get("ca_chain_only")  # boolean, only return CA chains
-    if ca_chain_only:
-        return create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
+    ca_chain_response = create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
+
+    if request.ca_chain_only:
+        return ca_chain_response.to_dict()
 
     csr_info = create_csr_info(event)
 
-    csr_file = event.get("csr_file")  # string, reference to static file
-    force_issue = event.get("force_issue")  # boolean, force certificate generation even if one already exists
-    create_cert_bundle = event.get("cert_bundle")  # boolean, include Root CA and Issuing CA with client certificate
-    base64_csr_data = event.get("base64_csr_data")  # base64 encoded CSR PEM file
-    include_ca_chain = event.get("include_ca_chain")  # boolean, include CA chain in response
-
-    if csr_file:
-        csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")[
+    if request.csr_file:
+        csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{request.csr_file}")[
             "Body"
         ].read()
         csr = load_pem_x509_csr(csr_file_contents)
     else:
-        csr = load_pem_x509_csr(base64.standard_b64decode(base64_csr_data))
+        csr = load_pem_x509_csr(base64.standard_b64decode(request.base64_csr_data))
 
     validation_error = is_invalid_certificate_request(
         project,
@@ -204,7 +207,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         csr_info.subject.common_name,
         csr,
         csr_info.lifetime,
-        force_issue,
+        request.force_issue,
     )
     if validation_error:
         return validation_error
@@ -215,20 +218,19 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
 
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
 
-    if create_cert_bundle:
+    if request.create_cert_bundle:
         cert_bundle = create_cert_bundle_from_certificate(
             project, env_name, root_ca_name, issuing_ca_name, base64_certificate
         )
         base64_certificate = base64.b64encode(cert_bundle.encode("utf-8"))
 
-    response_data = {
-        "CertificateInfo": cert_info,
-        "Base64Certificate": base64_certificate,
-        "Subject": load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
-    }
+    response = api.CertificateResponse(
+        certificate_info=cert_info,
+        base64_certificate=base64_certificate.decode("utf-8"),
+        subject=load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
+        base64_root_ca_certificate=ca_chain_response.base64_root_ca_certificate,
+        base64_issuing_ca_certificate=ca_chain_response.base64_issuing_ca_certificate,
+        base64_ca_chain=ca_chain_response.base64_ca_chain,
+    )
 
-    if include_ca_chain:
-        ca_chain_response = create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
-        response_data.update(ca_chain_response)
-
-    return response_data
+    return response.to_dict()
