@@ -373,9 +373,7 @@ def _test_include_ca_chain(cert_bundle=None):
     # generate certificate
     common_name = "include-ca-chain.example.com"
     csr_info = helper_create_csr_info(common_name)
-    cert_data, ca_chain = helper_get_certificate(
-        csr_info, purposes=["server_auth"], cert_bundle=cert_bundle, include_ca_chain=True
-    )
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=["server_auth"], cert_bundle=cert_bundle)
 
     cert_der = convert_pem_to_der(cert_data.encode("utf-8"))
 

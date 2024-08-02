@@ -164,7 +164,6 @@ def construct_json_data(
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,
     ca_chain_only: Optional[bool] = None,
-    include_ca_chain: Optional[bool] = None,
 ):
     # Construct JSON data to pass to Lambda function
     base64_csr_data = base64.b64encode(csr).decode("utf-8")
@@ -196,9 +195,6 @@ def construct_json_data(
     if ca_chain_only is not None:
         json_data["ca_chain_only"] = ca_chain_only
 
-    if include_ca_chain is not None:
-        json_data["include_ca_chain"] = include_ca_chain
-
     return json_data
 
 
@@ -213,7 +209,6 @@ def helper_get_certificate(
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,
     ca_chain_only: Optional[bool] = None,
-    include_ca_chain: Optional[bool] = None,
 ):
     common_name = csr_info["commonName"]
 
@@ -231,7 +226,6 @@ def helper_get_certificate(
         override_organization=override_organization,
         csr_file=csr_file,
         ca_chain_only=ca_chain_only,
-        include_ca_chain=include_ca_chain,
     )
 
     return helper_fetch_certificate(json_data, common_name)
