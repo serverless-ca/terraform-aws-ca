@@ -22,11 +22,50 @@ from utils.certs.db import (
 from utils.certs.s3 import s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json, LetterCase
+from typing import Optional
 
-if __package__ is None:
-    import api
-else:
-    from . import api
+# TODO: Request and Response classes use different naming convention
+
+
+@dataclass_json
+@dataclass
+class Request:
+    common_name: str
+    locality: Optional[str] = None
+    organization: Optional[str] = None
+    organizational_unit: Optional[str] = None
+    country: Optional[str] = None
+    email_address: Optional[str] = None
+    state: Optional[str] = None
+    lifetime: Optional[int] = 30
+    purposes: Optional[list[str]] = field(default_factory=lambda: ["client_auth"])
+    sans: Optional[list[str]] = None
+    csr_file: Optional[str] = None
+    base64_csr_data: Optional[str] = None
+    force_issue: Optional[bool] = False
+    cert_bundle: Optional[bool] = False
+    ca_chain_only: Optional[bool] = False
+
+
+@dataclass_json(letter_case=LetterCase.PASCAL)
+@dataclass
+class CertificateResponse:
+    certificate_info: dict
+    base64_certificate: str
+    subject: str
+    base64_issuing_ca_certificate: str
+    base64_root_ca_certificate: str
+    base64_ca_chain: str
+
+
+@dataclass_json(letter_case=LetterCase.PASCAL)
+@dataclass
+class CaChainResponse:
+    base64_issuing_ca_certificate: str
+    base64_root_ca_certificate: str
+    base64_ca_chain: str
 
 
 # pylint:disable=too-many-arguments
