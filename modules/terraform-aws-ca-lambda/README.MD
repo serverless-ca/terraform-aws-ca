@@ -12,8 +12,6 @@
 ### tls_cert
 #### Input
 
-
-
 | Property              | Type                  | Default           | Description                                                                          |
 |-----------------------|-----------------------|-------------------|--------------------------------------------------------------------------------------|
 | `common_name`         | `Optional[str]`       | `None`            | The `CN` part of the certificate subject. Only optional if `ca_chain_only` is `True` |
@@ -56,8 +54,6 @@ Otherwise:
 | `Base64RootCaCertificate`      | `str`  | Base64 encoded PEM containing the Root CA certificate                                                                      |
 | `Base64IssuingCaCertificate`   | `str`  | Base64 encoded PEM containing the Issuing CA certificate                                                                   |
 | `Base64CaChain`                | `str`  | Base64 encoded PEM containing the Root and Issuing CA certificates. Issuing CA is first.                                   |
-
-
 
 
 ## Local Python development - MacOS / Linux
