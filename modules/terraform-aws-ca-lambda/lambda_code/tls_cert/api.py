@@ -36,8 +36,8 @@ class CertificateResponse:
     base64_ca_chain: str
 
 
-@dataclass
 @dataclass_json(letter_case=LetterCase.PASCAL)
+@dataclass
 class CaChainResponse:
     base64_issuing_ca_certificate: str
     base64_root_ca_certificate: str
