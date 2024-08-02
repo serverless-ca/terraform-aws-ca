@@ -14,23 +14,23 @@
 
 
 
-| Property              | Type                  | Default          | Description                                                                    |
-|-----------------------|-----------------------|------------------|--------------------------------------------------------------------------------|
-| `common_name`         | `str`                 |                  | The `CN` part of the certificate subject                                       |
-| `locality`            | `Optional[str]`       | `None`           | The `L` part of the certificate subject                                        |
-| `organization`        | `Optional[str]`       | `None`           | The `O` part of the certificate subject                                        |
-| `organizational_unit` | `Optional[str]`       | `None`           | The `OU` part of the certificate subject                                       |
-| `country`             | `Optional[str]`       | `None`           | The `C` part of the certificate subject                                        |
-| `email_address`       | `Optional[str]`       | `None`           | The `1.2.840.113549.1.9.1` part of the certificate subject                     |
-| `state`               | `Optional[str]`       | `None`           | The `ST` part of the certificate subject                                       |
-| `lifetime`            | `Optional[int]`       | `30`             | The lifetime of the generated certificate. In days.                            |
-| `purposes`            | `Optional[list[str]]` | `["client_auth"]` | The purposes to use the certificate for, e.g. `server_auth` or `client_auth`   |
-| `sans`                | `Optional[list[str]]` | `None`           | Subject Alternative Names. Invalid DNS names will be ignored.                  |
-| `ca_chain_only`       | `Optional[bool]`      | `False`          | Return only the root and issuing CA.                                           |
-| `csr_file`            | `Optional[str]`       | `None`           | A path to S3 object, relative to the `INTERNAL_S3_BUCKET` environment variable |
-| `force_issue`         | `Optional[bool]`      | `False`          | Force issue of certificate when private key has already been used              |
-| `cert_bundle`         | `Optional[bool]`      | `False`          | Include Root and Issuing CA in the returned certificate                        |
-| `base64_csr_data`     | `Optional[str]`       | `None`           | Base64 encoded CSR that will be used to generate the certificate               |
+| Property              | Type                  | Default           | Description                                                                          |
+|-----------------------|-----------------------|-------------------|--------------------------------------------------------------------------------------|
+| `common_name`         | `Optional[str]`       | `None`            | The `CN` part of the certificate subject. Only optional if `ca_chain_only` is `True` |
+| `locality`            | `Optional[str]`       | `None`            | The `L` part of the certificate subject                                              |
+| `organization`        | `Optional[str]`       | `None`            | The `O` part of the certificate subject                                              |
+| `organizational_unit` | `Optional[str]`       | `None`            | The `OU` part of the certificate subject                                             |
+| `country`             | `Optional[str]`       | `None`            | The `C` part of the certificate subject                                              |
+| `email_address`       | `Optional[str]`       | `None`            | The `1.2.840.113549.1.9.1` part of the certificate subject                           |
+| `state`               | `Optional[str]`       | `None`            | The `ST` part of the certificate subject                                             |
+| `lifetime`            | `Optional[int]`       | `30`              | The lifetime of the generated certificate. In days.                                  |
+| `purposes`            | `Optional[list[str]]` | `["client_auth"]` | The purposes to use the certificate for, e.g. `server_auth` or `client_auth`         |
+| `sans`                | `Optional[list[str]]` | `None`            | Subject Alternative Names. Invalid DNS names will be ignored.                        |
+| `ca_chain_only`       | `Optional[bool]`      | `False`           | Return only the root and issuing CA.                                                 |
+| `csr_file`            | `Optional[str]`       | `None`            | A path to S3 object, relative to the `INTERNAL_S3_BUCKET` environment variable       |
+| `force_issue`         | `Optional[bool]`      | `False`           | Force issue of certificate when private key has already been used                    |
+| `cert_bundle`         | `Optional[bool]`      | `False`           | Include Root and Issuing CA in the returned certificate                              |
+| `base64_csr_data`     | `Optional[str]`       | `None`            | Base64 encoded CSR that will be used to generate the certificate                     |
 
 
 #### Output

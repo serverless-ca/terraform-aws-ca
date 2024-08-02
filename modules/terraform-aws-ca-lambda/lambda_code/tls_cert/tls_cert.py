@@ -32,7 +32,7 @@ from typing import Optional
 @dataclass_json
 @dataclass
 class Request:
-    common_name: str
+    common_name: Optional[str] = None
     locality: Optional[str] = None
     organization: Optional[str] = None
     organizational_unit: Optional[str] = None
