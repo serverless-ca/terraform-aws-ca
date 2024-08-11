@@ -14,6 +14,8 @@ module "certificate_authority" {
   public_crl          = true
   cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
 
+  custom_sns_topic_display_name = "My Company CA Notifications Production"
+
   providers = {
     aws           = aws
     aws.us-east-1 = aws.us-east-1 # certificates for CloudFront must be in this region
