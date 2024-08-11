@@ -61,6 +61,7 @@ resource "aws_lambda_function" "lambda" {
       ROOT_CA_INFO        = jsonencode(var.root_ca_info)
       ROOT_CRL_DAYS       = tostring(var.root_crl_days)
       ROOT_CRL_SECONDS    = tostring(var.root_crl_seconds)
+      SNS_TOPIC_ARN       = var.sns_topic_arn
     }
   }
 

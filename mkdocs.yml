@@ -56,6 +56,7 @@ nav:
   - Revocation: revocation.md
   - Security: security.md
   - How-to guides:
+    - API Gateway: how-to-guides/api.md 
     - Application load balancer: how-to-guides/alb.md
     - IAM Roles Anywhere: how-to-guides/iam.md
   - Terraform reference: reference.md

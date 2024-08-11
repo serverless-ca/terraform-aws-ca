@@ -14,6 +14,7 @@ from utils.modules.certs.crypto import (
     create_csr_info,
     certificate_validated,
     convert_truststore,
+    convert_pem_to_der,
 )
 
 from utils.modules.aws.kms import get_kms_details
@@ -23,9 +24,11 @@ from .helper import (
     helper_create_csr_info,
     helper_get_certificate,
     helper_generate_csr,
-    helper_invoke_cert_lambda,
+    helper_invoke_tls_cert_lambda,
+    helper_fetch_certificate,
     helper_generate_kms_private_key,
     helper_assert_expected_lifetime,
+    helper_fetch_ca_chain_der,
 )
 
 
@@ -54,7 +57,7 @@ def test_cert_issued_no_passphrase():
 
     csr_info = create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes, passphrase=False)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes, passphrase=False)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -77,7 +80,7 @@ def test_client_cert_issued_only_includes_client_auth_extension():
 
     csr_info = create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes, passphrase=False)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes, passphrase=False)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -99,7 +102,7 @@ def test_cert_issued_with_passphrase():
 
     csr_info = create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=None, passphrase=None)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=None, passphrase=None)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -124,7 +127,7 @@ def test_issued_cert_includes_distinguished_name_specified_in_csr():
     expected_subject = f'ST={csr_info["state"]},OU={csr_info["organizationalUnit"]},O={csr_info["organization"]},L={csr_info["locality"]},C={csr_info["country"]},CN={csr_info["commonName"]}'
     purposes = ["client_auth", "server_auth"]
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -151,7 +154,7 @@ def test_issued_cert_includes_correct_dns_names():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
 
     # check subject of issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -173,7 +176,7 @@ def test_issued_cert_with_no_san_includes_correct_dns_name():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -201,7 +204,7 @@ def test_cert_issued_without_san_if_common_name_invalid_dns():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes)
 
     # convert bundle to trust store format
     trust_roots = convert_truststore(cert_data)
@@ -238,7 +241,7 @@ def test_issued_cert_lifetime_as_expected():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes, lifetime=lifetime)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, lifetime=lifetime)
 
     helper_assert_expected_lifetime(cert_data, expected_cert_lifetime)
 
@@ -256,7 +259,7 @@ def test_max_cert_lifetime():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data = helper_get_certificate(csr_info, purposes=purposes, lifetime=500)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, lifetime=500)
 
     helper_assert_expected_lifetime(cert_data, expected_cert_lifetime)
 
@@ -298,7 +301,7 @@ def test_csr_uploaded_to_s3():
         "csr_file": csr_file,
     }
 
-    cert_data = helper_invoke_cert_lambda(json_data)
+    cert_data, ca_chain = helper_fetch_certificate(json_data)
 
     # check subject of issued certificate with correct overrides
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -329,12 +332,8 @@ def test_no_private_key_reuse():
         "cert_bundle": True,
     }
 
-    # Identify TLS certificate Lambda function
-    function_name = get_lambda_name("-tls")
-    log.info("invoking lambda function", function_name=function_name)
     # Invoke TLS certificate Lambda function
-    response = invoke_lambda(function_name, json_data)
-    log.info("lambda response #1", response=response)
+    response = helper_invoke_tls_cert_lambda(json_data)
 
     # Inspect the response which includes the signed certificate
     issued_common_name = response["CertificateInfo"]["CommonName"]
@@ -342,18 +341,49 @@ def test_no_private_key_reuse():
     assert_that(issued_common_name).is_equal_to(common_name)
 
     # Check 2nd request using same private key is rejected
-    response_2 = invoke_lambda(function_name, json_data)
-    log.info("lambda response #2", response=response_2)
+    response_2 = helper_invoke_tls_cert_lambda(json_data)
     assert_that(response_2["error"]).is_equal_to("Private key has already been used for a certificate")
 
     # Check override works
     json_data["force_issue"] = True
 
     # Invoke TLS certificate Lambda function
-    response_3 = invoke_lambda(function_name, json_data)
-    log.info("lambda response #3", response=response_3)
+    response_3 = helper_invoke_tls_cert_lambda(json_data)
 
     # Inspect the response which includes the signed certificate
     issued_common_name = response_3["CertificateInfo"]["CommonName"]
     log.info("certificate issued", common_name=issued_common_name)
     assert_that(issued_common_name).is_equal_to(common_name)
+
+
+def test_ca_chain_only():
+    # generate certificate
+    common_name = "test-ca-chain-only.example.com"
+    csr_info = helper_create_csr_info(common_name)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=["server_auth"])
+
+    # fetch ca chain
+    root_ca_der, issuing_ca_der, ca_chain_der = helper_fetch_ca_chain_der()
+
+    # confirm chain validates generated certificate
+    assert_that(certificate_validated(cert_data, ca_chain_der, purposes=["server_auth"])).is_true()
+
+
+def _test_include_ca_chain(cert_bundle=None):
+    # generate certificate
+    common_name = "include-ca-chain.example.com"
+    csr_info = helper_create_csr_info(common_name)
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=["server_auth"], cert_bundle=cert_bundle)
+
+    cert_der = convert_pem_to_der(cert_data.encode("utf-8"))
+
+    # confirm chain validates generated certificate
+    assert_that(certificate_validated(cert_data, ca_chain, purposes=["server_auth"])).is_true()
+
+
+def test_include_ca_chain_no_cert_bundle():
+    return _test_include_ca_chain(cert_bundle=False)
+
+
+def test_include_ca_chain_with_cert_bundle():
+    return _test_include_ca_chain(cert_bundle=True)
