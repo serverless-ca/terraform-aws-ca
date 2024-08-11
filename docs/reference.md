@@ -35,6 +35,7 @@
 | <a name="module_rsa_tls_cert_lambda"></a> [rsa\_tls\_cert\_lambda](#module\_rsa\_tls\_cert\_lambda) | ./modules/terraform-aws-ca-lambda | n/a |
 | <a name="module_scheduler"></a> [scheduler](#module\_scheduler) | ./modules/terraform-aws-ca-scheduler | n/a |
 | <a name="module_scheduler-role"></a> [scheduler-role](#module\_scheduler-role) | ./modules/terraform-aws-ca-iam | n/a |
+| <a name="module_sns-ca-notifications"></a> [sns-ca-notifications](#module\_sns-ca-notifications) | ./modules/terraform-aws-ca-sns | n/a |
 | <a name="module_step-function"></a> [step-function](#module\_step-function) | ./modules/terraform-aws-ca-step-function | n/a |
 | <a name="module_step-function-role"></a> [step-function-role](#module\_step-function-role) | ./modules/terraform-aws-ca-iam | n/a |
 | <a name="module_tls_keygen_iam"></a> [tls\_keygen\_iam](#module\_tls\_keygen\_iam) | ./modules/terraform-aws-ca-iam | n/a |
@@ -55,6 +56,8 @@
 | <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
 | <a name="input_cert_info_files"></a> [cert\_info\_files](#input\_cert\_info\_files) | List of file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
 | <a name="input_csr_files"></a> [csr\_files](#input\_csr\_files) | List of CSR file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
+| <a name="input_custom_sns_topic_display_name"></a> [custom\_sns\_topic\_display\_name](#input\_custom\_sns\_topic\_display\_name) | Customised SNS topic display name, leave empty to use standard naming convention | `string` | `""` | no |
+| <a name="input_custom_sns_topic_name"></a> [custom\_sns\_topic\_name](#input\_custom\_sns\_topic\_name) | Customised SNS topic name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
 | <a name="input_filter_pattern"></a> [filter\_pattern](#input\_filter\_pattern) | Filter pattern for CloudWatch logs subscription filter | `string` | `""` | no |
 | <a name="input_hosted_zone_domain"></a> [hosted\_zone\_domain](#input\_hosted\_zone\_domain) | Hosted zone domain, e.g. dev.ca.example.com | `string` | `""` | no |
@@ -79,6 +82,11 @@
 | <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime | `string` | `"python3.12"` | no |
 | <a name="input_s3_aws_principals"></a> [s3\_aws\_principals](#input\_s3\_aws\_principals) | List of AWS Principals to allow access to external S3 bucket | `list` | `[]` | no |
 | <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | Step function schedule in cron format, interval should normally be the same as issuing\_crl\_days | `string` | `"cron(15 8 * * ? *)"` | no |
+| <a name="input_sns_email_subscriptions"></a> [sns\_email\_subscriptions](#input\_sns\_email\_subscriptions) | List of email addresses to subscribe to SNS topic | `list(string)` | `[]` | no |
+| <a name="input_sns_lambda_subscriptions"></a> [sns\_lambda\_subscriptions](#input\_sns\_lambda\_subscriptions) | A map of lambda names to arns to subscribe to SNS topic | `map(string)` | `{}` | no |
+| <a name="input_sns_policy"></a> [sns\_policy](#input\_sns\_policy) | A string containing the SNS policy, if used | `string` | `""` | no |
+| <a name="input_sns_policy_template"></a> [sns\_policy\_template](#input\_sns\_policy\_template) | Name of SNS policy template file, if used | `string` | `"default"` | no |
+| <a name="input_sns_sqs_subscriptions"></a> [sns\_sqs\_subscriptions](#input\_sns\_sqs\_subscriptions) | A map of SQS names to arns to subscribe to thSNSis topic | `map(string)` | `{}` | no |
 | <a name="input_subscription_filter_destination"></a> [subscription\_filter\_destination](#input\_subscription\_filter\_destination) | CloudWatch log subscription filter destination, last section of ARN | `string` | `""` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Amount of time Lambda Function has to run in seconds | `number` | `180` | no |
 

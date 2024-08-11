@@ -109,6 +109,10 @@ variable "runtime" {
   description = "Lambda language runtime"
 }
 
+variable "sns_topic_arn" {
+  description = "SNS Topic ARN for Lambda function to publish to"
+}
+
 variable "subscription_filter_destination" {
   description = "CloudWatch log subscription filter destination, last section of ARN"
   default     = ""

@@ -23,6 +23,16 @@ variable "csr_files" {
   default     = []
 }
 
+variable "custom_sns_topic_display_name" {
+  description = "Customised SNS topic display name, leave empty to use standard naming convention"
+  default     = ""
+}
+
+variable "custom_sns_topic_name" {
+  description = "Customised SNS topic name, leave empty to use standard naming convention"
+  default     = ""
+}
+
 variable "env" {
   description = "Environment name, e.g. dev"
   default     = "dev"
@@ -194,6 +204,34 @@ variable "s3_aws_principals" {
 variable "schedule_expression" {
   description = "Step function schedule in cron format, interval should normally be the same as issuing_crl_days"
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
+}
+
+variable "sns_email_subscriptions" {
+  type        = list(string)
+  description = "List of email addresses to subscribe to SNS topic"
+  default     = []
+}
+
+variable "sns_lambda_subscriptions" {
+  type        = map(string)
+  description = "A map of lambda names to arns to subscribe to SNS topic"
+  default     = {}
+}
+
+variable "sns_policy" {
+  description = "A string containing the SNS policy, if used"
+  default     = ""
+}
+
+variable "sns_policy_template" {
+  description = "Name of SNS policy template file, if used"
+  default     = "default"
+}
+
+variable "sns_sqs_subscriptions" {
+  type        = map(string)
+  description = "A map of SQS names to arns to subscribe to thSNSis topic"
+  default     = {}
 }
 
 variable "subscription_filter_destination" {
