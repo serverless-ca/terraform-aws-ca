@@ -1,6 +1,7 @@
 resource "aws_sns_topic" "sns_topic" {
-  name   = local.sns_topic_name
-  policy = coalesce(var.sns_policy, templatefile("${path.module}/templates/${var.sns_policy_template}.json", { region = data.aws_region.current.id, account_id = data.aws_caller_identity.current.account_id, sns_topic_name = local.sns_topic_name }))
+  name         = local.sns_topic_name
+  display_name = local.sns_topic_display_name
+  policy       = coalesce(var.sns_policy, templatefile("${path.module}/templates/${var.sns_policy_template}.json", { region = data.aws_region.current.id, account_id = data.aws_caller_identity.current.account_id, sns_topic_name = local.sns_topic_name }))
 
   tags = merge(
     var.tags,

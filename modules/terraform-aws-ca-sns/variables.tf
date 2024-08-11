@@ -13,6 +13,12 @@ variable "env" {
   default     = ""
 }
 
+variable "custom_sns_topic_display_name" {
+  description = "Customised SNS topic display name, leave empty to use standard naming convention"
+  default     = ""
+}
+
+
 variable "custom_sns_topic_name" {
   description = "Customised SNS topic name, leave empty to use standard naming convention"
   default     = ""

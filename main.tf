@@ -378,12 +378,13 @@ module "db-reader-role" {
 module "sns-ca-notifications" {
   source = "./modules/terraform-aws-ca-sns"
 
-  project               = var.project
-  function              = "ca-notifications"
-  env                   = var.env
-  custom_sns_topic_name = var.custom_sns_topic_name
-  kms_key_arn           = coalesce(var.kms_arn_resource, module.kms_tls_keygen.kms_arn)
-  email_subscriptions   = var.sns_email_subscriptions
-  lambda_subscriptions  = var.sns_lambda_subscriptions
-  sqs_subscriptions     = var.sns_sqs_subscriptions
+  project                       = var.project
+  function                      = "ca-notifications"
+  env                           = var.env
+  custom_sns_topic_display_name = var.custom_sns_topic_display_name
+  custom_sns_topic_name         = var.custom_sns_topic_name
+  kms_key_arn                   = coalesce(var.kms_arn_resource, module.kms_tls_keygen.kms_arn)
+  email_subscriptions           = var.sns_email_subscriptions
+  lambda_subscriptions          = var.sns_lambda_subscriptions
+  sqs_subscriptions             = var.sns_sqs_subscriptions
 }
