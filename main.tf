@@ -190,7 +190,7 @@ module "create_rsa_root_ca_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns.sns_topic_arn
+  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "create_rsa_issuing_ca_lambda" {
@@ -211,7 +211,7 @@ module "create_rsa_issuing_ca_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns.sns_topic_arn
+  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "rsa_root_ca_crl_lambda" {
@@ -234,7 +234,7 @@ module "rsa_root_ca_crl_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns.sns_topic_arn
+  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "rsa_issuing_ca_crl_lambda" {
@@ -257,7 +257,7 @@ module "rsa_issuing_ca_crl_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns.sns_topic_arn
+  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "rsa_tls_cert_lambda" {
@@ -280,7 +280,7 @@ module "rsa_tls_cert_lambda" {
   public_crl                      = var.public_crl
   max_cert_lifetime               = var.max_cert_lifetime
   allowed_invocation_principals   = var.aws_principals
-  sns_topic_arn                   = module.sns.sns_topic_arn
+  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "cloudfront_certificate" {
