@@ -376,7 +376,7 @@ def test_cas_end_with_new_line():
     assert root_ca_certificate.endswith("\n")
     assert issuing_ca_certificate.endswith("\n")
     assert ca_chain.endswith("\n")
-    
+
 
 def _test_include_ca_chain(cert_bundle=None):
     # generate certificate
