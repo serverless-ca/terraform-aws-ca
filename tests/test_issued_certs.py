@@ -29,6 +29,7 @@ from .helper import (
     helper_generate_kms_private_key,
     helper_assert_expected_lifetime,
     helper_fetch_ca_chain_der,
+    helper_fetch_ca_chain_pem,
 )
 
 
@@ -368,6 +369,14 @@ def test_ca_chain_only():
     # confirm chain validates generated certificate
     assert_that(certificate_validated(cert_data, ca_chain_der, purposes=["server_auth"])).is_true()
 
+
+def test_cas_end_with_new_line():
+    root_ca_certificate, issuing_ca_certificate, ca_chain = helper_fetch_ca_chain_pem()
+
+    assert root_ca_certificate.endswith("\n")
+    assert issuing_ca_certificate.endswith("\n")
+    assert ca_chain.endswith("\n")
+    
 
 def _test_include_ca_chain(cert_bundle=None):
     # generate certificate
