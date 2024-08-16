@@ -68,6 +68,14 @@ class CaChainResponse:
     base64_ca_chain: str
 
 
+def base64_decode_bytes_to_str(data: bytes) -> str:
+    return base64.b64decode(data).decode("utf-8")
+
+
+def base64_encode_bytes_to_str(data: bytes) -> str:
+    return base64.b64encode(data).decode("utf-8")
+
+
 # pylint:disable=too-many-arguments
 def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # get CA cert from DynamoDB
@@ -151,16 +159,18 @@ def create_cert_bundle_from_certificate(project, env_name, root_ca_name, issuing
     """
     Creates a certificate bundle in PEM format containing Client Issuing CA and Root CA Certificates
     """
-    cert_bundle = ""
-    return cert_bundle.join(
+    cert_pem = base64_decode_bytes_to_str(base64_certificate)
+    issuing_ca_b64 = db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]
+    issuing_ca_pem = base64_decode_bytes_to_str(issuing_ca_b64)
+
+    root_ca_b64 = db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]
+    root_ca_pem = base64_decode_bytes_to_str(root_ca_b64)
+
+    return "".join(
         [
-            base64.b64decode(base64_certificate.decode("utf-8")).decode("utf-8"),
-            base64.b64decode(db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]).decode(
-                "utf-8"
-            ),
-            base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]).decode(
-                "utf-8"
-            ),
+            cert_pem,
+            issuing_ca_pem,
+            root_ca_pem,
         ]
     )
 
@@ -188,22 +198,36 @@ def create_csr_info(event) -> CsrInfo:
     return csr_info
 
 
-def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, issuing_ca_name: str):
+def get_root_and_issuing_ca(project: str, env_name: str, root_ca_name: str, issuing_ca_name: str):
     root_ca_b64 = db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"]
     issuing_ca_b64 = db_list_certificates(project, env_name, issuing_ca_name)[0]["Certificate"]["B"]
 
-    # Need to decode base64 so we can append them together
-    root_ca = base64.b64decode(root_ca_b64).decode("utf-8")
-    issuing_ca = base64.b64decode(issuing_ca_b64).decode("utf-8")
-    ca_chain = "\n".join([issuing_ca.strip(), root_ca.strip()])
-    ca_chain_b64_bytes = base64.b64encode(ca_chain.encode("utf-8"))
-    ca_chain_b64 = ca_chain_b64_bytes.decode("utf-8")
+    return base64.b64decode(root_ca_b64), base64.b64decode(issuing_ca_b64)
+
+
+def create_ca_chain_from_certs(root_ca_cert: bytes, issuing_ca_cert: bytes) -> bytes:
+    root_ca = root_ca_cert.decode("utf-8")
+    issuing_ca = issuing_ca_cert.decode("utf-8")
+
+    ca_chain = "".join([issuing_ca, root_ca])
+
+    return ca_chain.encode("utf-8")
+
+
+def create_ca_chain_response_from_certs(root_ca_bytes: bytes, issuing_ca_bytes: bytes) -> CaChainResponse:
+    ca_chain_bytes = create_ca_chain_from_certs(root_ca_bytes, issuing_ca_bytes)
 
     return CaChainResponse(
-        base64_issuing_ca_certificate=issuing_ca_b64,
-        base64_root_ca_certificate=root_ca_b64,
-        base64_ca_chain=ca_chain_b64,
+        base64_issuing_ca_certificate=base64_encode_bytes_to_str(issuing_ca_bytes),
+        base64_root_ca_certificate=base64_encode_bytes_to_str(root_ca_bytes),
+        base64_ca_chain=base64_encode_bytes_to_str(ca_chain_bytes),
     )
+
+
+def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, issuing_ca_name: str):
+    root_ca, issuing_ca = get_root_and_issuing_ca(project, env_name, root_ca_name, issuing_ca_name)
+
+    return create_ca_chain_response_from_certs(root_ca, issuing_ca)
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals

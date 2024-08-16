@@ -1,4 +1,12 @@
-from .tls_cert import create_csr_info, create_csr_subject, CaChainResponse, CertificateResponse, Request
+from .tls_cert import (
+    create_csr_info,
+    create_csr_subject,
+    CaChainResponse,
+    CertificateResponse,
+    Request,
+    base64_decode_bytes_to_str,
+    base64_encode_bytes_to_str,
+)
 
 
 def test_create_csr_info():
@@ -9,6 +17,14 @@ def test_create_csr_info():
     csr_info = create_csr_info(event)
     assert csr_info.purposes == ["client_auth"]
     assert csr_info.sans == ["blah.example.com"]
+
+
+def test_base64_decode_bytes_to_str():
+    assert base64_decode_bytes_to_str(b"Zm9v") == "foo"
+
+
+def test_base64_encode_bytes_to_str():
+    assert base64_encode_bytes_to_str(b"foo") == "Zm9v"
 
 
 def test_create_csr_info_with_purpose_and_sans():
