@@ -82,6 +82,11 @@ If you followed the [Getting Started](getting-started.md) guide, you'll already 
 * change the value of Terraform variable `cert_info_files` to  `["tls", "revoked", "revoked-root-ca"]`
 * apply Terraform
 
+**Subscribe to SNS Topic**
+
+* Using the AWS console, SNS, subscribe to the CA Notifications SNS Topic using your email address
+* Confirm the susbscription
+
 **Adding CSR File to CA repository**
 
 * In the example below replace `dev` with your environment name
@@ -113,7 +118,37 @@ python utils/server-csr.py
 * certificates will be issued and can be downloaded from the DynamoDB table
 * subject details entered in JSON e.g. `Organization`, `Locality` override those included in CSR
 
+**Get certificate from SNS notification**
+
+* Details of GitOps issued certificate are published to SNS
+* Copy the value of the JSON key `Base64Certificate`
+
+**Decoding certificate from SNS (Linux / MacOS)**
+
+* Open terminal / command line
+* Overwrite placeholder with text from `Base64Certificate` value in SNS JSON
+```bash
+echo B64CERT-TEXT-FROM-JSON | base64 --decode > test-example-com.pem
+```
+
+**Decoding certificate from SNS (Windows)**
+
+* Open Windows PowerShell ISE
+* Copy the script below into the editor
+* Overwrite placeholder with text from `Base64Certificate` value in SNS JSON
+* Press Run
+```PowerShell
+# PowerShell
+$input = "B64CERT-TEXT-FROM-JSON"
+$filepath = "c:\tmp\test-example-com.crt"
+
+# Base64 decode from SNS
+$cert = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($input)) | Out-File -FilePath $filepath
+```
+
 **Retrieving certificates from DynamoDB**
+
+If you haven't subscribed to SNS, or you want to retrieve a non-GitOps issued certificates, the value can be retrieved from DynamoDB
 
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
