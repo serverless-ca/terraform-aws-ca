@@ -121,7 +121,7 @@ python utils/server-csr.py
 **Get certificate from SNS notification**
 
 * Details of GitOps issued certificate are published to SNS
-* Copy the value of the JSON key `Base64Certificate`
+* From your SNS email, copy the value of the JSON key `Base64Certificate`
 
 **Decoding certificate from SNS (Linux / MacOS)**
 
@@ -148,7 +148,7 @@ $cert = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64Strin
 
 **Retrieving certificates from DynamoDB**
 
-If you haven't subscribed to SNS, or you want to retrieve a non-GitOps issued certificates, the value can be retrieved from DynamoDB
+If you haven't subscribed to SNS, or you want to retrieve a non-GitOps issued certificates, the value can be obtained from DynamoDB
 
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
