@@ -17,5 +17,6 @@ resource "aws_iam_role_policy" "lambda" {
     ddb_table_arn          = var.ddb_table_arn,
     external_s3_bucket_arn = var.external_s3_bucket_arn,
     internal_s3_bucket_arn = var.internal_s3_bucket_arn
+    sns_topic_arn          = var.sns_topic_arn
   })
 }

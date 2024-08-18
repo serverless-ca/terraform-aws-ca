@@ -1,4 +1,5 @@
 import boto3
+import json
 
 
 def s3_download_file(bucket_name, key):
@@ -39,3 +40,45 @@ def s3_upload(
         return s3_upload_file(file, external_s3_bucket_name, key, content_type)
 
     return s3_upload_file(file, internal_s3_bucket_name, key, content_type)
+
+
+def convert_to_json(input_str):
+    # split string by commas
+    pairs = input_str.split(",")
+
+    # split each pair by '=' and construct dictionary
+    json_dictionary = {}
+    for pair in pairs:
+        key, value = pair.split("=")
+        json_dictionary[key] = value
+
+    return json_dictionary
+
+
+def is_cert_gitops(internal_s3_bucket_name, subject):
+    subject_json = convert_to_json(subject)
+
+    cn = subject_json["CN"]
+    o = subject_json["O"]
+    ou = subject_json["OU"]
+
+    # get list of GitOps certificates from internal S3 bucket
+    tls_file = s3_download_file(internal_s3_bucket_name, "tls.json")
+
+    # convert to json dictionary
+    gitops_certs = json.loads(tls_file["Body"].read())
+
+    for cert in gitops_certs:
+        common_name = cert["common_name"]
+        organization = cert.get("organization")
+        organizational_unit = cert.get("organizational_unit")
+
+        # check if certificate is included in tls.json
+        if (
+            cn == common_name
+            and (organization is None or o == organization)
+            and (organizational_unit is None or ou == organizational_unit)
+        ):
+            return True
+
+    return False
