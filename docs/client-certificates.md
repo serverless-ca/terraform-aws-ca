@@ -71,6 +71,7 @@ Only valid domains will be included in the Subject Alternative Name X.509 certif
 * Internal team creates and approves pull request (PR)
 * Merge PR to initiate CA pipeline
 * Certificate issued and published to DynamoDB table
+* Certificate details published to SNS topic
 
 **Enable GitOps**
 

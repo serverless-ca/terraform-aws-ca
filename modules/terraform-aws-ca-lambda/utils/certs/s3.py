@@ -59,8 +59,8 @@ def is_cert_gitops(internal_s3_bucket_name, subject):
     subject_json = convert_to_json(subject)
 
     cn = subject_json["CN"]
-    o = subject_json["O"]
-    ou = subject_json["OU"]
+    o = subject_json.get("O")
+    ou = subject_json.get("OU")
 
     # get list of GitOps certificates from internal S3 bucket
     tls_file = s3_download_file(internal_s3_bucket_name, "tls.json")
@@ -74,11 +74,20 @@ def is_cert_gitops(internal_s3_bucket_name, subject):
         organizational_unit = cert.get("organizational_unit")
 
         # check if certificate is included in tls.json
-        if (
-            cn == common_name
-            and (organization is None or o == organization)
-            and (organizational_unit is None or ou == organizational_unit)
-        ):
+        cn_matches = False
+        o_matches = False
+        ou_matches = False
+
+        if cn == common_name:
+            cn_matches = True
+
+        if o is None or organization is None or o == organization:
+            o_matches = True
+
+        if ou is None or organizational_unit is None or ou == organizational_unit:
+            ou_matches = True
+
+        if cn_matches and o_matches and ou_matches:
             return True
 
     return False
