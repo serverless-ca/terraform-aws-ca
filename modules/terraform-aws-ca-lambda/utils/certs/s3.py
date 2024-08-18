@@ -65,8 +65,12 @@ def is_cert_gitops(internal_s3_bucket_name, subject):
     # get list of GitOps certificates from internal S3 bucket
     tls_file = s3_download_file(internal_s3_bucket_name, "tls.json")
 
-    # convert to json dictionary
-    gitops_certs = json.loads(tls_file["Body"].read())
+    if tls_file is None:
+        gitops_certs = []
+
+    else:
+        # convert to json dictionary
+        gitops_certs = json.loads(tls_file["Body"].read())
 
     for cert in gitops_certs:
         common_name = cert["common_name"]
