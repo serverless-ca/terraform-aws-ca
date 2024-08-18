@@ -1,5 +1,6 @@
 from assertpy import assert_that
 import base64
+import json
 import structlog
 from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
@@ -19,7 +20,7 @@ from utils.modules.certs.crypto import (
 
 from utils.modules.aws.kms import get_kms_details
 from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
-from utils.modules.aws.s3 import get_s3_bucket, put_s3_object
+from utils.modules.aws.s3 import delete_s3_object, get_s3_bucket, list_s3_object_keys, put_s3_object
 from .helper import (
     helper_create_csr_info,
     helper_get_certificate,
@@ -291,6 +292,14 @@ def test_csr_uploaded_to_s3():
     # Upload CSR to S3 bucket
     put_s3_object(bucket_name, kms_arn, f"csrs/{common_name}.csr", csr)
 
+    # If no tls.json present, test for SNS notification
+    test_sns = False
+    if "tls.json" not in list_s3_object_keys(bucket_name):
+        test_sns = True
+        certs_json = [{"common_name": common_name, "lifetime": 1, "csr_file": f"{common_name}.csr"}]
+        tls_file = bytes(json.dumps(certs_json), "utf-8")
+        put_s3_object(bucket_name, kms_arn, "tls.json", tls_file)
+
     # Construct JSON data to pass to Lambda function
     csr_file = f"{common_name}.csr"
     json_data = {
@@ -308,6 +317,8 @@ def test_csr_uploaded_to_s3():
     log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
 
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
+    if test_sns:
+        delete_s3_object(bucket_name, "tls.json")
 
 
 def test_no_private_key_reuse():
