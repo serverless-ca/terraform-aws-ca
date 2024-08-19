@@ -120,7 +120,10 @@ python utils/server-csr.py
 
 **Get certificate from SNS notification**
 
-* Details of GitOps issued certificate are published to SNS
+Details of GitOps issued certificate are published to SNS
+
+![Alt text](assets/images/sns-cert-issued.png?raw=true "SNS Notification")
+
 * From your SNS email, copy the value of the JSON key `Base64Certificate`
 
 **Decoding certificate from SNS (Linux / MacOS)**
