@@ -115,6 +115,7 @@ ROOT_CA_INFO=$(jq -n '{}')
 export ROOT_CA_INFO
 export ROOT_CRL_DAYS="1"
 export ROOT_CRL_SECONDS="600"
+export SNS_TOPIC_ARN="arn:aws:sns:<REGION>:<ACCOUNT-ID>:serverless-ca-notifications-dev"
 ```
 * copy and paste AWS Powershell CLI variables to terminal
 * enter `python`
@@ -163,6 +164,7 @@ $Env:PROJECT="serverless"
 $Env:ROOT_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 7300; locality = "London"; organization = "serverless"; organizationalUnit = "Security Operations"; commonName = "Serverless Development Root CA"; emailAddress = "secops@example.com"; pathLengthConstraint = 1} | ConvertTo-Json)
 $Env:ROOT_CRL_DAYS="1"
 $Env:ROOT_CRL_SECONDS="600"
+$Env:SNS_TOPIC_ARN="arn:aws:sns:<REGION>:<ACCOUNT-ID>:serverless-ca-notifications-dev"
 ```
 * copy and paste AWS Powershell CLI variables to terminal
 

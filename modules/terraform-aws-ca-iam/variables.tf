@@ -55,3 +55,8 @@ variable "aws_principals" {
   description = "List of ARNs for AWS principals allowed to assume role"
   default     = []
 }
+
+variable "sns_topic_arn" {
+  description = "SNS Topic ARN"
+  default     = ""
+}

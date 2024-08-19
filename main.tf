@@ -170,6 +170,7 @@ module "tls_keygen_iam" {
   policy                 = "tls_cert"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  sns_topic_arn          = module.sns-ca-notifications.sns_topic_arn
 }
 
 module "create_rsa_root_ca_lambda" {

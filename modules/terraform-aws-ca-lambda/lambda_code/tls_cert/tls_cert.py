@@ -1,6 +1,7 @@
 import base64
 import os
 
+from utils.aws.sns import publish_to_sns
 from utils.certs.kms import kms_get_kms_key_id, kms_describe_key
 from utils.certs.crypto import (
     crypto_cert_request_info,
@@ -19,7 +20,7 @@ from utils.certs.db import (
     db_list_certificates,
     db_issue_certificate,
 )
-from utils.certs.s3 import s3_download
+from utils.certs.s3 import cert_issued_via_gitops, s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 from dataclasses import dataclass, field
@@ -206,12 +207,22 @@ def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, iss
     )
 
 
+def sns_notify_cert_issued(cert_json, sns_topic_arn):
+    keys_to_publish = ["CertificateInfo", "Base64Certificate", "Subject"]
+    response = publish_to_sns(cert_json, "Certificate Issued", sns_topic_arn, keys_to_publish)
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+    common_name = cert_json["CertificateInfo"]["CommonName"]
+    print(f"Certificate details for {common_name} published to SNS")
+
+
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
     max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
+    sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
     domain = os.environ.get("DOMAIN")
 
     public_crl = os.environ.get("PUBLIC_CRL")
@@ -271,9 +282,12 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         certificate_info=cert_info,
         base64_certificate=base64_certificate.decode("utf-8"),
         subject=load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
-        base64_root_ca_certificate=ca_chain_response.base64_root_ca_certificate,
-        base64_issuing_ca_certificate=ca_chain_response.base64_issuing_ca_certificate,
+        base64_root_ca_certificate=ca_chain_response.base64_root_ca_certificate.decode("utf-8"),
+        base64_issuing_ca_certificate=ca_chain_response.base64_issuing_ca_certificate.decode("utf-8"),
         base64_ca_chain=ca_chain_response.base64_ca_chain,
     )
+
+    if cert_issued_via_gitops(internal_s3_bucket_name, response.subject):
+        sns_notify_cert_issued(response.to_dict(), sns_topic_arn)
 
     return response.to_dict()
