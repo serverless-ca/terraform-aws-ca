@@ -318,7 +318,7 @@ def test_csr_uploaded_to_s3():
 
     assert_that(issued_cert.subject.rfc4514_string()).is_equal_to(expected_subject)
     if test_sns:
-        # check SNS messsage received via email subscription 
+        # check SNS messsage received via email subscription
         # TODO: implement programatically within tests
         delete_s3_object(bucket_name, "tls.json")
 
