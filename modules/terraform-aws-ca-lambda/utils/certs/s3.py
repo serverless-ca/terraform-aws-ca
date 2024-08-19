@@ -42,7 +42,7 @@ def s3_upload(
     return s3_upload_file(file, internal_s3_bucket_name, key, content_type)
 
 
-def convert_to_json(input_str):
+def convert_x509_subject_str_to_dict(input_str):
     # split string by commas
     pairs = input_str.split(",")
 
@@ -55,15 +55,19 @@ def convert_to_json(input_str):
     return json_dictionary
 
 
-def is_cert_gitops(internal_s3_bucket_name, subject):
-    subject_json = convert_to_json(subject)
+def cert_issued_via_gitops(internal_s3_bucket_name, subject):
+    # get list of GitOps certificates from internal S3 bucket
+    tls_file = s3_download_file(internal_s3_bucket_name, "tls.json")
+
+    return is_cert_gitops(tls_file, subject)
+
+
+def is_cert_gitops(tls_file, subject):
+    subject_json = convert_x509_subject_str_to_dict(subject)
 
     cn = subject_json["CN"]
     o = subject_json.get("O")
     ou = subject_json.get("OU")
-
-    # get list of GitOps certificates from internal S3 bucket
-    tls_file = s3_download_file(internal_s3_bucket_name, "tls.json")
 
     if tls_file is None:
         gitops_certs = []

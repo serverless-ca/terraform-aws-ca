@@ -20,7 +20,7 @@ from utils.certs.db import (
     db_list_certificates,
     db_issue_certificate,
 )
-from utils.certs.s3 import s3_download, is_cert_gitops
+from utils.certs.s3 import cert_issued_via_gitops, s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 from dataclasses import dataclass, field
@@ -287,7 +287,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         base64_ca_chain=ca_chain_response.base64_ca_chain,
     )
 
-    if is_cert_gitops(internal_s3_bucket_name, response.subject):
+    if cert_issued_via_gitops(internal_s3_bucket_name, response.subject):
         sns_notify_cert_issued(response.to_dict(), sns_topic_arn)
 
     return response.to_dict()
