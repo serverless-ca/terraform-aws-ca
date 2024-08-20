@@ -96,8 +96,11 @@
 |------|-------------|
 | <a name="output_ca_bundle_s3_location"></a> [ca\_bundle\_s3\_location](#output\_ca\_bundle\_s3\_location) | S3 location of CA bundle for use as a TrustStore |
 | <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | Domain name of CloudFront distribution used for public CRL |
+| <a name="output_external_s3_bucket_name"></a> [external\_s3\_bucket\_name](#output\_external\_s3\_bucket\_name) | External S3 bucket name |
+| <a name="output_internal_s3_bucket_name"></a> [internal\_s3\_bucket\_name](#output\_internal\_s3\_bucket\_name) | Internal S3 bucket name |
 | <a name="output_issuing_ca_cert_s3_location"></a> [issuing\_ca\_cert\_s3\_location](#output\_issuing\_ca\_cert\_s3\_location) | S3 location of Issuing CA certificate file |
 | <a name="output_issuing_ca_crl_s3_location"></a> [issuing\_ca\_crl\_s3\_location](#output\_issuing\_ca\_crl\_s3\_location) | S3 location of Issuing CA CRL file |
 | <a name="output_root_ca_cert_s3_location"></a> [root\_ca\_cert\_s3\_location](#output\_root\_ca\_cert\_s3\_location) | S3 location of Root CA certificate file |
 | <a name="output_root_ca_crl_s3_location"></a> [root\_ca\_crl\_s3\_location](#output\_root\_ca\_crl\_s3\_location) | S3 location of Root CA CRL file |
+| <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | SNS topic ARN |
 <!-- END_TF_DOCS -->
