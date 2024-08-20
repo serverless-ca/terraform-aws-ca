@@ -8,6 +8,16 @@ output "ca_bundle_s3_location" {
   description = "S3 location of CA bundle for use as a TrustStore"
 }
 
+output "external_s3_bucket_name" {
+  value       = module.external_s3.s3_bucket_name
+  description = "External S3 bucket name"
+}
+
+output "internal_s3_bucket_name" {
+  value       = module.internal_s3.s3_bucket_name
+  description = "Internal S3 bucket name"
+}
+
 output "issuing_ca_cert_s3_location" {
   value       = contains(var.prod_envs, var.env) ? "${module.external_s3.s3_bucket_domain_name}/${var.project}-issuing-ca.crt" : "${module.external_s3.s3_bucket_domain_name}/${var.project}-issuing-ca-${var.env}.crt"
   description = "S3 location of Issuing CA certificate file"
@@ -26,4 +36,9 @@ output "root_ca_cert_s3_location" {
 output "root_ca_crl_s3_location" {
   value       = contains(var.prod_envs, var.env) ? "${module.external_s3.s3_bucket_domain_name}/${var.project}-root-ca.crl" : "${module.external_s3.s3_bucket_domain_name}/${var.project}-root-ca-${var.env}.crl"
   description = "S3 location of Root CA CRL file"
+}
+
+output "sns_topic_arn" {
+  value       = module.sns-ca-notifications.sns_topic_arn
+  description = "SNS topic ARN"
 }
