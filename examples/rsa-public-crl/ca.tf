@@ -13,6 +13,7 @@ module "certificate_authority" {
   root_ca_key_spec    = "RSA_4096"
   public_crl          = true
   cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
+  kms_key_alias       = "custom-kms-encryption-key"
 
   custom_sns_topic_display_name = "My Company CA Notifications Production"
 
