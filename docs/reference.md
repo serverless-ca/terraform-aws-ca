@@ -35,7 +35,7 @@
 | <a name="module_rsa_tls_cert_lambda"></a> [rsa\_tls\_cert\_lambda](#module\_rsa\_tls\_cert\_lambda) | ./modules/terraform-aws-ca-lambda | n/a |
 | <a name="module_scheduler"></a> [scheduler](#module\_scheduler) | ./modules/terraform-aws-ca-scheduler | n/a |
 | <a name="module_scheduler-role"></a> [scheduler-role](#module\_scheduler-role) | ./modules/terraform-aws-ca-iam | n/a |
-| <a name="module_sns-ca-notifications"></a> [sns-ca-notifications](#module\_sns-ca-notifications) | ./modules/terraform-aws-ca-sns | n/a |
+| <a name="module_sns_ca_notifications"></a> [sns\_ca\_notifications](#module\_sns\_ca\_notifications) | ./modules/terraform-aws-ca-sns | n/a |
 | <a name="module_step-function"></a> [step-function](#module\_step-function) | ./modules/terraform-aws-ca-step-function | n/a |
 | <a name="module_step-function-role"></a> [step-function-role](#module\_step-function-role) | ./modules/terraform-aws-ca-iam | n/a |
 | <a name="module_tls_keygen_iam"></a> [tls\_keygen\_iam](#module\_tls\_keygen\_iam) | ./modules/terraform-aws-ca-iam | n/a |
@@ -67,7 +67,7 @@
 | <a name="input_issuing_crl_days"></a> [issuing\_crl\_days](#input\_issuing\_crl\_days) | Number of days before Issuing CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval | `number` | `1` | no |
 | <a name="input_issuing_crl_seconds"></a> [issuing\_crl\_seconds](#input\_issuing\_crl\_seconds) | Number of seconds before Issuing CA CRL expires, in addition to days. Used for overlap in case of clock skew | `number` | `600` | no |
 | <a name="input_kms_arn_resource"></a> [kms\_arn\_resource](#input\_kms\_arn\_resource) | KMS key ARN used for general resource encryption, different from key used for CA key protection | `string` | `""` | no |
-| <a name="input_kms_key_alias"></a> [kms\_key\_alias](#input\_kms\_key\_alias) | KMS key alias for bucket encryption, if left at default, TLS key gen KMS key will be used | `string` | `""` | no |
+| <a name="input_kms_key_alias"></a> [kms\_key\_alias](#input\_kms\_key\_alias) | KMS key alias for bucket encryption with key rotation disabled, if left at default, TLS key gen KMS key will be used | `string` | `""` | no |
 | <a name="input_log_bucket"></a> [log\_bucket](#input\_log\_bucket) | Name of log bucket, if access\_logs variable set to true | `string` | `""` | no |
 | <a name="input_logging_account_id"></a> [logging\_account\_id](#input\_logging\_account\_id) | AWS Account ID of central logging account for CloudWatch subscription filters | `string` | `""` | no |
 | <a name="input_max_cert_lifetime"></a> [max\_cert\_lifetime](#input\_max\_cert\_lifetime) | Maximum end entity certificate lifetime in days | `number` | `365` | no |
