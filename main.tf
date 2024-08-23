@@ -170,7 +170,7 @@ module "tls_keygen_iam" {
   policy                 = "tls_cert"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
-  sns_topic_arn          = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "create_rsa_root_ca_lambda" {
@@ -191,7 +191,7 @@ module "create_rsa_root_ca_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "create_rsa_issuing_ca_lambda" {
@@ -212,7 +212,7 @@ module "create_rsa_issuing_ca_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "rsa_root_ca_crl_lambda" {
@@ -235,7 +235,7 @@ module "rsa_root_ca_crl_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "rsa_issuing_ca_crl_lambda" {
@@ -258,7 +258,7 @@ module "rsa_issuing_ca_crl_lambda" {
   domain                          = var.hosted_zone_domain
   runtime                         = var.runtime
   public_crl                      = var.public_crl
-  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "rsa_tls_cert_lambda" {
@@ -281,7 +281,7 @@ module "rsa_tls_cert_lambda" {
   public_crl                      = var.public_crl
   max_cert_lifetime               = var.max_cert_lifetime
   allowed_invocation_principals   = var.aws_principals
-  sns_topic_arn                   = module.sns-ca-notifications.sns_topic_arn
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
 }
 
 module "cloudfront_certificate" {
@@ -376,7 +376,7 @@ module "db-reader-role" {
   assume_role_policy = "db_reader"
 }
 
-module "sns-ca-notifications" {
+module "sns_ca_notifications" {
   source = "./modules/terraform-aws-ca-sns"
 
   project                       = var.project

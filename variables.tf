@@ -96,7 +96,7 @@ variable "issuing_crl_seconds" {
 }
 
 variable "kms_key_alias" {
-  description = "KMS key alias for bucket encryption, if left at default, TLS key gen KMS key will be used"
+  description = "KMS key alias for bucket encryption with key rotation disabled, if left at default, TLS key gen KMS key will be used"
   default     = ""
 }
 

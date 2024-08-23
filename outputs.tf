@@ -39,6 +39,6 @@ output "root_ca_crl_s3_location" {
 }
 
 output "sns_topic_arn" {
-  value       = module.sns-ca-notifications.sns_topic_arn
+  value       = module.sns_ca_notifications.sns_topic_arn
   description = "SNS topic ARN"
 }
