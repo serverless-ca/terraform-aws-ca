@@ -5,6 +5,11 @@ variable "description" {
   default     = ""
 }
 
+variable "enable_key_rotation" {
+  description = "enable key rotation"
+  default     = false # must be false for asymmetric keys, and symmetric keys used for S3 encryption with long-lived content
+}
+
 variable "env" {
   description = "Environment name, e.g. dev"
 }
