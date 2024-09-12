@@ -25,6 +25,8 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 
 > 📖 [AWS IAM Roles Anywhere with open-source private CA](https://medium.com/@paulschwarzenberger/aws-iam-roles-anywhere-with-open-source-private-ca-6c0ec5758b2b)
 
+> 📖 [API Gateway mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/api-gateway-mtls-with-open-source-cloud-ca-3362438445de)
+
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
