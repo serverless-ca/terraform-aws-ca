@@ -53,19 +53,9 @@ variable "hosted_zone_id" {
   default     = ""
 }
 
-variable "issuing_ca_info" {
-  description = "Issuing CA certificate information"
-  default = {
-    country              = "GB"
-    state                = "London"
-    lifetime             = 3650
-    locality             = "London"
-    organization         = "Serverless"
-    organizationalUnit   = "IT"
-    commonName           = "Serverless Issuing CA"
-    emailAddress         = null
-    pathLengthConstraint = null
-  }
+variable "issuing_ca_list" {
+  description = "Names and details of all issuing CAs"
+  # TODO: add validation condition
 }
 
 variable "issuing_ca_key_spec" {

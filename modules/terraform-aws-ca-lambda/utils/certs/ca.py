@@ -240,11 +240,13 @@ def ca_kms_sign_tls_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_bundle_name(project, env_name):
+def ca_bundle_name(project, env_name, issuing_ca_name=""):
     """Returns CA bundle name for uploading to S3"""
+    if issuing_ca_name != "":
+        issuing_ca_name = "-" + issuing_ca_name
     if env_name in ["prd", "prod"]:
-        return f"{project}-ca-bundle"
-    return f"{project}-ca-bundle-{env_name}"
+        return f"{project}{issuing_ca_name}-ca-bundle"
+    return f"{project}{issuing_ca_name}-ca-bundle-{env_name}"
 
 
 def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):

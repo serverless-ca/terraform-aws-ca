@@ -1,7 +1,7 @@
 variable "project" {}
 
 variable "description" {
-  description = "description of KSM key overrides default"
+  description = "description of KMS key overrides default"
   default     = ""
 }
 

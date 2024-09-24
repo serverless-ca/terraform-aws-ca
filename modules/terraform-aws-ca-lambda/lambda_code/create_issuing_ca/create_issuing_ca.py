@@ -28,71 +28,73 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     if public_crl == "enabled":
         enable_public_crl = True
 
-    issuing_ca_info = json.loads(os.environ["ISSUING_CA_INFO"])
+    ca_list = json.loads(os.environ["ISSUING_CA_LIST"])
+    for issuing_ca_name, issuing_ca_info in ca_list.items():
+        root_ca_name = ca_name(project, env_name, "root")
+        ca_slug = ca_name(project, env_name, issuing_ca_name)
 
-    root_ca_name = ca_name(project, env_name, "root")
-    ca_slug = ca_name(project, env_name, "issuing")
+        # check Root CA exists
+        if not db_list_certificates(project, env_name, root_ca_name):
+            print(f"CA {root_ca_name} not found")
+            return
 
-    # check Root CA exists
-    if not db_list_certificates(project, env_name, root_ca_name):
-        print(f"CA {root_ca_name} not found")
+        # check if Issuing CA already exists
+        if db_list_certificates(project, env_name, ca_slug):
+            print("CA {ca_slug} already exists. To recreate, first delete item in DynamoDB")
+            continue
 
-        return
+        # get issuing CA key details from KMS
+        try:
+            kms_key_id = kms_get_kms_key_id(ca_slug)
+            cipher = kms_describe_key(kms_key_id)["KeySpec"]
+        except:
+            print(f"Unable to get KMS for '{ca_slug}', ensure correct ca name is specified and KMS exists")
+            continue
 
-    # check if Issuing CA already exists
-    if db_list_certificates(project, env_name, ca_slug):
-        print(f"CA {ca_slug} already exists. To recreate, first delete item in DynamoDB")
+        print(f"using {cipher} key pair in KMS for {ca_slug}")
 
-        return
+        # get root CA key details from KMS
+        root_ca_kms_key_id = kms_get_kms_key_id(root_ca_name)
 
-    # get issuing CA key details from KMS
-    kms_key_id = kms_get_kms_key_id(ca_slug)
-    cipher = kms_describe_key(kms_key_id)["KeySpec"]
+        # create certificate signing request
+        csr = load_pem_x509_csr(
+            crypto_kms_ca_cert_signing_request(ca_slug, kms_key_id, kms_describe_key(kms_key_id)["SigningAlgorithms"][0])
+        )
 
-    print(f"using {cipher} key pair in KMS for {ca_slug}")
+        # get Root CA cert in PEM format
+        root_ca_cert_pem = base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"])
 
-    # get root CA key details from KMS
-    root_ca_kms_key_id = kms_get_kms_key_id(root_ca_name)
+        # deserialize Root CA cert
+        root_ca_cert = load_pem_x509_certificate(root_ca_cert_pem)
 
-    # create certificate signing request
-    csr = load_pem_x509_csr(
-        crypto_kms_ca_cert_signing_request(ca_slug, kms_key_id, kms_describe_key(kms_key_id)["SigningAlgorithms"][0])
-    )
+        # sign certificate
+        pem_certificate = ca_kms_sign_ca_certificate_request(
+            project,
+            env_name,
+            domain,
+            csr,
+            root_ca_cert,
+            root_ca_kms_key_id,
+            enable_public_crl,
+            issuing_ca_info,
+            kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0],
+        )
+        base64_certificate = base64.b64encode(pem_certificate)
 
-    # get Root CA cert in PEM format
-    root_ca_cert_pem = base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"])
+        # get details to upload to DynamoDB
+        cert = load_pem_x509_certificate(pem_certificate)
+        info = crypto_cert_info(cert, ca_slug)
 
-    # deserialize Root CA cert
-    root_ca_cert = load_pem_x509_certificate(root_ca_cert_pem)
+        # create entry in DynamoDB
+        db_ca_cert_issued(project, env_name, info, base64_certificate)
 
-    # sign certificate
-    pem_certificate = ca_kms_sign_ca_certificate_request(
-        project,
-        env_name,
-        domain,
-        csr,
-        root_ca_cert,
-        root_ca_kms_key_id,
-        enable_public_crl,
-        issuing_ca_info,
-        kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0],
-    )
-    base64_certificate = base64.b64encode(pem_certificate)
+        # create CA bundle
+        cert_bundle_pem = crypto_create_ca_bundle([root_ca_cert_pem, pem_certificate])
 
-    # get details to upload to DynamoDB
-    cert = load_pem_x509_certificate(pem_certificate)
-    info = crypto_cert_info(cert, ca_slug)
+        # upload certificate and CA bundle to S3
+        s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
+        s3_upload(
+            external_s3_bucket_name, internal_s3_bucket_name, cert_bundle_pem, f"{ca_bundle_name(project, env_name, issuing_ca_name=issuing_ca_name)}.pem"
+        )
 
-    # create entry in DynamoDB
-    db_ca_cert_issued(project, env_name, info, base64_certificate)
-
-    # create CA bundle
-    cert_bundle_pem = crypto_create_ca_bundle([root_ca_cert_pem, pem_certificate])
-
-    # upload certificate and CA bundle to S3
-    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
-    s3_upload(
-        external_s3_bucket_name, internal_s3_bucket_name, cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem"
-    )
-
-    return
+    return ca_slug

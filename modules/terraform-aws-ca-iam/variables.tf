@@ -18,9 +18,9 @@ variable "function_name" {
   description = "short name of the Lambda function without project or environment"
 }
 
-variable "kms_arn_issuing_ca" {
-  description = "KMS key ARN for Issuing CA private key"
-  default     = ""
+variable "kms_arn_ca_list" {
+  description = "List of KMS key ARNs for Root/Issuing CA private keys"
+  default     = []
 }
 
 variable "kms_arn_root_ca" {

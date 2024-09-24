@@ -168,7 +168,10 @@ def db_get_certificate(project, env_name, common_name, serial_number):
     )
     items = response["Items"]
 
-    return [i for i in items if i["SerialNumber"]["S"] == serial_number][0]
+    try:
+        return [i for i in items if i["SerialNumber"]["S"] == serial_number][0]
+    except IndexError:
+        raise FileNotFoundError(f"Certificate {serial_number} not found")
 
 
 def db_revocation_date(project, env_name, common_name, serial_number):

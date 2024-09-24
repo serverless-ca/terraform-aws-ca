@@ -23,7 +23,7 @@ def main():  # pylint:disable=too-many-locals
 
     # set variables
     lifetime = 90
-    common_name = "My Test Certificate"
+    common_name = "My New Test Certificate"
     country = "GB"
     locality = "London"
     state = "England"
@@ -47,6 +47,7 @@ def main():  # pylint:disable=too-many-locals
 
     # Construct JSON data to pass to Lambda function
     request_payload = {
+        "ca_name": "new-issuing",
         "common_name": common_name,
         "purposes": purposes,
         "lifetime": lifetime,

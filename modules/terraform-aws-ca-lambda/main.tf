@@ -52,7 +52,7 @@ resource "aws_lambda_function" "lambda" {
       ENVIRONMENT_NAME    = var.env
       EXTERNAL_S3_BUCKET  = var.external_s3_bucket
       INTERNAL_S3_BUCKET  = var.internal_s3_bucket
-      ISSUING_CA_INFO     = jsonencode(var.issuing_ca_info)
+      ISSUING_CA_LIST     = jsonencode(var.issuing_ca_list)
       ISSUING_CRL_DAYS    = tostring(var.issuing_crl_days)
       ISSUING_CRL_SECONDS = tostring(var.issuing_crl_seconds)
       MAX_CERT_LIFETIME   = tostring(var.max_cert_lifetime)

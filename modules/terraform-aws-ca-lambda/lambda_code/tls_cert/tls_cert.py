@@ -231,7 +231,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         enable_public_crl = True
 
     # get Issuing CA name
-    issuing_ca_name = ca_name(project, env_name, "issuing")
+    if "ca_name" not in event:
+        raise ValueError("No name specified for issuing CA")
+    issuing_ca_name = ca_name(project, env_name, event["ca_name"])
     root_ca_name = ca_name(project, env_name, "root")
 
     request = Request.from_dict(event)
@@ -239,7 +241,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     # process input
     print(f"Input: {event}")
 
-    ca_chain_response = create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
+    try:
+        ca_chain_response = create_ca_chain_response(project, env_name, root_ca_name, issuing_ca_name)
+    except IndexError:
+        raise NameError(f"CA {issuing_ca_name} does not exist")
 
     if request.ca_chain_only:
         return ca_chain_response.to_dict()

@@ -36,9 +36,9 @@ variable "internal_s3_bucket" {
   description = "Internal S3 Bucket Name"
 }
 
-variable "issuing_ca_info" {
-  description = "Issuing CA information"
-  default     = {}
+variable "issuing_ca_list" {
+  description = "Names and information of Issuing CAs"
+  default = {}
 }
 
 variable "issuing_crl_days" {

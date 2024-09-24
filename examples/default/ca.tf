@@ -1,11 +1,11 @@
 module "certificate_authority" {
-  source = "../../"
+  source  = "../../"
   # source  = "serverless-ca/ca/aws"
-  # version = "1.0.0"
+  # version = "1.6.2"
 
-  # cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
-  # issuing_ca_info     = local.issuing_ca_info
-  # root_ca_info        = local.root_ca_info
+  issuing_ca_list     = local.issuing_ca_list
+  cert_info_files     = concat(["revoked-root-ca"], [for name, _ in local.issuing_ca_list: "${name}-revoked"])
+  root_ca_info        = local.root_ca_info
 
   providers = {
     aws           = aws

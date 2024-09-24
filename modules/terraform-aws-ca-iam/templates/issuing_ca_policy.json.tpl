@@ -36,10 +36,7 @@
         "kms:Sign",
         "kms:Verify"
       ],
-      "Resource": [
-        "${kms_arn_root_ca}",
-        "${kms_arn_issuing_ca}"
-      ]
+      "Resource": ${jsonencode(kms_arn_ca_list)}
     }, 
     {
       "Sid": "KMSforEncryptedResources",
