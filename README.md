@@ -31,3 +31,7 @@
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
 <a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/q-solution.png" /></a>
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/serverless-ca/terraform-aws-ca.svg)](https://starchart.cc/serverless-ca/terraform-aws-ca)
