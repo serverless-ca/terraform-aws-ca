@@ -69,7 +69,7 @@ class CaChainResponse:
     base64_ca_chain: str
 
 
-# pylint:disable=too-many-arguments
+# pylint:disable=too-many-arguments,too-many-positional-arguments
 def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]

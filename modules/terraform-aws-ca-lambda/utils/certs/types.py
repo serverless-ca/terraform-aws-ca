@@ -99,7 +99,7 @@ class CsrInfo:
     _purposes: list[str] = field(init=False, repr=False)
 
     @property
-    def sans(self) -> list[str]:
+    def sans(self) -> list[str]:  # noqa: F811
         if isinstance(self._sans, list):
             return filter_and_validate_sans(self.subject.common_name, self._sans)
 
@@ -110,7 +110,7 @@ class CsrInfo:
         self._sans = _sans
 
     @property
-    def purposes(self) -> list[str]:
+    def purposes(self) -> list[str]:  # noqa: F811
         if isinstance(self._purposes, list):
             return filter_and_validate_purposes(self._purposes)
         return ["client_auth"]

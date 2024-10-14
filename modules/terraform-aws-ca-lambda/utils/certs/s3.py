@@ -13,7 +13,7 @@ def s3_download_file(bucket_name, key):
             Key=key,
         )
     except client.exceptions.NoSuchKey:
-        print(f"file {key} not found in s3 bucket {bucket_name}")
+        print(f"file {key} not found in s3 bucket {bucket_name}")  # noqa
 
     return None
 
@@ -32,7 +32,7 @@ def s3_upload_file(file, bucket_name, key, content_type):
     print(f"uploaded {key} to s3 bucket {bucket_name}")
 
 
-# pylint:disable=too-many-arguments
+# pylint:disable=too-many-arguments,too-many-positional-arguments
 def s3_upload(
     external_s3_bucket_name, internal_s3_bucket_name, file, key, content_type="application/x-pkcs7-crl", external=True
 ):
