@@ -51,7 +51,7 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     return subject.x509_name()
 
 
-# pylint:disable=too-many-arguments
+# pylint:disable=too-many-arguments,too-many-positional-arguments
 def ca_kms_sign_ca_certificate_request(
     project,
     env_name,
@@ -179,7 +179,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
     )
 
 
-# pylint:disable=too-many-arguments,too-many-locals
+# pylint:disable=too-many-arguments,too-many-positional-arguments,too-many-locals
 def ca_kms_sign_tls_certificate_request(
     project,
     env_name,
@@ -325,7 +325,7 @@ def subject_from_ca_info(ca_info, default_common_name=None):
     return subject
 
 
-# pylint:disable=too-many-arguments
+# pylint:disable=too-many-arguments,too-many-positional-arguments
 def ca_kms_publish_crl(
     ca_info,
     ca_key_info,

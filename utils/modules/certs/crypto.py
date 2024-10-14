@@ -43,7 +43,7 @@ def certificate_validated(pem_cert, trust_roots, purposes=None, check_crl=True):
     return True
 
 
-def create_csr_info(  # pylint:disable=too-many-arguments
+def create_csr_info(  # pylint:disable=too-many-arguments,too-many-positional-arguments
     common_name,
     country=None,
     locality=None,
