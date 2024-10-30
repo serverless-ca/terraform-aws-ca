@@ -126,6 +126,10 @@ def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr,
     if not db_list_certificates(project, env_name, ca_name):
         return {"error": f"CA {ca_name} not found"}
 
+    # check CSR includes a Common Name
+    if "CN=" not in csr.subject.rfc4514_string():
+        return {"error": "CSR must include a Common Name"}
+
     # get public key from CSR
     public_key = csr.public_key()
 
