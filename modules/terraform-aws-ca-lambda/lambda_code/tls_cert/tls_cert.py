@@ -128,6 +128,7 @@ def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr,
 
     # check CSR includes a Common Name
     if "CN=" not in csr.subject.rfc4514_string():
+        print("Certificate request rejected, CSR must include a Common Name")
         return {"error": "CSR must include a Common Name"}
 
     # get public key from CSR
@@ -147,6 +148,7 @@ def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr,
 
     # check lifetime is at least 1 day
     if lifetime < 1:
+        print("Certificate request rejected, lifetime must be at least 1 day")
         return {"error": f"{lifetime} is too short"}
 
     return None
