@@ -1,6 +1,6 @@
 from cryptography.x509.oid import NameOID
 
-from .types import CsrInfo, Subject
+from utils.certs.types import CsrInfo, Subject
 
 
 # test defaults
