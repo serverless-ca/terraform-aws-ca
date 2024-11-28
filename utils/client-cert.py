@@ -71,18 +71,14 @@ def main():  # pylint:disable=too-many-locals
     # create AWS session
     session = get_session(profile)
     if isinstance(session, dict):
-        print(
-            f'Error: Unable to open session using profile {profile_name}. {session["error"]}'
-        )
+        print(f'Error: Unable to open session using profile {profile_name}. {session["error"]}')
     else:
         print(f"AWS session opened using profile: {profile_name}")
 
     # set variables
     variables = parse_variables(client_template)
     if "error" in variables:
-        print(
-            f'Error: Unable to read variables. Error reported is: {variables["error"]}'
-        )
+        print(f'Error: Unable to read variables. Error reported is: {variables["error"]}')
     else:
         print(f"Variables are obtained from file {client_template}")
 
@@ -109,9 +105,7 @@ def main():  # pylint:disable=too-many-locals
     private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
     # create CSR
-    csr_info = create_csr_info(
-        common_name, country, locality, organization, organizational_unit, state
-    )
+    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
     csr_pem = crypto_tls_cert_signing_request(private_key, csr_info)
 
     # Construct JSON data to pass to Lambda function
@@ -167,9 +161,7 @@ def main():  # pylint:disable=too-many-locals
         with open(output_path_cert_combined, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
             f.write(cert_data.decode("utf-8"))
-            print(
-                f"Combined root and intermediate bundle written to {output_path_cert_combined}"
-            )
+            print(f"Combined root and intermediate bundle written to {output_path_cert_combined}")
 
 
 if __name__ == "__main__":
