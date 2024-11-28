@@ -22,3 +22,6 @@ terraform.tfvars
 
 # MacOS
 .DS_Store
+
+# Vim
+**.swp
