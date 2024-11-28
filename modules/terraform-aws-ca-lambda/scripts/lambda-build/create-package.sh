@@ -21,8 +21,18 @@ dir_name=$function_name/
 mkdir -p $path_cwd/build/$dir_name
 
 # Create and activate virtual environment...
-python3 -m venv $path_cwd/build/env_$function_name
-source $path_cwd/build/env_$function_name/bin/activate
+if ! python3 -m venv $path_cwd/build/env_$function_name; then
+  echo "Error: Python virtual environment creation failed"
+  exit 1
+else
+  echo "Python virtual environment created"
+fi
+if ! . $path_cwd/build/env_$function_name/bin/activate; then
+  echo "Error: Python virtual environment activation failed"
+  exit 1
+else
+  echo "Python virtual environment activated"
+fi
 
 # Installing python dependencies...
 FILE=$path_cwd/lambda_code/$function_name/requirements.txt
