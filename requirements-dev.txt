@@ -7,7 +7,7 @@ boto3 == 1.35.49
 certvalidator == 0.11.1
 cryptography == 43.0.3
 dataclasses-json == 0.6.7
-prospector == 1.12.1
+prospector == 1.13.3
 pytest == 8.3.3
 requests == 2.32.3
 structlog == 24.4.0
