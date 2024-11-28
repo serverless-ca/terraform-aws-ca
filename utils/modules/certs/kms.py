@@ -25,8 +25,9 @@ def kms_get_kms_key_id(alias, session=None):
 
     aliases = client.list_aliases(Limit=100)["Aliases"]
     try:
-        key_id = [a for a in aliases if a["AliasName"] == f"alias/{alias}"][0]["TargetKeyId"]
+        key_id_list = [a for a in aliases if a["AliasName"] == f"alias/{alias}"]
+        key_id = key_id_list[0]["TargetKeyId"]
     except Exception as e:
-        key_id = {"error": f'Failed to get KMS key ID. {e}'}
+        key_id = {"error": f"Failed to get KMS key ID. {e}"}
 
     return key_id

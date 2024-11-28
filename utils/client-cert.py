@@ -6,19 +6,24 @@ import sys
 import argparse
 import boto3
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
+from modules.certs.crypto import (
+    create_csr_info,
+    crypto_encode_private_key,
+    crypto_tls_cert_signing_request,
+)
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 from modules.aws.lambdas import get_lambda_name
 
 # identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
 dir_path = os.path.dirname(os.path.realpath(__file__))
-templatesdir = f'{dir_path}/templates'
+templatesdir = f"{dir_path}/templates"
 base_path = f"{homedir}/ca/client_certificates"
-client_template = f'{templatesdir}/client_certificate_variables.json'
+client_template = f"{templatesdir}/client_certificate_variables.json"
 if not os.path.exists(base_path):
     print(f"Creating directory {base_path}")
     os.makedirs(base_path)
+
 
 def parse_variables(input_file):
     """
@@ -30,10 +35,11 @@ def parse_variables(input_file):
             with open(input_file, encoding="utf-8") as json_file:
                 data = json.load(json_file)
         except Exception as e:
-            data = {"error": f'Unable to parse JSON. {e}'}
+            data = {"error": f"Unable to parse JSON. {e}"}
     else:
         data = {"error": "No file"}
     return data
+
 
 def get_session(aws_profile):
     """
@@ -45,6 +51,7 @@ def get_session(aws_profile):
     except Exception as e:
         aws_session = {"error": e}
     return aws_session
+
 
 def main():  # pylint:disable=too-many-locals
     """
@@ -64,16 +71,20 @@ def main():  # pylint:disable=too-many-locals
     # create AWS session
     session = get_session(profile)
     if isinstance(session, dict):
-        print(f'Error: Unable to open session using profile {profile_name}. Error reported is: {session["error"]}')
+        print(
+            f'Error: Unable to open session using profile {profile_name}. {session["error"]}'
+        )
     else:
-        print(f'AWS session opened using profile: {profile_name}')
+        print(f"AWS session opened using profile: {profile_name}")
 
     # set variables
     variables = parse_variables(client_template)
     if "error" in variables:
-        print(f'Error: Unable to read variables. Error reported is: {variables["error"]}')
+        print(
+            f'Error: Unable to read variables. Error reported is: {variables["error"]}'
+        )
     else:
-        print(f'Variables are obtained from file {client_template}')
+        print(f"Variables are obtained from file {client_template}")
 
     lifetime = variables["lifetime"]
     common_name = variables["common_name"]
@@ -98,7 +109,9 @@ def main():  # pylint:disable=too-many-locals
     private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
     # create CSR
-    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
+    csr_info = create_csr_info(
+        common_name, country, locality, organization, organizational_unit, state
+    )
     csr_pem = crypto_tls_cert_signing_request(private_key, csr_info)
 
     # Construct JSON data to pass to Lambda function
@@ -154,7 +167,9 @@ def main():  # pylint:disable=too-many-locals
         with open(output_path_cert_combined, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
             f.write(cert_data.decode("utf-8"))
-            print(f"Combined root and intermediate bundle written to {output_path_cert_combined}")
+            print(
+                f"Combined root and intermediate bundle written to {output_path_cert_combined}"
+            )
 
 
 if __name__ == "__main__":
