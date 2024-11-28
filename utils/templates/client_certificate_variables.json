@@ -1,10 +1,10 @@
 {
   "lifetime": 90,
   "common_name": "First Test Certificate",
-  "country": "OZ",
-  "locality": "Emerald City",
-  "state": "Gillikin Country",
-  "organization": "TytoCare",
+  "country": "GB",
+  "locality": "London",
+  "state": "England",
+  "organization": "Serverless Inc",
   "organizational_unit": "Security Operations",
   "purposes": [
     "client_auth"
