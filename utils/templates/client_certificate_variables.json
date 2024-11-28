@@ -1,0 +1,13 @@
+{
+  "lifetime": 90,
+  "common_name": "First Test Certificate",
+  "country": "OZ",
+  "locality": "Emerald City",
+  "state": "Gillikin Country",
+  "organization": "TytoCare",
+  "organizational_unit": "Security Operations",
+  "purposes": [
+    "client_auth"
+  ],
+  "key_alias": "serverless-tls-keygen-dev"
+}
