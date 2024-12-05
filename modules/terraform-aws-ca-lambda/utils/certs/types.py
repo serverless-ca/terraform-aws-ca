@@ -82,7 +82,15 @@ def filter_and_validate_sans(common_name: str, sans: list[str]) -> list[str]:
         _sans = [common_name]
 
     # remove invalid SANs
-    _sans = [s for s in _sans if domain_validator(s)]
+    for san in _sans:
+        # allow wildcard SANs provided base domain is valid
+        if san.split(".")[0] == "*" and domain_validator(san[2:]):
+            continue
+
+        # remove invalid SANs
+        if not domain_validator(san):
+            _sans.remove(san)
+            print(f"Invalid domain {san} excluded from SANs")
 
     return _sans
 
