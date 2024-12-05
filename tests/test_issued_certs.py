@@ -19,7 +19,6 @@ from utils.modules.certs.crypto import (
 )
 
 from utils.modules.aws.kms import get_kms_details
-from utils.modules.aws.lambdas import get_lambda_name, invoke_lambda
 from utils.modules.aws.s3 import delete_s3_object, get_s3_bucket, list_s3_object_keys, put_s3_object
 from .helper import (
     helper_create_csr_info,
@@ -148,8 +147,8 @@ def test_issued_cert_includes_correct_dns_names():
     Test issued certificate contains correct DNS names in Subject Alternative Name extension
     """
     common_name = "pipeline-test-dn-csr-no-passphrase.example.com"
-    sans = ["test1.example.com", "test2.example.com", "invalid DNS name"]
-    expected_result = ["test1.example.com", "test2.example.com"]
+    sans = ["test1.example.com", "test2.example.com", "*.example.com", "*.com", "invalid DNS name"]
+    expected_result = ["test1.example.com", "test2.example.com", "*.example.com"]
 
     purposes = ["server_auth"]
 
