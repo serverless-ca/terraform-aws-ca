@@ -36,16 +36,21 @@ def parse_variables(input_file):
     return data
 
 
-def get_session(aws_profile):
+def create_session(profile):
     """
-    Open boto3 connection using profile
+    Creates and returns AWS session using profile
     """
 
     try:
-        aws_session = boto3.session.Session(profile_name=aws_profile)
+        session = boto3.session.Session(profile_name=profile)
     except Exception as e:
-        aws_session = {"error": e}
-    return aws_session
+        session = {"error": e}
+    if isinstance(session, dict):
+        print(f"Error: Unable to open session using profile {profile}. {session['error']}")
+        sys.exit(1)
+    else:
+        print(f"AWS session opened using profile: {profile}")
+    return session
 
 
 def parse_arguments():
@@ -66,21 +71,6 @@ def parse_arguments():
     arguments = vars(parser.parse_args())
 
     return arguments
-
-
-def create_session(profile):
-    """
-    Creates and returns AWS session using profile
-    """
-
-    session = get_session(profile)
-    if isinstance(session, dict):
-        print(f"Error: Unable to open session using profile {profile}. {session['error']}")
-        sys.exit(1)
-    else:
-        print(f"AWS session opened using profile: {profile}")
-
-    return session
 
 
 def get_first_certificate(data):

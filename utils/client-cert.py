@@ -1,100 +1,79 @@
 #!/usr/bin/env python3
-import json
-import base64
 import os
 import sys
+import json
+import base64
 import argparse
 import boto3
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-from modules.certs.crypto import (
-    create_csr_info,
-    crypto_encode_private_key,
-    crypto_tls_cert_signing_request,
-)
+from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 from modules.aws.lambdas import get_lambda_name
 
 # identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
-dir_path = os.path.dirname(os.path.realpath(__file__))
-templatesdir = f"{dir_path}/templates"
-base_path = f"{homedir}/ca/client_certificates"
-client_template = f"{templatesdir}/client_certificate_variables.json"
+base_path = f"{homedir}/certs"
 if not os.path.exists(base_path):
     print(f"Creating directory {base_path}")
     os.makedirs(base_path)
 
 
-def parse_variables(input_file):
+def create_session(profile):
     """
-    Parse template file to obtain variables
-    """
-
-    if os.path.isfile(input_file):
-        try:
-            with open(input_file, encoding="utf-8") as json_file:
-                data = json.load(json_file)
-        except Exception as e:
-            data = {"error": f"Unable to parse JSON. {e}"}
-    else:
-        data = {"error": "No file"}
-    return data
-
-
-def get_session(aws_profile):
-    """
-    Open boto3 connection using profile
+    Creates and returns AWS session using profile
     """
 
     try:
-        aws_session = boto3.session.Session(profile_name=aws_profile)
+        session = boto3.session.Session(profile_name=profile)
     except Exception as e:
-        aws_session = {"error": e}
-    return aws_session
+        session = {"error": e}
+    if isinstance(session, dict):
+        print(f"Error: Unable to open session using profile {profile}. {session['error']}")
+        sys.exit(1)
+    else:
+        print(f"AWS session opened using profile: {profile}")
+    return session
 
 
-def main():  # pylint:disable=too-many-locals
+def parse_arguments():
+    """
+    Read arguments and return arguments dictonary
+    """
+
+    arguments = {}
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--profile", default="default", help="AWS profile described in .aws/config file")
+    parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
+    arguments = vars(parser.parse_args())
+
+    return arguments
+
+
+def main():  # pylint:disable=too-many-locals,too-many-statements
     """
     Create test client certificate for default Serverless CA environment
     """
 
-    # parse arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--profile", help="AWS profile described in .aws/config file")
-    args = parser.parse_args()
-    profile = vars(args)["profile"]
-    if profile is None:
-        profile_name = "default"
-    else:
-        profile_name = profile
+    args = parse_arguments()
 
     # create AWS session
-    session = get_session(profile)
-    if isinstance(session, dict):
-        print(f'Error: Unable to open session using profile {profile_name}. {session["error"]}')
-    else:
-        print(f"AWS session opened using profile: {profile_name}")
+    profile_name = args["profile"]
+    session = create_session(profile_name)
 
     # set variables
-    variables = parse_variables(client_template)
-    if "error" in variables:
-        print(f'Error: Unable to read variables. Error reported is: {variables["error"]}')
-    else:
-        print(f"Variables are obtained from file {client_template}")
-
-    lifetime = variables["lifetime"]
-    common_name = variables["common_name"]
-    country = variables["country"]
-    locality = variables["locality"]
-    state = variables["state"]
-    organization = variables["organization"]
-    organizational_unit = variables["organizational_unit"]
-    purposes = variables["purposes"]
+    lifetime = 90
+    common_name = "My Test Certificate"
+    country = "GB"
+    locality = "London"
+    state = "England"
+    organization = "Serverless Inc"
+    organizational_unit = "Security Operations"
+    purposes = ["client_auth"]
     output_path_cert_key = f"{base_path}/client-key.pem"
-    output_path_cert_pem = f"{base_path}/issuer-bundle.pem"
+    output_path_cert_pem = f"{base_path}/ca-bundle.pem"
     output_path_cert_crt = f"{base_path}/client-cert.crt"
-    output_path_cert_combined = f"{base_path}/ca-bundle.pem"
-    key_alias = variables["key_alias"]
+    output_path_cert_combined = f"{base_path}/ca-cert-key-bundle.pem"
+    key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
     key_id = kms_get_kms_key_id(key_alias, session=session)
@@ -134,7 +113,8 @@ def main():  # pylint:disable=too-many-locals
     response_payload = response["Payload"]
     payload_data = json.load(response_payload)
     print(f"Certificate issued for {common_name}")
-    print(payload_data)
+    if args["verbose"]:
+        print(payload_data)
 
     # Extract certificate and private key from response
     base64_cert_data = payload_data["Base64Certificate"]
@@ -150,7 +130,7 @@ def main():  # pylint:disable=too-many-locals
     if output_path_cert_pem:
         with open(output_path_cert_pem, "w", encoding="utf-8") as f:
             f.write(cert_data.decode("utf-8"))
-            print(f"Intermediate bundle written to {output_path_cert_pem}")
+            print(f"Combined client certificate and CA bundle written to {output_path_cert_pem}")
 
     if output_path_cert_crt:
         with open(output_path_cert_crt, "w", encoding="utf-8") as f:
@@ -161,7 +141,9 @@ def main():  # pylint:disable=too-many-locals
         with open(output_path_cert_combined, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
             f.write(cert_data.decode("utf-8"))
-            print(f"Combined root and intermediate bundle written to {output_path_cert_combined}")
+            print(
+                f"Combined issuing and root certificate bundle and private key written to {output_path_cert_combined}"
+            )
 
 
 if __name__ == "__main__":
