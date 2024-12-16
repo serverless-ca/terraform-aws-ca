@@ -1,13 +1,14 @@
 {
   "lifetime": 90,
-  "common_name": "First Test Certificate",
+  "common_name": "test.example.com",
+  "sans": ["test.example.com", "test2.example.com"],
   "country": "GB",
   "locality": "London",
   "state": "England",
   "organization": "Serverless Inc",
   "organizational_unit": "Security Operations",
   "purposes": [
-    "client_auth"
+    "server_auth"
   ],
   "key_alias": "serverless-tls-keygen-dev"
 }

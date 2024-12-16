@@ -1,0 +1,13 @@
+{
+  "lifetime": 90,
+  "common_name": "My Test Certificate",
+  "country": "GB",
+  "locality": "London",
+  "state": "England",
+  "organization": "Serverless Inc",
+  "organizational_unit": "Security Operations",
+  "purposes": [
+    "client_auth"
+  ],
+  "key_alias": "serverless-tls-keygen-dev"
+}
