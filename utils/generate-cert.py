@@ -62,7 +62,7 @@ def parse_arguments():
     parser.add_argument("--keyalgo", default=default_key_pair_spec, help="Key algorithm")
     parser.add_argument("--destination", default=default_base_path, help="Destination directory for generated keys")
     parser.add_argument("--keygenalias", default=None, help="Alias for KMS key")
-    parser.add_argument("--verbose", action="store_true", help="Output all generated payload data")
+    parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
     arguments = vars(parser.parse_args())
 
     return arguments
