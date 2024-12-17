@@ -15,7 +15,7 @@ from modules.aws.lambdas import get_lambda_name
 homedir = os.path.expanduser("~")
 dir_path = os.path.dirname(os.path.realpath(__file__))
 default_vardir = f"{dir_path}/variables"
-default_varfile = "certificate_variables.json"
+default_varfile = "client.json"
 default_base_path = f"{homedir}/ca/certificates"
 default_key_pair_spec = "ECC_NIST_P256"
 
