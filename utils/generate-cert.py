@@ -58,7 +58,6 @@ def parse_arguments():
     Read arguments and return arguments dictonary
     """
 
-    arguments = {}
     parser = argparse.ArgumentParser()
     parser.add_argument("--server", action="store_true", help="The role for which the certificate is being generated")
     parser.add_argument("--profile", default="default", help="AWS profile described in .aws/config file")
@@ -68,9 +67,8 @@ def parse_arguments():
     parser.add_argument("--destination", default=default_base_path, help="Destination directory for generated keys")
     parser.add_argument("--keygenalias", default=None, help="Alias for KMS key")
     parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
-    arguments = vars(parser.parse_args())
 
-    return arguments
+    return vars(parser.parse_args())
 
 
 def get_first_certificate(data):
@@ -85,34 +83,10 @@ def get_first_certificate(data):
     return None
 
 
-def main():  # pylint:disable=too-many-locals,too-many-branches,too-many-statements
+def prepare_certificate_variables(variables, args, is_server):
     """
-    Create certificate for default Serverless CA environment
+    Prepare certificate-related variables from the parsed JSON
     """
-
-    args = parse_arguments()
-
-    varfile = f"{args['vardir']}/{args['varfile']}"
-    is_server = args["server"]
-    if is_server:
-        role = "server"
-        print("Generating SERVER certificate")
-    else:
-        role = "client"
-        print("Generating CLIENT certificate")
-    base_path = args["destination"]
-    if not os.path.exists(base_path):
-        print(f"Creating directory {base_path}")
-        os.makedirs(base_path)
-
-    session = create_session(args["profile"])
-
-    # set variables
-    variables = parse_variables(varfile)
-    if "error" in variables:
-        print(f'Error: Unable to read variables. {variables["error"]}')
-    else:
-        print(f"Variables are obtained from file {varfile}")
 
     lifetime = variables["lifetime"]
     common_name = variables["common_name"]
@@ -122,30 +96,49 @@ def main():  # pylint:disable=too-many-locals,too-many-branches,too-many-stateme
     organization = variables["organization"]
     organizational_unit = variables["organizational_unit"]
     purposes = variables["purposes"]
-    if args["keygenalias"] is None:
-        key_alias = variables["key_alias"]
-    else:
-        key_alias = args["keygenalias"]
-    if is_server:
-        try:
-            sans = variables["sans"]
-        except KeyError:
-            print("Server role requires sans variable to be set, but it is not obtained")
-            sys.exit(3)
+    key_alias = variables["key_alias"] if args["keygenalias"] is None else args["keygenalias"]
+    sans = variables.get("sans", None) if is_server else None
 
-    # create key pair using symmetric KMS key to provide entropy
+    return lifetime, common_name, country, locality, state, organization, organizational_unit, purposes, key_alias, sans
+
+
+def generate_key_pair(key_alias, session, key_algo):
+    """
+    Generate key pair using symmetric KMS key
+    """
+
     key_id = kms_get_kms_key_id(key_alias, session=session)
     if isinstance(key_id, dict):
         print(f'Error: {key_id["error"]}')
         sys.exit(1)
-    kms_response = kms_generate_key_pair(key_id, key_pair_spec=args["keyalgo"], session=session)
+
+    kms_response = kms_generate_key_pair(key_id, key_pair_spec=key_algo, session=session)
     private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
-    # create CSR
-    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
-    csr_pem = crypto_tls_cert_signing_request(private_key, csr_info)
+    return private_key
 
-    # Construct JSON data to pass to Lambda function
+
+def create_csr(private_key, csr_data, state):
+    """
+    Create CSR
+    """
+
+    common_name = csr_data["common_name"]
+    country = csr_data["country"]
+    locality = csr_data["locality"]
+    organization = csr_data["organization"]
+    organizational_unit = csr_data["organizational_unit"]
+    state = csr_data["state"]
+    csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
+
+    return crypto_tls_cert_signing_request(private_key, csr_info)
+
+
+def prepare_request_payload(csr_pem, common_name, purposes, lifetime, sans):
+    """
+    Prepare the request payload for Lambda
+    """
+
     request_payload = {
         "common_name": common_name,
         "purposes": purposes,
@@ -154,12 +147,17 @@ def main():  # pylint:disable=too-many-locals,too-many-branches,too-many-stateme
         "force_issue": True,
         "cert_bundle": True,
     }
-    if is_server:
+    if sans is not None:
         request_payload["sans"] = sans
 
-    request_payload_bytes = json.dumps(request_payload)
+    return json.dumps(request_payload)
 
-    # Invoke TLS certificate Lambda function
+
+def invoke_lambda(session, request_payload_bytes):
+    """
+    Invoke the TLS certificate Lambda function
+    """
+
     lambda_name = get_lambda_name("tls-cert", session=session)
     client = session.client("lambda")
     response = client.invoke(
@@ -168,53 +166,103 @@ def main():  # pylint:disable=too-many-locals,too-many-branches,too-many-stateme
         LogType="None",
         Payload=bytes(request_payload_bytes.encode("utf-8")),
     )
-
-    # Inspect the response which includes the signed certificate
     response_payload = response["Payload"]
-    payload_data = json.load(response_payload)
-    print(f"Certificate issued for {common_name}")
-    if args["verbose"]:
-        print(payload_data)
 
-    # Extract certificate and private key from response
-    base64_cert_data = payload_data["Base64Certificate"]
-    cert_data = base64.b64decode(base64_cert_data)
-    key_data = crypto_encode_private_key(private_key)
+    return json.load(response_payload)
 
-    # Creating per certificate directory
+
+def write_certificate_files(cert_data, key_data, common_name, base_path, is_server):
+    """
+    Write certificate and private key to files
+    """
+
     clean_common_name = common_name.split(".")[0]
     certificate_dir = f"{base_path}/{clean_common_name}"
-    if not os.path.exists(certificate_dir):
-        print(f"Creating per certificate directory {clean_common_name}")
-        os.makedirs(certificate_dir)
+    os.makedirs(certificate_dir, exist_ok=True)
 
-    # Set outputs destination
+    role = "server" if is_server else "client"
+
+    # Set output file paths
     output_path_cert_key = f"{certificate_dir}/{role}-key.pem"  # private key
     output_path_cert_crt = f"{certificate_dir}/{role}-cert.crt"  # certificate
     output_path_cert_pem = f"{certificate_dir}/ca.pem"  # cert + issuing CA + root CA PEM bundle
 
-    # Get the first certificate from cert_data
-    first_cert = get_first_certificate(cert_data.decode("utf-8"))
-    if first_cert is None:
-        cert = cert_data.decode("utf-8")
+    # Write certificate and private key to files
+    with open(output_path_cert_key, "w", encoding="utf-8") as f:
+        f.write(key_data.decode("utf-8"))
+        print(f"Private key written to {output_path_cert_key}")
+
+    with open(output_path_cert_pem, "w", encoding="utf-8") as f:
+        f.write(cert_data.decode("utf-8"))
+        print(f"Intermediate CA pem bundle written to {output_path_cert_pem}")
+
+    cert = get_first_certificate(cert_data.decode("utf-8")) or cert_data.decode("utf-8")
+    with open(output_path_cert_crt, "w", encoding="utf-8") as f:
+        f.write(cert)
+        print(f"Certificate written to {output_path_cert_crt}")
+
+
+def main():  # pylint:disable=too-many-locals
+    """
+    Create certificate for default Serverless CA environment
+    """
+
+    args = parse_arguments()
+
+    varfile = f"{args['vardir']}/{args['varfile']}"
+    is_server = args["server"]
+
+    if is_server:
+        print("Generating SERVER certificate")
     else:
-        cert = first_cert
+        print("Generating CLIENT certificate")
+
+    # set variables
+    variables = parse_variables(varfile)
+    if "error" in variables:
+        print(f'Error: Unable to read variables. {variables["error"]}')
+        sys.exit(1)
+    else:
+        print(f"Variables are obtained from file {varfile}")
+
+    lifetime, common_name, country, locality, state, organization, organizational_unit, purposes, key_alias, sans = (
+        prepare_certificate_variables(variables, args, is_server)
+    )
+
+    # Create AWS session
+    session = create_session(args["profile"])
+
+    # Generate key pair
+    private_key = generate_key_pair(key_alias, session, args["keyalgo"])
+
+    # Create CSR
+    csr_org_data = {
+        "common_name": common_name,
+        "country": country,
+        "locality": locality,
+        "organization": organization,
+        "organizational_unit": organizational_unit,
+        "state": state,
+    }
+    csr_pem = create_csr(private_key, csr_org_data, state)
+
+    # Prepare request payload for Lambda
+    request_payload_bytes = prepare_request_payload(csr_pem, common_name, purposes, lifetime, sans)
+
+    # Invoke Lambda function
+    payload_data = invoke_lambda(session, request_payload_bytes)
+    print(f"Certificate issued for {common_name}")
+
+    if args["verbose"]:
+        print(payload_data)
+
+    # Extract certificate and private key
+    base64_cert_data = payload_data["Base64Certificate"]
+    cert_data = base64.b64decode(base64_cert_data)
+    key_data = crypto_encode_private_key(private_key)
 
     # Write certificate and private key to files
-    if output_path_cert_key:
-        with open(output_path_cert_key, "w", encoding="utf-8") as f:
-            f.write(key_data.decode("utf-8"))
-            print(f"Private key written to {output_path_cert_key}")
-
-    if output_path_cert_pem:
-        with open(output_path_cert_pem, "w", encoding="utf-8") as f:
-            f.write(cert_data.decode("utf-8"))
-            print(f"Intermediate CA pem bundle written to {output_path_cert_pem}")
-
-    if output_path_cert_crt:
-        with open(output_path_cert_crt, "w", encoding="utf-8") as f:
-            f.write(cert)
-            print(f"Certificate written to {output_path_cert_crt}")
+    write_certificate_files(cert_data, key_data, common_name, args["destination"], is_server)
 
 
 if __name__ == "__main__":
