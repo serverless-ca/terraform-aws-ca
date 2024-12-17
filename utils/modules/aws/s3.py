@@ -47,7 +47,9 @@ def get_s3_object(bucket_name, key, session=None):
     return response["Body"].read()
 
 
-def put_s3_object(bucket_name, kms_arn, key, data, encryption_algorithm="aws:kms", session=None): # pylint:disable=too-many-arguments,too-many-positional-arguments
+def put_s3_object(
+    bucket_name, kms_arn, key, data, encryption_algorithm="aws:kms", session=None
+):  # pylint:disable=too-many-arguments,too-many-positional-arguments
     """
     Put object in S3 bucket
     """
