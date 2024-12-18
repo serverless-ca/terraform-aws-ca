@@ -194,7 +194,7 @@ def write_certificate_files(cert_data, key_data, common_name, base_path, is_serv
 
     with open(output_path_cert_pem, "w", encoding="utf-8") as f:
         f.write(cert_data.decode("utf-8"))
-        print(f"Intermediate CA pem bundle written to {output_path_cert_pem}")
+        print(f"Certificate chain written to {output_path_cert_pem}")
 
     cert = get_first_certificate(cert_data.decode("utf-8")) or cert_data.decode("utf-8")
     with open(output_path_cert_crt, "w", encoding="utf-8") as f:
