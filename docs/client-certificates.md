@@ -204,8 +204,10 @@ $cert = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64Strin
 **Private Key reuse**
 
 Best practice cryptographic security is not to reuse private keys.
+
 * If a private key has already been used for a previous certificate, the CA will reject the request
 * This behaviour can be overridden by adding a line to the JSON certificate request information:
+
 ```json
 force_issue = True
 ```
