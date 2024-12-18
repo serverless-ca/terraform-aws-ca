@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import os
+import sys
 import json
 import base64
+import argparse
 import boto3
-import os
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
@@ -16,10 +18,49 @@ if not os.path.exists(base_path):
     os.makedirs(base_path)
 
 
-def main():  # pylint:disable=too-many-locals
+def create_session(profile):
     """
-    Create test server certificate for default Serverless CA environment
+    Creates and returns AWS session using profile
     """
+
+    try:
+        if profile is not None:
+            session = boto3.session.Session(profile_name=profile)
+        else:
+            session = boto3.session.Session()
+    except Exception as e:
+        session = {"error": e}
+    if isinstance(session, dict):
+        print(f"Error: Unable to open session using profile {profile}. {session['error']}")
+        sys.exit(1)
+    else:
+        print(f"AWS session opened using profile: {profile}")
+    return session
+
+
+def parse_arguments():
+    """
+    Read arguments and return arguments dictonary
+    """
+
+    arguments = {}
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--profile", default=None, help="AWS profile described in .aws/config file")
+    parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
+    arguments = vars(parser.parse_args())
+
+    return arguments
+
+
+def main():  # pylint:disable=too-many-locals,too-many-statements
+    """
+    Create test client certificate for default Serverless CA environment
+    """
+
+    args = parse_arguments()
+
+    # create AWS session
+    session = create_session(args["profile"])
 
     # set variables
     lifetime = 90
@@ -38,8 +79,11 @@ def main():  # pylint:disable=too-many-locals
     key_alias = "serverless-tls-keygen-dev"
 
     # create key pair using symmetric KMS key to provide entropy
-    key_id = kms_get_kms_key_id(key_alias)
-    kms_response = kms_generate_key_pair(key_id)
+    key_id = kms_get_kms_key_id(key_alias, session=session)
+    if isinstance(key_id, dict):
+        print(f'Error: {key_id["error"]}')
+        sys.exit(1)
+    kms_response = kms_generate_key_pair(key_id, session=session)
     private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
     # create CSR
@@ -60,8 +104,8 @@ def main():  # pylint:disable=too-many-locals
     request_payload_bytes = json.dumps(request_payload)
 
     # Invoke TLS certificate Lambda function
-    lambda_name = get_lambda_name("tls-cert")
-    client = boto3.client("lambda")
+    lambda_name = get_lambda_name("tls-cert", session=session)
+    client = session.client("lambda")
     response = client.invoke(
         FunctionName=lambda_name,
         InvocationType="RequestResponse",
@@ -73,7 +117,8 @@ def main():  # pylint:disable=too-many-locals
     response_payload = response["Payload"]
     payload_data = json.load(response_payload)
     print(f"Certificate issued for {common_name}")
-    print(payload_data)
+    if args["verbose"]:
+        print(payload_data)
 
     # Extract certificate and private key from response
     base64_cert_data = payload_data["Base64Certificate"]
@@ -89,7 +134,7 @@ def main():  # pylint:disable=too-many-locals
     if output_path_cert_pem:
         with open(output_path_cert_pem, "w", encoding="utf-8") as f:
             f.write(cert_data.decode("utf-8"))
-            print(f"Certificate written to {output_path_cert_pem}")
+            print(f"Combined client certificate and CA bundle written to {output_path_cert_pem}")
 
     if output_path_cert_crt:
         with open(output_path_cert_crt, "w", encoding="utf-8") as f:
@@ -100,8 +145,9 @@ def main():  # pylint:disable=too-many-locals
         with open(output_path_cert_combined, "w", encoding="utf-8") as f:
             f.write(key_data.decode("utf-8"))
             f.write(cert_data.decode("utf-8"))
-
-    print(f"Certificate and key written to {output_path_cert_combined}")
+            print(
+                f"Combined issuing and root certificate bundle and private key written to {output_path_cert_combined}"
+            )
 
 
 if __name__ == "__main__":
