@@ -24,7 +24,10 @@ def create_session(profile):
     """
 
     try:
-        session = boto3.session.Session(profile_name=profile)
+        if profile is not None:
+            session = boto3.session.Session(profile_name=profile)
+        else:
+            session = boto3.session.Session()
     except Exception as e:
         session = {"error": e}
     if isinstance(session, dict):
@@ -42,7 +45,7 @@ def parse_arguments():
 
     arguments = {}
     parser = argparse.ArgumentParser()
-    parser.add_argument("--profile", default="default", help="AWS profile described in .aws/config file")
+    parser.add_argument("--profile", default=None, help="AWS profile described in .aws/config file")
     parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
     arguments = vars(parser.parse_args())
 
@@ -57,8 +60,7 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
     args = parse_arguments()
 
     # create AWS session
-    profile_name = args["profile"]
-    session = create_session(profile_name)
+    session = create_session(args["profile"])
 
     # set variables
     lifetime = 90
