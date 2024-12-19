@@ -9,6 +9,11 @@ modules/terraform-aws-ca-lambda/build/
 # Python
 __pycache__
 .venv
+.python-version
+**/pyvenv.cfg
+**/bin
+**/lib
+**/lib64
 
 # Terraform
 .terraform/
@@ -22,3 +27,6 @@ terraform.tfvars
 
 # MacOS
 .DS_Store
+
+# Vim
+**.swp
