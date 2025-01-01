@@ -1,14 +1,14 @@
 -r requirements-docs.txt
 asn1crypto == 1.5.1
 assertpy == 1.1
-bandit == 1.7.10
+bandit == 1.8.0
 black == 24.10.0
-boto3 == 1.35.71
+boto3 == 1.35.90
 certvalidator == 0.11.1
-cryptography == 43.0.3
+cryptography == 44.0.0
 dataclasses-json == 0.6.7
 prospector == 1.13.3
-pytest == 8.3.3
+pytest == 8.3.4
 requests == 2.32.3
 structlog == 24.4.0
 validators == 0.34.0
