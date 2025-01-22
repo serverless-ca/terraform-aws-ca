@@ -14,4 +14,4 @@ structlog == 24.4.0
 validators == 0.34.0
 
 # TODO: Used by certvalidator - remove once latest oscrypto published to pypi
-oscrypto @ git+https://github.com/wbond/oscrypto.git"
+oscrypto @ git+https://github.com/wbond/oscrypto.git@master"
