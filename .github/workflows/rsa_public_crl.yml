@@ -204,6 +204,10 @@ jobs:
       checks: write
 
     steps:
+      - name: Install OS dependencies
+        run: |
+          sudo apt-get install libssl-dev
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -212,7 +216,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           pip install -r requirements-dev.txt
 
