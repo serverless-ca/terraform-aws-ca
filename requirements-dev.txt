@@ -12,3 +12,6 @@ pytest == 8.3.4
 requests == 2.32.3
 structlog == 24.4.0
 validators == 0.34.0
+
+# TODO: Used by certvalidator - remove pending https://github.com/wbond/oscrypto/issues/78
+oscrypto @ git+https://github.com/wbond/oscrypto.git@1547f535001ba568b239b8797465536759c742a3",

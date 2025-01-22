@@ -201,10 +201,6 @@ jobs:
       checks: write
 
     steps:
-      - name: Install OS dependencies
-        run: |
-          sudo apt-get install libssl-dev
-
       - name: Checkout
         uses: actions/checkout@v4
 
