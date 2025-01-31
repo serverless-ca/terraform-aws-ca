@@ -106,6 +106,27 @@ The default setting for CRL lifetime of 1 day should be appropriate for most use
 ### How do I renew a certificate?
 Create a new Certificate Signing Request (CSR) using a new private key. Resubmit as detailed in [Client Certificates](client-certificates.md#renewing-certificates).
 
+### How can I change the name or details of my CA?
+Changing the name or other details of a CA invalidates its digital signature, so you need to:
+
+* update Terraform variable `issuing_ca_info` or `root_ca_info` with new details
+* recreate CA as described in the FAQ [How can I create a new CA within existing infrastructure?](faq.md#how-can-i-create-a-new-ca-within-existing-infrastructure)
+
+### How can I create a new CA within existing infrastructure?
+To create a new Root CA or Issuing CA, without destroying the underlying infrastructure:
+
+* delete DynamoDB item for the CA you wish to delete
+* if you want the recreated CA to have a new private key, delete the relevant KMS key and apply Terraform
+* run the CA Step Function
+
+You may wish to delete all DynamoDB items, in order to remove details of certificates issued by the old CA:
+```
+pip install -r scripts/requirements.txt
+python scripts/delete_db_table_items.py
+```
+
+If you recreate the Root CA, the Issuing CA will no longer be valid so will also need to be recreated.
+
 ### Can the CA be used for Application Load Balancer mTLS?
 A walkthrough with configuration of certificate authentication for AWS Application Load Balancer is provided in [How-to Guides](https://serverlessca.com/how-to-guides/alb/) and [this blog post](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7).
 
