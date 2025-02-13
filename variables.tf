@@ -126,7 +126,7 @@ variable "memory_size" {
 }
 
 variable "prod_envs" {
-  description = "List of production environment names, used in outputs.tf"
+  description = "List of production environment names, for these names the environment name suffix is not required in resource names"
   default     = ["prd", "prod"]
 }
 
