@@ -4,6 +4,7 @@ module "kms_tls_keygen" {
 
   project     = "${var.project}-tls-keygen"
   env         = var.env
+  prod_envs   = var.prod_envs
   description = "${var.project}-${var.env} asymmetric key generation for TLS certs without CSR"
 }
 
@@ -13,6 +14,7 @@ module "kms_rsa_root_ca" {
 
   project                  = "${var.project}-root-ca"
   env                      = var.env
+  prod_envs                = var.prod_envs
   description              = "${var.project}-${var.env} Root CA key pair"
   customer_master_key_spec = var.root_ca_key_spec
   key_usage                = "SIGN_VERIFY"
@@ -25,6 +27,7 @@ module "kms_rsa_issuing_ca" {
 
   project                  = "${var.project}-issuing-ca"
   env                      = var.env
+  prod_envs                = var.prod_envs
   description              = "${var.project}-${var.env} Issuing CA key pair"
   customer_master_key_spec = var.issuing_ca_key_spec
   key_usage                = "SIGN_VERIFY"
@@ -179,6 +182,7 @@ module "create_rsa_root_ca_lambda" {
 
   project                         = var.project
   env                             = var.env
+  prod_envs                       = var.prod_envs
   function_name                   = "create-root-ca"
   description                     = "create Root Certificate Authority with KMS private key"
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -200,6 +204,7 @@ module "create_rsa_issuing_ca_lambda" {
 
   project                         = var.project
   env                             = var.env
+  prod_envs                       = var.prod_envs
   function_name                   = "create-issuing-ca"
   description                     = "create Issuing Certificate Authority with KMS private key"
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -221,6 +226,7 @@ module "rsa_root_ca_crl_lambda" {
 
   project                         = var.project
   env                             = var.env
+  prod_envs                       = var.prod_envs
   function_name                   = "root-ca-crl"
   description                     = "publish Root CA certificate revocation list signed by KMS private key"
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -244,6 +250,7 @@ module "rsa_issuing_ca_crl_lambda" {
 
   project                         = var.project
   env                             = var.env
+  prod_envs                       = var.prod_envs
   function_name                   = "issuing-ca-crl"
   description                     = "publish Issuing CA certificate revocation list signed by KMS private key"
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -267,6 +274,7 @@ module "rsa_tls_cert_lambda" {
 
   project                         = var.project
   env                             = var.env
+  prod_envs                       = var.prod_envs
   function_name                   = "tls-cert"
   description                     = "issue TLS certificates signed by KMS private key"
   external_s3_bucket              = module.external_s3.s3_bucket_name
