@@ -11,6 +11,6 @@ resource "aws_kms_key" "encryption" {
 }
 
 resource "aws_kms_alias" "encryption" {
-  name          = contains(["prd", "prod"], var.env) ? "alias/${var.project}" : "alias/${var.project}-${var.env}"
+  name          = contains(var.prod_envs, var.env) ? "alias/${var.project}" : "alias/${var.project}-${var.env}"
   target_key_id = aws_kms_key.encryption.key_id
 }

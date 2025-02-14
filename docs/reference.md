@@ -72,7 +72,7 @@
 | <a name="input_logging_account_id"></a> [logging\_account\_id](#input\_logging\_account\_id) | AWS Account ID of central logging account for CloudWatch subscription filters | `string` | `""` | no |
 | <a name="input_max_cert_lifetime"></a> [max\_cert\_lifetime](#input\_max\_cert\_lifetime) | Maximum end entity certificate lifetime in days | `number` | `365` | no |
 | <a name="input_memory_size"></a> [memory\_size](#input\_memory\_size) | Standard memory allocation for Lambda functions | `number` | `128` | no |
-| <a name="input_prod_envs"></a> [prod\_envs](#input\_prod\_envs) | List of production environment names, used in outputs.tf | `list` | <pre>[<br/>  "prd",<br/>  "prod"<br/>]</pre> | no |
+| <a name="input_prod_envs"></a> [prod\_envs](#input\_prod\_envs) | List of production environment names, for these names the environment name suffix is not required in resource names | `list` | <pre>[<br/>  "prd",<br/>  "prod"<br/>]</pre> | no |
 | <a name="input_project"></a> [project](#input\_project) | abbreviation for the project, forms first part of resource names | `string` | `"serverless"` | no |
 | <a name="input_public_crl"></a> [public\_crl](#input\_public\_crl) | Whether to make the CRL and CA certificates publicly available | `bool` | `false` | no |
 | <a name="input_root_ca_info"></a> [root\_ca\_info](#input\_root\_ca\_info) | Root CA certificate information | `map` | <pre>{<br/>  "commonName": "Serverless Root CA",<br/>  "country": "GB",<br/>  "emailAddress": null,<br/>  "lifetime": 7300,<br/>  "locality": "London",<br/>  "organization": "Serverless",<br/>  "organizationalUnit": "IT",<br/>  "pathLengthConstraint": null,<br/>  "state": "London"<br/>}</pre> | no |

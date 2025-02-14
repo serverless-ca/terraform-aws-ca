@@ -20,6 +20,11 @@ variable "env" {
   description = "Environment name, e.g. dev"
 }
 
+variable "prod_envs" {
+  description = "List of production environment names. Used to define resource name suffix"
+  default     = ["prd", "prod"]
+}
+
 variable "external_s3_bucket" {
   description = "External S3 Bucket Name"
 }

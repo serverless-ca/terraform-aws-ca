@@ -50,6 +50,7 @@ resource "aws_lambda_function" "lambda" {
     variables = {
       DOMAIN              = var.domain
       ENVIRONMENT_NAME    = var.env
+      PROD_ENVIRONMENTS   = jsonencode(var.prod_envs)
       EXTERNAL_S3_BUCKET  = var.external_s3_bucket
       INTERNAL_S3_BUCKET  = var.internal_s3_bucket
       ISSUING_CA_INFO     = jsonencode(var.issuing_ca_info)

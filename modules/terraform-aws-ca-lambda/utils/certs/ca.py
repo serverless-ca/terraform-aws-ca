@@ -1,3 +1,5 @@
+from os import environ
+from json import loads
 from datetime import datetime, timezone, timedelta
 from cryptography import x509
 from cryptography.x509 import (
@@ -17,7 +19,12 @@ from .types import Subject
 
 
 def ca_name(project, env_name, hierarchy):
-    if env_name in ["prd", "prod"]:
+    prod_envs_str = environ.get("PROD_ENVIRONMENTS")
+    if prod_envs_str:
+        prod_envs = loads(prod_envs_str)
+    else:
+        prod_envs = ["prd", "prod"]
+    if env_name in prod_envs:
         return f"{project}-{hierarchy.lower()}-ca"
 
     return f"{project}-{hierarchy.lower()}-ca-{env_name}"
@@ -242,7 +249,12 @@ def ca_kms_sign_tls_certificate_request(
 
 def ca_bundle_name(project, env_name):
     """Returns CA bundle name for uploading to S3"""
-    if env_name in ["prd", "prod"]:
+    prod_envs_str = environ.get("PROD_ENVIRONMENTS")
+    if prod_envs_str:
+        prod_envs = loads(prod_envs_str)
+    else:
+        prod_envs = ["prd", "prod"]
+    if env_name in prod_envs:
         return f"{project}-ca-bundle"
     return f"{project}-ca-bundle-{env_name}"
 
