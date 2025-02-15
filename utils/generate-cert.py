@@ -66,7 +66,9 @@ def parse_arguments():
     parser.add_argument("--keyalgo", default=default_key_pair_spec, help="Key algorithm")
     parser.add_argument("--destination", default=default_base_path, help="Destination directory for generated keys")
     parser.add_argument("--keygenalias", default=None, help="Alias for KMS key")
-    parser.add_argument("--caenvname", default=None, help="Serverless CA environment name. Used for more precise search")
+    parser.add_argument(
+        "--caenvname", default=None, help="Serverless CA environment name. Used for more precise Lambda search"
+    )
     parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
 
     return vars(parser.parse_args())
