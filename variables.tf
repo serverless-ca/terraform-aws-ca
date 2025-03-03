@@ -184,10 +184,11 @@ variable "root_crl_seconds" {
 
 variable "runtime" {
   description = "Lambda language runtime"
-  default     = "python3.12"
+  default     = "python3.13"
 
   validation {
     condition = contains([
+      "python3.13",
       "python3.12",
       "python3.11",
       "python3.10",
