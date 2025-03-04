@@ -2,7 +2,7 @@ import boto3
 import json
 
 
-def get_lambda_name(lambda_purpose, session=None):
+def get_lambda_name(lambda_purpose, caenvname=None, session=None):
     """
     Get the full name of the Lambda function based on its purpose
     """
@@ -12,7 +12,10 @@ def get_lambda_name(lambda_purpose, session=None):
         lambda_client = session.client("lambda")
 
     lambdas = lambda_client.list_functions()["Functions"]
-    lambdas = [la for la in lambdas if lambda_purpose in la["FunctionName"]]
+    if caenvname is None:
+        lambdas = [la for la in lambdas if lambda_purpose in la["FunctionName"]]
+    else:
+        lambdas = [la for la in lambdas if la["FunctionName"].endswith(f"{lambda_purpose}-{caenvname}")]
 
     return lambdas[0]["FunctionName"]
 
