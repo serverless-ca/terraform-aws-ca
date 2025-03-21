@@ -15,10 +15,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11 # update to 3.12 once Prospector includes Pylint v3.x
-        uses: actions/setup-python@v5 # update to 3.12 once Prospector includes Pylint v3.x
+      - name: Set up Python 3.13 
+        uses: actions/setup-python@v5 
         with:
-          python-version: "3.11"
+          python-version: "3.13"
 
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
