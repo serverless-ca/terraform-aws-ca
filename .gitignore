@@ -2,6 +2,7 @@
 *.code-workspace
 .idea
 .vs
+.vscode
 
 # Lambda
 modules/terraform-aws-ca-lambda/build/
