@@ -105,6 +105,16 @@ variable "kms_arn_resource" {
   default     = ""
 }
 
+variable "default_aws_kms_key_for_s3" {
+  description = "Use default AWS KMS key instead of customer managed key for S3 bucket encryption. Applicable only if \"sse_algorithm\" is \"aws:kms\""
+  default     = false
+}
+
+variable "bucket_key_enabled" {
+  description = "Whether or not to use Amazon S3 Bucket Keys for SSE-KMS"
+  default     = false
+}
+
 variable "log_bucket" {
   description = "Name of log bucket, if access_logs variable set to true"
   default     = ""
@@ -244,3 +254,4 @@ variable "timeout" {
   description = "Amount of time Lambda Function has to run in seconds"
   default     = 180
 }
+

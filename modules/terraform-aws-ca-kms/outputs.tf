@@ -2,6 +2,10 @@ output "kms_arn" {
   value = aws_kms_key.encryption.arn
 }
 
+output "kms_alias_name" {
+  value = aws_kms_alias.encryption.name
+}
+
 output "kms_alias_arn" {
   value = aws_kms_alias.encryption.arn
 }
