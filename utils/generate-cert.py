@@ -66,6 +66,9 @@ def parse_arguments():
     parser.add_argument("--keyalgo", default=default_key_pair_spec, help="Key algorithm")
     parser.add_argument("--destination", default=default_base_path, help="Destination directory for generated keys")
     parser.add_argument("--keygenalias", default=None, help="Alias for KMS key")
+    parser.add_argument(
+        "--env_name", default=None, help="Serverless CA environment name. Used for more precise Lambda search"
+    )
     parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
 
     return vars(parser.parse_args())
@@ -153,12 +156,12 @@ def prepare_request_payload(csr_pem, common_name, purposes, lifetime, sans):
     return json.dumps(request_payload)
 
 
-def invoke_lambda(session, request_payload_bytes):
+def invoke_lambda(session, request_payload_bytes, env_name):
     """
     Invoke the TLS certificate Lambda function
     """
 
-    lambda_name = get_lambda_name("tls-cert", session=session)
+    lambda_name = get_lambda_name("tls-cert", env_name, session=session)
     client = session.client("lambda")
     response = client.invoke(
         FunctionName=lambda_name,
@@ -250,7 +253,7 @@ def main():  # pylint:disable=too-many-locals
     request_payload_bytes = prepare_request_payload(csr_pem, common_name, purposes, lifetime, sans)
 
     # Invoke Lambda function
-    payload_data = invoke_lambda(session, request_payload_bytes)
+    payload_data = invoke_lambda(session, request_payload_bytes, args["env_name"])
     print(f"Certificate issued for {common_name}")
 
     if args["verbose"]:
