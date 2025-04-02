@@ -1,5 +1,5 @@
 resource "aws_iam_role" "lambda" {
-  name               = "${var.project}-${var.function_name}-${var.env}"
+  name = "${var.project}-${var.function_name}-${var.env}"
   assume_role_policy = templatefile("${path.module}/templates/${var.assume_role_policy}_role.json.tpl", {
     aws_principals = var.aws_principals
     project        = var.project
@@ -7,8 +7,8 @@ resource "aws_iam_role" "lambda" {
 }
 
 resource "aws_iam_role_policy" "lambda" {
-  name   = "${var.project}-${var.function_name}-${var.env}"
-  role   = aws_iam_role.lambda.id
+  name = "${var.project}-${var.function_name}-${var.env}"
+  role = aws_iam_role.lambda.id
   policy = templatefile("${path.module}/templates/${var.policy}_policy.json.tpl", {
     kms_arn_issuing_ca     = var.kms_arn_issuing_ca,
     kms_arn_root_ca        = var.kms_arn_root_ca,
