@@ -14,6 +14,7 @@ module "certificate_authority" {
   public_crl          = true
   cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
   kms_key_alias       = "custom-kms-encryption-key"
+  xray_enabled        = false 
 
   custom_sns_topic_display_name = "My Company CA Notifications Production"
 
