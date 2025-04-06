@@ -91,6 +91,7 @@
 | <a name="input_sns_sqs_subscriptions"></a> [sns\_sqs\_subscriptions](#input\_sns\_sqs\_subscriptions) | A map of SQS names to arns to subscribe to thSNSis topic | `map(string)` | `{}` | no |
 | <a name="input_subscription_filter_destination"></a> [subscription\_filter\_destination](#input\_subscription\_filter\_destination) | CloudWatch log subscription filter destination, last section of ARN | `string` | `""` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Amount of time Lambda Function has to run in seconds | `number` | `180` | no |
+| <a name="input_xray_enabled"></a> [xray\_enabled](#input\_xray\_enabled) | Whether to enable active tracing with AWS X-Ray | `bool` | `true` | no |
 
 ## Outputs
 

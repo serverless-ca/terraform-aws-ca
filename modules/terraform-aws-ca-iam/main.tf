@@ -20,3 +20,9 @@ resource "aws_iam_role_policy" "lambda" {
     sns_topic_arn          = var.sns_topic_arn
   })
 }
+
+resource "aws_iam_role_policy_attachment" "xray" {
+  count      = var.xray_enabled ? 1 : 0
+  role       = aws_iam_role.lambda.name
+  policy_arn = var.xray_daemon_policy_arn
+}
