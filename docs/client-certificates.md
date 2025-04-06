@@ -93,7 +93,7 @@ If you followed the [Getting Started](getting-started.md) guide, you'll already 
 * Set up a Python virtual environment as described in [Getting Started](getting-started.md)
 * Create a CSR
 ```
-python utils/server-csr.py
+python utils/generate-csr.py --server
 ```
 * The CSR and key files will be written to the `certs` subdirectory of your home directory
 * Add CSR file `server-cert-request.csr` to `certs/dev/csrs`
