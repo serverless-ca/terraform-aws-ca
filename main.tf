@@ -113,6 +113,7 @@ module "create_root_ca_iam" {
   policy                 = "root_ca"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  xray_enabled           = var.xray_enabled
 }
 
 module "create_issuing_ca_iam" {
@@ -129,6 +130,7 @@ module "create_issuing_ca_iam" {
   policy                 = "issuing_ca"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  xray_enabled           = var.xray_enabled
 }
 
 module "root_crl_iam" {
@@ -144,6 +146,7 @@ module "root_crl_iam" {
   policy                 = "root_crl"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  xray_enabled           = var.xray_enabled
 }
 
 module "issuing_crl_iam" {
@@ -159,6 +162,7 @@ module "issuing_crl_iam" {
   policy                 = "issuing_crl"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  xray_enabled           = var.xray_enabled
 }
 
 module "tls_keygen_iam" {
@@ -176,6 +180,7 @@ module "tls_keygen_iam" {
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled           = var.xray_enabled
 }
 
 module "create_rsa_root_ca_lambda" {
@@ -198,6 +203,7 @@ module "create_rsa_root_ca_lambda" {
   runtime                         = var.runtime
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
 }
 
 module "create_rsa_issuing_ca_lambda" {
@@ -220,6 +226,7 @@ module "create_rsa_issuing_ca_lambda" {
   runtime                         = var.runtime
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
 }
 
 module "rsa_root_ca_crl_lambda" {
@@ -244,6 +251,7 @@ module "rsa_root_ca_crl_lambda" {
   runtime                         = var.runtime
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
 }
 
 module "rsa_issuing_ca_crl_lambda" {
@@ -268,6 +276,7 @@ module "rsa_issuing_ca_crl_lambda" {
   runtime                         = var.runtime
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
 }
 
 module "rsa_tls_cert_lambda" {
@@ -292,6 +301,7 @@ module "rsa_tls_cert_lambda" {
   max_cert_lifetime               = var.max_cert_lifetime
   allowed_invocation_principals   = var.aws_principals
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
 }
 
 module "cloudfront_certificate" {

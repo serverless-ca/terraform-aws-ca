@@ -60,3 +60,14 @@ variable "sns_topic_arn" {
   description = "SNS Topic ARN"
   default     = ""
 }
+
+variable "xray_enabled" {
+  description = "Whether to add permissions to allow to send trace data to X-Ray"
+  default     = false
+}
+
+variable "xray_daemon_policy_arn" {
+  description = "AWSXRayDaemonWriteAccess managed policy ARN"
+  default     = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+

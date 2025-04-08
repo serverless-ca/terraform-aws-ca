@@ -255,3 +255,8 @@ variable "timeout" {
   default     = 180
 }
 
+variable "xray_enabled" {
+  description = "Whether to enable active tracing with AWS X-Ray"
+  default     = true
+}
+

@@ -67,7 +67,7 @@ resource "aws_lambda_function" "lambda" {
   }
 
   tracing_config {
-    mode = "Active"
+    mode = var.xray_enabled ? "Active" : "PassThrough"
   }
 
   depends_on = [data.archive_file.lambda_zip]

@@ -127,3 +127,8 @@ variable "timeout" {
   description = "Amount of time Lambda Function has to run in seconds"
   default     = 180
 }
+
+variable "xray_enabled" {
+  description = "Whether to enable active tracing with AWS X-Ray"
+  default     = true
+}
