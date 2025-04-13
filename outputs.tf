@@ -3,6 +3,11 @@ output "cloudfront_domain_name" {
   description = "Domain name of CloudFront distribution used for public CRL"
 }
 
+output "ca_bundle_s3_key" {
+  value       = contains(var.prod_envs, var.env) ? "${var.project}-ca-bundle.pem" : "${var.project}-ca-bundle-${var.env}.pem"
+  description = "S3 key (name) of CA bundle"
+}
+
 output "ca_bundle_s3_location" {
   value       = contains(var.prod_envs, var.env) ? "${module.external_s3.s3_bucket_domain_name}/${var.project}-ca-bundle.pem" : "${module.external_s3.s3_bucket_domain_name}/${var.project}-ca-bundle-${var.env}.pem"
   description = "S3 location of CA bundle for use as a TrustStore"
