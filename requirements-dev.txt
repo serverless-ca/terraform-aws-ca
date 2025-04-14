@@ -3,7 +3,7 @@ asn1crypto == 1.5.1
 assertpy == 1.1
 bandit == 1.8.3
 black == 25.1.0
-boto3 == 1.37.28
+boto3 == 1.37.33
 certvalidator == 0.11.1
 cryptography == 44.0.2
 dataclasses-json == 0.6.7
