@@ -76,6 +76,11 @@ module "internal_s3" {
 
 resource "aws_s3_object" "cert_info" {
   # JSON files with details of certificates to be issued and revoked
+
+  lifecycle {
+    ignore_changes = var.disable_tf_gitops ? [source_hash] : []
+  }
+
   for_each = toset(var.cert_info_files)
 
   key          = "${each.key}.json"
