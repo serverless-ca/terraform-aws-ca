@@ -263,5 +263,5 @@ variable "xray_enabled" {
 variable "disable_tf_gitops" {
   description = "Disable GitOps from Terraform but keep S3 bucket processing"
   type        = bool
-  default     = true
+  default     = false
 }
