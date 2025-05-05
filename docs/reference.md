@@ -97,6 +97,7 @@
 
 | Name | Description |
 |------|-------------|
+| <a name="output_ca_bundle_s3_key"></a> [ca\_bundle\_s3\_key](#output\_ca\_bundle\_s3\_key) | S3 key (name) of CA bundle |
 | <a name="output_ca_bundle_s3_location"></a> [ca\_bundle\_s3\_location](#output\_ca\_bundle\_s3\_location) | S3 location of CA bundle for use as a TrustStore |
 | <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | Domain name of CloudFront distribution used for public CRL |
 | <a name="output_external_s3_bucket_name"></a> [external\_s3\_bucket\_name](#output\_external\_s3\_bucket\_name) | External S3 bucket name |
