@@ -17,6 +17,10 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 
 ![Alt text](assets/images/ca-architecture-options.png?raw=true "CA architecture")
 
+## Open Cloud Security Conference - talk and demo
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/open-cloud-security.png" /></a>
+Talk and demo on [YouTube](https://youtu.be/p2Cb5PSXWSE)
+
 ## SANS CloudSecNext - talk and demo
 <a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/sans-cloudsecnext.png" /></a>
 Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)

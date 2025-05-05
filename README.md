@@ -17,6 +17,10 @@
 
 > 📢 We welcome contributions! See the [Contributing Guide](https://github.com/serverless-ca/terraform-aws-ca/blob/main/CONTRIBUTING.md) for how to get started.
 
+## Open Cloud Security Conference - talk and demo
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/open-cloud-security.png" /></a>
+Talk and demo on [YouTube](https://youtu.be/p2Cb5PSXWSE)
+
 ## SANS CloudSecNext - talk and demo
 <a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/sans-cloudsecnext.png" /></a>
 Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
