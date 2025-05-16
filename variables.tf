@@ -260,3 +260,8 @@ variable "xray_enabled" {
   default     = true
 }
 
+variable "cloudfront_web_acl_id" {
+  description = "WAF attachment for the pubilc CRL Cloudfront distribution, expects the WAF ARN"
+  default     = null
+  type        = string
+}

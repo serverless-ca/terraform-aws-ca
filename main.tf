@@ -328,6 +328,7 @@ module "ca_cloudfront" {
   certificate_arn             = module.cloudfront_certificate[0].certificate_arn
   environment                 = var.env
   zone_id                     = var.hosted_zone_id
+  web_acl_id                  = var.cloudfront_web_acl_id
 }
 
 module "step-function-role" {
