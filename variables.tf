@@ -16,11 +16,13 @@ variable "bucket_prefix" {
 variable "cert_info_files" {
   description = "List of file names to be uploaded to internal S3 bucket for processing"
   default     = [] # To enable certificate revocation change to ["tls", "revoked", "revoked-root-ca"]
+  type        = list(string)
 }
 
 variable "csr_files" {
   description = "List of CSR file names to be uploaded to internal S3 bucket for processing"
   default     = []
+  type        = list(string)
 }
 
 variable "custom_sns_topic_display_name" {
@@ -66,6 +68,17 @@ variable "issuing_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
+  type = object({
+    country              = string
+    state                = optional(string)
+    lifetime             = number
+    locality             = optional(string)
+    organization         = string
+    organizationalUnit   = optional(string)
+    commonName           = string
+    emailAddress         = optional(string, null)
+    pathLengthConstraint = optional(number, null)
+  })
 }
 
 variable "issuing_ca_key_spec" {
@@ -88,11 +101,13 @@ variable "issuing_ca_key_spec" {
 variable "issuing_crl_days" {
   description = "Number of days before Issuing CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
   default     = 1
+  type        = number
 }
 
 variable "issuing_crl_seconds" {
   description = "Number of seconds before Issuing CA CRL expires, in addition to days. Used for overlap in case of clock skew"
   default     = 600
+  type        = number
 }
 
 variable "kms_key_alias" {
@@ -128,16 +143,19 @@ variable "logging_account_id" {
 variable "max_cert_lifetime" {
   description = "Maximum end entity certificate lifetime in days"
   default     = 365
+  type        = number
 }
 
 variable "memory_size" {
   description = "Standard memory allocation for Lambda functions"
   default     = 128
+  type        = number
 }
 
 variable "prod_envs" {
   description = "List of production environment names, for these names the environment name suffix is not required in resource names"
   default     = ["prd", "prod"]
+  type        = list(string)
 }
 
 variable "project" {
@@ -163,6 +181,17 @@ variable "root_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
+  type = object({
+    country              = string
+    state                = optional(string)
+    lifetime             = number
+    locality             = optional(string)
+    organization         = string
+    organizationalUnit   = optional(string)
+    commonName           = string
+    emailAddress         = optional(any)
+    pathLengthConstraint = any
+  })
 }
 
 variable "root_ca_key_spec" {
@@ -185,11 +214,13 @@ variable "root_ca_key_spec" {
 variable "root_crl_days" {
   description = "Number of days before Root CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval"
   default     = 1
+  type        = number
 }
 
 variable "root_crl_seconds" {
   description = "Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew"
   default     = 600
+  type        = number
 }
 
 variable "runtime" {
@@ -253,6 +284,7 @@ variable "subscription_filter_destination" {
 variable "timeout" {
   description = "Amount of time Lambda Function has to run in seconds"
   default     = 180
+  type        = number
 }
 
 variable "xray_enabled" {
