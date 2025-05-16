@@ -35,3 +35,9 @@ variable "error_page" {
   description = "Path to custom 404 error page"
   default     = "/page-not-found.html"
 }
+
+variable "web_acl_id" {
+  description = "WAF attachment for the public CRL Cloudfront distribution, expects the WAF ARN"
+  default     = null
+  type        = string
+}
