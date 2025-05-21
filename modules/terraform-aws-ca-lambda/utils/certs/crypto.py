@@ -1,6 +1,7 @@
 import random
 import string
 import base64
+import ipaddress
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -9,6 +10,7 @@ from .crypto_kms_classes import (
     AWSKMSEllipticCurvePrivateKey,
     AWSKMSRSAPrivateKey,
 )
+from cryptography.x509 import DNSName, IPAddress, UniformResourceIdentifier
 
 
 def crypto_cert_info(cert, common_name):
@@ -40,7 +42,16 @@ def crypto_cert_request_info(csr_cert, csr_info):
     # convert to x509 cryptography format
     x509_sans = []
     for san in sans:
-        x509_sans.append(x509.DNSName(san))
+        try:
+            # Try IP address
+            x509_sans.append(IPAddress(ipaddress.ip_address(san)))
+        except ValueError:
+            if "://" in san:
+                # URI
+                x509_sans.append(UniformResourceIdentifier(san))
+            else:
+                # DNS
+                x509_sans.append(DNSName(san))
 
     return {
         "CommonName": common_name,

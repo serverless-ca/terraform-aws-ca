@@ -3,6 +3,8 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from typing import Optional
 from dataclasses import dataclass, field
+import ipaddress
+from urllib.parse import urlparse
 
 
 def get_subject_attribute_or_none(x509_subject, attribute):
@@ -59,6 +61,22 @@ class Subject:
         return subject
 
 
+def is_valid_ip(san: str) -> bool:
+    try:
+        ipaddress.ip_address(san)
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_uri(san: str) -> bool:
+    try:
+        result = urlparse(san)
+        return all([result.scheme, result.netloc])
+    except Exception:
+        return False
+
+
 def filter_and_validate_purposes(purposes: list[str]) -> list[str]:
     _purposes = list(filter(lambda x: x in ["client_auth", "server_auth"], purposes))
 
@@ -81,19 +99,27 @@ def filter_and_validate_sans(common_name: str, sans: list[str]) -> list[str]:
     if (_sans is None or _sans == []) and valid_common_name:
         _sans = [common_name]
 
-    # log invalid SANs
+    valid_sans = []
     for san in _sans:
-        # allow wildcard SANs provided base domain is valid
-        if san.split(".")[0] == "*" and domain_validator(san[2:]):
+        # Allow wildcard DNS SANs
+        if san.startswith("*.") and domain_validator(san[2:]):
+            valid_sans.append(san)
             continue
-        # log invalid SANs
-        if not domain_validator(san):
-            print(f"Invalid domain {san} excluded from SANs")
+        # Allow valid DNS names
+        if domain_validator(san):
+            valid_sans.append(san)
+            continue
+        # Allow valid IP addresses
+        if is_valid_ip(san):
+            valid_sans.append(san)
+            continue
+        # Allow valid URIs
+        if is_valid_uri(san):
+            valid_sans.append(san)
+            continue
+        print(f"Invalid SAN {san} excluded from SANs")
 
-    # remove invalid SANs
-    _sans = [s for s in _sans if domain_validator(s) or s.split(".")[0] == "*" and domain_validator(s[2:])]
-
-    return _sans
+    return valid_sans
 
 
 @dataclass
@@ -111,7 +137,6 @@ class CsrInfo:
     def sans(self) -> list[str]:  # noqa: F811
         if isinstance(self._sans, list):
             return filter_and_validate_sans(self.subject.common_name, self._sans)
-
         return filter_and_validate_sans(self.subject.common_name, [])
 
     @sans.setter
