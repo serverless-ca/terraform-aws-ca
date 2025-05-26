@@ -68,17 +68,7 @@ variable "issuing_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
-  type = object({
-    country              = string
-    state                = optional(string)
-    lifetime             = number
-    locality             = optional(string)
-    organization         = string
-    organizationalUnit   = optional(string)
-    commonName           = string
-    emailAddress         = optional(string, null)
-    pathLengthConstraint = optional(number, null)
-  })
+  type = map(any)
 }
 
 variable "issuing_ca_key_spec" {
@@ -181,17 +171,7 @@ variable "root_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
-  type = object({
-    country              = string
-    state                = optional(string)
-    lifetime             = number
-    locality             = optional(string)
-    organization         = string
-    organizationalUnit   = optional(string)
-    commonName           = string
-    emailAddress         = optional(any)
-    pathLengthConstraint = any
-  })
+  type = map(any)
 }
 
 variable "root_ca_key_spec" {
@@ -291,4 +271,3 @@ variable "xray_enabled" {
   description = "Whether to enable active tracing with AWS X-Ray"
   default     = true
 }
-
