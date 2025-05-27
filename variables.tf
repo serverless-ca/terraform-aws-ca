@@ -23,6 +23,12 @@ variable "csr_files" {
   default     = []
 }
 
+variable "cloudfront_web_acl_id" {
+  description = "WAF attachment for the public CRL Cloudfront distribution, expects the WAF ARN"
+  default     = null
+  type        = string
+}
+
 variable "custom_sns_topic_display_name" {
   description = "Customised SNS topic display name, leave empty to use standard naming convention"
   default     = ""
@@ -259,4 +265,3 @@ variable "xray_enabled" {
   description = "Whether to enable active tracing with AWS X-Ray"
   default     = true
 }
-

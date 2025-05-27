@@ -16,6 +16,7 @@ resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "Static web site for ${local.domain_name}"
+  web_acl_id          = var.web_acl_id
   default_root_object = "index.html"
 
   aliases = [var.domain_prefix == "" ? var.base_domain : "${var.domain_prefix}.${var.base_domain}"]
