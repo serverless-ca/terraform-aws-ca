@@ -10,12 +10,12 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         ref: ${{ github.event.pull_request.head.ref }}
 
     - name: Render terraform docs inside the REFERENCE.md and push changes back to PR branch
-      uses: terraform-docs/gh-actions@v1.4.1
+      uses: terraform-docs/gh-actions@6de6da0cefcc6b4b7a5cbea4d79d97060733093c # v1.4.1
       with:
         working-dir: .
         output-file: docs/reference.md
