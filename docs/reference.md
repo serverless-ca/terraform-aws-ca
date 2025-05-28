@@ -56,6 +56,7 @@
 | <a name="input_bucket_key_enabled"></a> [bucket\_key\_enabled](#input\_bucket\_key\_enabled) | Whether or not to use Amazon S3 Bucket Keys for SSE-KMS | `bool` | `false` | no |
 | <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
 | <a name="input_cert_info_files"></a> [cert\_info\_files](#input\_cert\_info\_files) | List of file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
+| <a name="input_cloudfront_web_acl_id"></a> [cloudfront\_web\_acl\_id](#input\_cloudfront\_web\_acl\_id) | WAF attachment for the public CRL Cloudfront distribution, expects the WAF ARN | `string` | `null` | no |
 | <a name="input_csr_files"></a> [csr\_files](#input\_csr\_files) | List of CSR file names to be uploaded to internal S3 bucket for processing | `list` | `[]` | no |
 | <a name="input_custom_sns_topic_display_name"></a> [custom\_sns\_topic\_display\_name](#input\_custom\_sns\_topic\_display\_name) | Customised SNS topic display name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_custom_sns_topic_name"></a> [custom\_sns\_topic\_name](#input\_custom\_sns\_topic\_name) | Customised SNS topic name, leave empty to use standard naming convention | `string` | `""` | no |
