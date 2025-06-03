@@ -17,6 +17,11 @@ Applying Terraform will result in:
 * CRL Distribution Point (CDP) extension added to certificates
 * Authority Information Access (AIA) extension added to certificates
 
+## CRL file formats
+CRLs are published as:
+* DER file format with `.crl` extension
+* PEM file format with `.crl.pem` extension
+
 ## CRL location
 CRL locations are detailed in [CA Cert Locations](locations.md)
 
