@@ -42,7 +42,7 @@ def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, inte
     return revoked_certs
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument
+def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
