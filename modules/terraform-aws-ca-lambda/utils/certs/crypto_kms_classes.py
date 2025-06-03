@@ -7,7 +7,11 @@ from cryptography.hazmat.primitives import hashes
 class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
     """class for AWS KMS Elliptic Curve Private Key to be used with cryptography library"""
 
-    signature_algorithm_lookup = {"sha256": "ECDSA_SHA_256", "sha384": "ECDSA_SHA_384", "sha512": "ECDSA_SHA_512"}
+    signature_algorithm_lookup = {
+        "sha256": "ECDSA_SHA_256",
+        "sha384": "ECDSA_SHA_384",
+        "sha512": "ECDSA_SHA_512",
+    }
 
     _evp_pkey = None
 
@@ -136,7 +140,12 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
     def public_key(self) -> rsa.RSAPublicKey:
         return AWSKMSRSAPublicKey(self.keyid)
 
-    def sign(self, data: bytes, padding: rsa.AsymmetricPadding, algorithm: hashes.HashAlgorithm) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        padding: rsa.AsymmetricPadding,
+        algorithm: hashes.HashAlgorithm,
+    ) -> bytes:
         algorithm.name = "sha256"
 
         try:
@@ -161,7 +170,11 @@ class AWSKMSRSAPublicKey(AWSKMSRSAPrivateKey):
         raise NotImplementedError("Encrypt not supported")
 
     def verify(
-        self, signature: bytes, data: bytes, padding: AsymmetricPadding, algorithm: hashes.HashAlgorithm
+        self,
+        signature: bytes,
+        data: bytes,
+        padding: AsymmetricPadding,
+        algorithm: hashes.HashAlgorithm,
     ) -> None:
         raise NotImplementedError("Verify not supported")
 

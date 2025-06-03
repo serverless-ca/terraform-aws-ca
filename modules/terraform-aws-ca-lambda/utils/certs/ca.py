@@ -101,8 +101,14 @@ def ca_kms_sign_ca_certificate_request(
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(timezone.utc))
         .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()),
+            critical=False,
+        )
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -182,7 +188,10 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
             x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
             critical=False,
         )
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()),
+            critical=False,
+        )
     )
 
 
@@ -259,7 +268,12 @@ def ca_bundle_name(project, env_name):
     return f"{project}-ca-bundle-{env_name}"
 
 
-def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_root_ca(
+    public_key,
+    private_key,
+    root_ca_info,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
+):
     """Creates Root CA self-signed certificate with defined private key"""
 
     # get Root CA info
@@ -297,7 +311,10 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
             critical=True,
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(public_key), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key),
+            critical=False,
+        )
         .sign(private_key, crypto_hash_class(kms_signing_algorithm))
     )
 
@@ -306,7 +323,12 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_kms_root_ca(
+    public_key,
+    kms_key_id,
+    root_ca_info,
+    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
+):
     """Creates Root CA self-signed certificate with private key in KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 

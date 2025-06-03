@@ -70,7 +70,16 @@ class CaChainResponse:
 
 
 # pylint:disable=too-many-arguments,too-many-positional-arguments
-def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
+def sign_tls_certificate(
+    project,
+    env_name,
+    csr,
+    ca_name,
+    csr_info,
+    domain,
+    max_cert_lifetime,
+    enable_public_crl,
+):
     # get CA cert from DynamoDB
     ca_cert_bytes_b64 = db_list_certificates(project, env_name, ca_name)[0]["Certificate"]["B"]
     ca_cert_bytes = base64.b64decode(ca_cert_bytes_b64)
@@ -109,10 +118,26 @@ def select_csr_crypto(ca_slug):
 
 
 # pylint:disable=too-many-arguments
-def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl):
+def sign_csr(
+    project,
+    env_name,
+    csr,
+    ca_name,
+    csr_info,
+    domain,
+    max_cert_lifetime,
+    enable_public_crl,
+):
     # sign certificate
     pem_certificate = sign_tls_certificate(
-        project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
+        project,
+        env_name,
+        csr,
+        ca_name,
+        csr_info,
+        domain,
+        max_cert_lifetime,
+        enable_public_crl,
     )
 
     # get details to upload to DynamoDB
@@ -273,7 +298,14 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         return validation_error
 
     base64_certificate, cert_info = sign_csr(
-        project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
+        project,
+        env_name,
+        csr,
+        issuing_ca_name,
+        csr_info,
+        domain,
+        max_cert_lifetime,
+        enable_public_crl,
     )
 
     db_tls_cert_issued(project, env_name, cert_info, base64_certificate)

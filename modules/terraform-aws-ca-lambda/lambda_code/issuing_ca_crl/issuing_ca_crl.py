@@ -1,6 +1,10 @@
 from cryptography.hazmat.primitives import serialization
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
-from utils.certs.crypto import crypto_ca_key_info, crypto_revoked_certificate
+from utils.certs.crypto import (
+    crypto_ca_key_info,
+    crypto_revoked_certificate,
+    crypto_convert_crl_to_pem,
+)
 from utils.certs.ca import ca_name, ca_kms_publish_crl, ca_get_ca_info
 from utils.certs.db import (
     db_list_certificates,
@@ -73,12 +77,19 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         timedelta,
         build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
         db_update_crl_number(
-            project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
+            project,
+            env_name,
+            ca_slug,
+            db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"],
         ),
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)
 
+    # convert CRL to PEM format
+    crl_pem = crypto_convert_crl_to_pem(crl)
+
     # upload CRL to S3
     s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl, f"{ca_slug}.crl")
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl_pem, f"{ca_slug}.crl.pem")
 
     return
