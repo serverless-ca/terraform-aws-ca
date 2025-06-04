@@ -6,11 +6,7 @@ from utils.certs.crypto import (
     crypto_convert_crl_to_pem,
 )
 from utils.certs.ca import ca_name, ca_kms_publish_crl
-from utils.certs.db import (
-    db_list_certificates,
-    db_update_crl_number,
-    db_revocation_date,
-)
+from utils.certs.db import db_list_certificates, db_update_crl_number, db_revocation_date
 from utils.certs.s3 import s3_download, s3_upload
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 import datetime
@@ -74,10 +70,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         timedelta,
         build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
         db_update_crl_number(
-            project,
-            env_name,
-            ca_slug,
-            db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"],
+            project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
         ),
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)
