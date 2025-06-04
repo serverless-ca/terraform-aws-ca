@@ -94,5 +94,5 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     s3_upload(
         external_s3_bucket_name, internal_s3_bucket_name, cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem"
     )
-    
+
     return
