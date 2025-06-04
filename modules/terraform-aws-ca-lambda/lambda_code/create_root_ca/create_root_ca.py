@@ -36,10 +36,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     print(f"using {cipher} key pair in KMS for {ca_slug}")
 
     pem_certificate = ca_create_kms_root_ca(
-        public_key,
-        kms_key_id,
-        root_ca_info,
-        kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
+        public_key, kms_key_id, root_ca_info, kms_describe_key(kms_key_id)["SigningAlgorithms"][0]
     )
     base64_certificate = base64.b64encode(pem_certificate)
 
@@ -51,11 +48,6 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     db_ca_cert_issued(project, env_name, info, base64_certificate)
 
     # upload CRL to S3
-    s3_upload(
-        external_s3_bucket_name,
-        internal_s3_bucket_name,
-        pem_certificate,
-        f"{ca_slug}.crt",
-    )
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
 
     return

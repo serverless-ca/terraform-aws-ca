@@ -34,12 +34,7 @@ def s3_upload_file(file, bucket_name, key, content_type):
 
 # pylint:disable=too-many-arguments,too-many-positional-arguments
 def s3_upload(
-    external_s3_bucket_name,
-    internal_s3_bucket_name,
-    file,
-    key,
-    content_type="application/x-pkcs7-crl",
-    external=True,
+    external_s3_bucket_name, internal_s3_bucket_name, file, key, content_type="application/x-pkcs7-crl", external=True
 ):
     if external:
         return s3_upload_file(file, external_s3_bucket_name, key, content_type)

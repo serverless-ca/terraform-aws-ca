@@ -77,10 +77,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         timedelta,
         build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
         db_update_crl_number(
-            project,
-            env_name,
-            ca_slug,
-            db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"],
+            project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
         ),
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)

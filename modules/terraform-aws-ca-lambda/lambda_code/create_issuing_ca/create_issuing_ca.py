@@ -90,17 +90,8 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     cert_bundle_pem = crypto_create_ca_bundle([root_ca_cert_pem, pem_certificate])
 
     # upload certificate and CA bundle to S3
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, pem_certificate, f"{ca_slug}.crt")
     s3_upload(
-        external_s3_bucket_name,
-        internal_s3_bucket_name,
-        pem_certificate,
-        f"{ca_slug}.crt",
+        external_s3_bucket_name, internal_s3_bucket_name, cert_bundle_pem, f"{ca_bundle_name(project, env_name)}.pem"
     )
-    s3_upload(
-        external_s3_bucket_name,
-        internal_s3_bucket_name,
-        cert_bundle_pem,
-        f"{ca_bundle_name(project, env_name)}.pem",
-    )
-
     return
