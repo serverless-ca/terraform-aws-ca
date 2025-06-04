@@ -6,11 +6,19 @@ on:
       - "**/*.tf"
       - ".github/workflows/terraform.yml"
 
+permissions:
+  contents: read
+
 jobs:
   terraform_validate:
     name: Terraform validate
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        with:
+          egress-policy: audit
+
       - name: Terraform setup
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
         with:
