@@ -15,6 +15,9 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
 
+    def __copy__(self):
+        return AWSKMSEllipticCurvePrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -22,7 +25,6 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
     def exchange(self, algorithm: ec.ECDH, peer_public_key: ec.EllipticCurvePublicKey) -> bytes:
         raise NotImplementedError("Exchange not supported")
 
-    # pylint:disable=abstract-class-instantiated
     def public_key(self) -> ec.EllipticCurvePublicKey:
         return AWSKMSEllipticCurvePublicKey(self.keyid)
 
@@ -68,6 +70,9 @@ class AWSKMSEllipticCurvePublicKey(AWSKMSEllipticCurvePrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
         super(AWSKMSEllipticCurvePrivateKey, self).__init__()
+
+    def __copy__(self):
+        return AWSKMSEllipticCurvePublicKey(self.keyid, self.hash_algorithm)
 
     def verify(
         self,
@@ -116,6 +121,9 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
 
+    def __copy__(self):
+        return AWSKMSRSAPrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -134,7 +142,6 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
     def signer(self):
         pass
 
-    # pylint:disable=abstract-class-instantiated
     def public_key(self) -> rsa.RSAPublicKey:
         return AWSKMSRSAPublicKey(self.keyid)
 
@@ -158,6 +165,9 @@ class AWSKMSRSAPublicKey(AWSKMSRSAPrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
         super(AWSKMSRSAPrivateKey, self).__init__()
+
+    def __copy__(self):
+        return AWSKMSRSAPublicKey(self.keyid, self.hash_algorithm)
 
     def encrypt(self, plaintext: bytes, padding: AsymmetricPadding) -> bytes:
         raise NotImplementedError("Encrypt not supported")

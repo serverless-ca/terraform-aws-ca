@@ -106,7 +106,6 @@ def crypto_hash_class(kms_signing_algorithm):
     raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
 
 
-# pylint:disable=abstract-class-instantiated
 def crypto_kms_ca_cert_signing_request(common_name, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """CA certificate signing request created using private key in AWS KMS"""
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
