@@ -385,7 +385,7 @@ module "scheduler" {
 module "db-reader-role" {
   # IAM role and policy for DynamoDB reader from other AWS account
   source = "./modules/terraform-aws-ca-iam"
-  count  = var.aws_principals == [] ? 0 : 1
+  count  = length(var.aws_principals) > 0 ? 1 : 0
 
   project            = var.project
   env                = var.env

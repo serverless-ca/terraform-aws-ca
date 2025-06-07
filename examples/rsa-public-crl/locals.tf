@@ -19,5 +19,3 @@ locals {
     pathLengthConstraint = 1
   }
 }
-
-
