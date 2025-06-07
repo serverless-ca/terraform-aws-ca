@@ -15,6 +15,9 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
 
+    def __copy__(self):
+        return AWSKMSEllipticCurvePrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -68,6 +71,9 @@ class AWSKMSEllipticCurvePublicKey(AWSKMSEllipticCurvePrivateKey):
         self.hash_algorithm = hash_algorithm
         super(AWSKMSEllipticCurvePrivateKey, self).__init__()
 
+    def __copy__(self):
+        return AWSKMSEllipticCurvePublicKey(self.keyid, self.hash_algorithm)
+
     def verify(
         self,
         signature: bytes,
@@ -115,6 +121,9 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
 
+    def __copy__(self):
+        return AWSKMSRSAPrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -156,6 +165,9 @@ class AWSKMSRSAPublicKey(AWSKMSRSAPrivateKey):
         self.keyid = keyid
         self.hash_algorithm = hash_algorithm
         super(AWSKMSRSAPrivateKey, self).__init__()
+
+    def __copy__(self):
+        return AWSKMSRSAPublicKey(self.keyid, self.hash_algorithm)
 
     def encrypt(self, plaintext: bytes, padding: AsymmetricPadding) -> bytes:
         raise NotImplementedError("Encrypt not supported")
