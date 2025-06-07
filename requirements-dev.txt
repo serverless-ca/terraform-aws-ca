@@ -3,15 +3,15 @@ asn1crypto == 1.5.1
 assertpy == 1.1
 bandit == 1.8.3
 black == 25.1.0
-boto3 == 1.38.8
+boto3 == 1.38.32
 certvalidator == 0.11.1
-cryptography == 44.0.3
+cryptography == 45.0.3
 dataclasses-json == 0.6.7
-prospector == 1.16.1
-pytest == 8.3.5
+prospector == 1.17.1
+pytest == 8.4.0
 requests == 2.32.3
-structlog == 25.3.0
-validators == 0.34.0
+structlog == 25.4.0
+validators == 0.35.0
 
 # TODO: Used by certvalidator - remove once latest oscrypto published to pypi
 oscrypto @ git+https://github.com/wbond/oscrypto.git@d5f3437ed24257895ae1edd9e503cfb352e635a8
