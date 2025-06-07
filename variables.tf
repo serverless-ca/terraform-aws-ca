@@ -74,7 +74,17 @@ variable "issuing_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
-  type = map(any)
+  type = object({
+    commonName           = string
+    country              = optional(string)
+    state                = optional(string)
+    lifetime             = optional(number)
+    locality             = optional(string)
+    organization         = optional(string)
+    organizationalUnit   = optional(string)
+    emailAddress         = optional(string)
+    pathLengthConstraint = optional(number)
+  })
 }
 
 variable "issuing_ca_key_spec" {
@@ -177,7 +187,17 @@ variable "root_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
-  type = map(any)
+  type = object({
+    commonName           = string
+    country              = optional(string)
+    state                = optional(string)
+    lifetime             = optional(number)
+    locality             = optional(string)
+    organization         = optional(string)
+    organizationalUnit   = optional(string)
+    emailAddress         = optional(string)
+    pathLengthConstraint = optional(number)
+  })
 }
 
 variable "root_ca_key_spec" {
