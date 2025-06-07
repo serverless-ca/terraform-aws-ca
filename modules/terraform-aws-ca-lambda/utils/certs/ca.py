@@ -58,7 +58,7 @@ def tls_cert_construct_subject_name(csr_cert, cert_request_info):
     return subject.x509_name()
 
 
-# pylint:disable=too-many-arguments,too-many-positional-arguments
+# pylint:disable=abstract-class-instantiated,too-many-arguments,too-many-positional-arguments,
 def ca_kms_sign_ca_certificate_request(
     project,
     env_name,
