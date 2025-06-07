@@ -218,7 +218,6 @@ variable "root_ca_info" {
     emailAddress         = null
     pathLengthConstraint = null
   }
-
 }
 
 variable "root_ca_key_spec" {
