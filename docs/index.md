@@ -34,6 +34,8 @@ Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
 
 > 📖 [API Gateway mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/api-gateway-mtls-with-open-source-cloud-ca-3362438445de)
 
+> 📖 [Revoking access to IAM Roles Anywhere using open-source private CA](https://medium.com/@paulschwarzenberger/revoking-access-to-iam-roles-anywhere-using-open-source-private-ca-47667cc92299)
+
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
