@@ -5,6 +5,8 @@
 * Certificates can be revoked using a Certificate Revocation List (CRL)
 * Online Certificate Status Protocol (OCSP) is not supported
 
+How-to guide: [Revoking access to IAM Roles Anywhere using open-source private CA](how-to-guides/crl.md)
+
 ## CRL publication
 CRLs are published to `external` S3 bucket, not directly accessible from public Internet
 
