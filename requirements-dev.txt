@@ -5,7 +5,7 @@ bandit == 1.8.3
 black == 25.1.0
 boto3 == 1.38.32
 certvalidator == 0.11.1
-cryptography == 45.0.3
+cryptography == 45.0.4
 dataclasses-json == 0.6.7
 prospector == 1.17.1
 pytest == 8.4.0
