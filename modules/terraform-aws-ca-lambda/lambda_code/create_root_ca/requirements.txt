@@ -1,2 +1,2 @@
-cryptography == 45.0.3
+cryptography == 45.0.4
 validators == 0.35.0
