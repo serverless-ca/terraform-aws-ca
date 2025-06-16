@@ -59,6 +59,7 @@ nav:
     - API Gateway: how-to-guides/api.md 
     - Application load balancer: how-to-guides/alb.md
     - IAM Roles Anywhere: how-to-guides/iam.md
+    - Revoking certificates: how-to-guides/crl.md
   - Terraform reference: reference.md
 
 plugins:
