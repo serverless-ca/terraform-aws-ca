@@ -1,7 +1,7 @@
 -r requirements-docs.txt
 asn1crypto == 1.5.1
 assertpy == 1.1
-bandit == 1.8.3
+bandit == 1.8.5
 black == 25.1.0
 boto3 == 1.38.37
 certvalidator == 0.11.1
