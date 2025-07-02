@@ -1,4 +1,4 @@
 cairosvg == 2.8.2
 mkdocs-material == 9.6.14
-pillow == 11.2.1
-urllib3 == 2.4.0
+pillow == 11.3.0
+urllib3 == 2.5.0
