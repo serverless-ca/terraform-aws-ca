@@ -52,6 +52,9 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_access_logs"></a> [access\_logs](#input\_access\_logs) | Enable access logs for S3 buckets, requires log\_bucket variable to be set | `bool` | `false` | no |
+| <a name="input_additional_dynamodb_tags"></a> [additional\_dynamodb\_tags](#input\_additional\_dynamodb\_tags) | Tags added to DynamoDB tables, merged with default tags | `map(string)` | `{}` | no |
+| <a name="input_additional_lambda_tags"></a> [additional\_lambda\_tags](#input\_additional\_lambda\_tags) | Tags added to Lambda functions, merged with default tags | `map(string)` | `{}` | no |
+| <a name="input_additional_s3_tags"></a> [additional\_s3\_tags](#input\_additional\_s3\_tags) | Tags added to S3 buckets, merged with default tags | `map(string)` | `{}` | no |
 | <a name="input_aws_principals"></a> [aws\_principals](#input\_aws\_principals) | List of ARNs for AWS principals allowed to assume DynamoDB reader role or execute the tls\_cert lambda | `list(string)` | `[]` | no |
 | <a name="input_bucket_key_enabled"></a> [bucket\_key\_enabled](#input\_bucket\_key\_enabled) | Whether or not to use Amazon S3 Bucket Keys for SSE-KMS | `bool` | `false` | no |
 | <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
@@ -91,6 +94,7 @@
 | <a name="input_sns_policy_template"></a> [sns\_policy\_template](#input\_sns\_policy\_template) | Name of SNS policy template file, if used | `string` | `"default"` | no |
 | <a name="input_sns_sqs_subscriptions"></a> [sns\_sqs\_subscriptions](#input\_sns\_sqs\_subscriptions) | A map of SQS names to arns to subscribe to the SNS topic | `map(string)` | `{}` | no |
 | <a name="input_subscription_filter_destination"></a> [subscription\_filter\_destination](#input\_subscription\_filter\_destination) | CloudWatch log subscription filter destination, last section of ARN | `string` | `""` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | see also additional\_s3\_tags, additional\_dynamodb\_tags, additional\_lambda\_tags | `map(string)` | `{}` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Amount of time Lambda Function has to run in seconds | `number` | `180` | no |
 | <a name="input_xray_enabled"></a> [xray\_enabled](#input\_xray\_enabled) | Whether to enable active tracing with AWS X-Ray | `bool` | `true` | no |
 
