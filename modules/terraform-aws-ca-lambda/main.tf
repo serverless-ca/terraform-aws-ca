@@ -45,6 +45,7 @@ resource "aws_lambda_function" "lambda" {
   memory_size      = var.memory_size
   timeout          = var.timeout
   publish          = true
+  tags             = var.tags
 
   environment {
     variables = {

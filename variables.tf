@@ -4,6 +4,24 @@ variable "access_logs" {
   default     = false
 }
 
+variable "additional_dynamodb_tags" {
+  type        = map(string)
+  description = "Tags added to DynamoDB tables, merged with default tags"
+  default     = {}
+}
+
+variable "additional_lambda_tags" {
+  type        = map(string)
+  description = "Tags added to Lambda functions, merged with default tags"
+  default     = {}
+}
+
+variable "additional_s3_tags" {
+  type        = map(string)
+  description = "Tags added to S3 buckets, merged with default tags"
+  default     = {}
+}
+
 variable "aws_principals" {
   type        = list(string)
   description = "List of ARNs for AWS principals allowed to assume DynamoDB reader role or execute the tls_cert lambda"
@@ -312,6 +330,12 @@ variable "subscription_filter_destination" {
   type        = string
   description = "CloudWatch log subscription filter destination, last section of ARN"
   default     = ""
+}
+
+# see also additional_s3_tags, additional_dynamodb_tags, additional_lambda_tags
+variable "tags" {
+  type    = map(string)
+  default = {}
 }
 
 variable "timeout" {
