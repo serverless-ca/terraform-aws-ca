@@ -41,6 +41,7 @@ module "dynamodb" {
   project          = var.project
   env              = var.env
   kms_arn_resource = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  tags             = merge(var.tags, var.additional_dynamodb_tags)
 }
 
 module "external_s3" {
@@ -57,6 +58,7 @@ module "external_s3" {
   public_crl             = var.public_crl
   server_side_encryption = false
   app_aws_principals     = var.s3_aws_principals
+  tags                   = merge(var.tags, var.additional_s3_tags)
 }
 
 module "internal_s3" {
@@ -72,6 +74,7 @@ module "internal_s3" {
   kms_key_alias       = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_name : var.kms_key_alias
   default_aws_kms_key = var.default_aws_kms_key_for_s3
   bucket_key_enabled  = var.bucket_key_enabled
+  tags                = merge(var.tags, var.additional_s3_tags)
 }
 
 resource "aws_s3_object" "cert_info" {
@@ -204,6 +207,7 @@ module "create_rsa_root_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "create_rsa_issuing_ca_lambda" {
@@ -227,6 +231,7 @@ module "create_rsa_issuing_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_root_ca_crl_lambda" {
@@ -252,6 +257,7 @@ module "rsa_root_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_issuing_ca_crl_lambda" {
@@ -277,6 +283,7 @@ module "rsa_issuing_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_tls_cert_lambda" {
@@ -302,6 +309,7 @@ module "rsa_tls_cert_lambda" {
   allowed_invocation_principals   = var.aws_principals
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "cloudfront_certificate" {

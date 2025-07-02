@@ -7,3 +7,8 @@ variable "kms_arn_resource" {
 variable "env" {
   description = "Environment name, e.g. dev"
 }
+
+variable "tags" {
+  type    = map(string)
+  default = {}
+}

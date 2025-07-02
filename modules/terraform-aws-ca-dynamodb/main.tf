@@ -23,7 +23,5 @@ resource "aws_dynamodb_table" "ca" {
     kms_key_arn = var.kms_arn_resource
   }
 
-  tags = {
-    Name = "${var.project}-ca-${var.env}"
-  }
+  tags = local.tags
 }
