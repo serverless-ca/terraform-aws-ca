@@ -96,6 +96,7 @@
 | <a name="input_subscription_filter_destination"></a> [subscription\_filter\_destination](#input\_subscription\_filter\_destination) | CloudWatch log subscription filter destination, last section of ARN | `string` | `""` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | see also additional\_s3\_tags, additional\_dynamodb\_tags, additional\_lambda\_tags | `map(string)` | `{}` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Amount of time Lambda Function has to run in seconds | `number` | `180` | no |
+| <a name="input_workload_account_id"></a> [workload\_account\_id](#input\_workload\_account\_id) | Workload account ID allowed to subscribe to SNS topic if cross-account policy used | `string` | `""` | no |
 | <a name="input_xray_enabled"></a> [xray\_enabled](#input\_xray\_enabled) | Whether to enable active tracing with AWS X-Ray | `bool` | `true` | no |
 
 ## Outputs
