@@ -419,4 +419,5 @@ module "sns_ca_notifications" {
   sqs_subscriptions             = var.sns_sqs_subscriptions
   sns_policy                    = var.sns_policy
   sns_policy_template           = var.sns_policy_template
+  workload_account_id           = var.workload_account_id
 }

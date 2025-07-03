@@ -344,6 +344,12 @@ variable "timeout" {
   default     = 180
 }
 
+variable "workload_account_id" {
+  type        = string
+  description = "Workload account ID allowed to subscribe to SNS topic if cross-account policy used"
+  default     = ""
+}
+
 variable "xray_enabled" {
   type        = bool
   description = "Whether to enable active tracing with AWS X-Ray"
