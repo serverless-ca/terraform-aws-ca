@@ -1,9 +1,9 @@
 {
   "Version": "2012-10-17",
-  "Id": "default_policy",
+  "Id": "DefaultPolicy",
   "Statement": [
     {
-      "Sid": "default_statement",
+      "Sid": "DefaultStatement",
       "Effect": "Allow",
       "Principal": {
         "AWS": "*"
