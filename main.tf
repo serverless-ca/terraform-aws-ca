@@ -417,4 +417,6 @@ module "sns_ca_notifications" {
   email_subscriptions           = var.sns_email_subscriptions
   lambda_subscriptions          = var.sns_lambda_subscriptions
   sqs_subscriptions             = var.sns_sqs_subscriptions
+  sns_policy                    = var.sns_policy
+  sns_policy_template           = var.sns_policy_template
 }
