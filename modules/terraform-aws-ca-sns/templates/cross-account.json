@@ -30,17 +30,12 @@
       "Sid": "WorkloadAccountSubscription",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "*"
+        "AWS": "arn:aws:iam::${workload_account_id}:root"
       },
       "Action": [
         "sns:Subscribe"
       ],
-      "Resource": "arn:aws:sns:${region}:${account_id}:${sns_topic_name}",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceOwner": "${workload_account_id}"
-        }
-      }
+      "Resource": "arn:aws:sns:${region}:${account_id}:${sns_topic_name}"
     }
   ]
 }
