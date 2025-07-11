@@ -85,7 +85,7 @@
         "kms:GenerateDataKey"
       ],
       "Resource": [
-        "${kms_arn_resource}"
+        ${jsonencode(kms_arns_symmetric)}
       ]
     }
   ]

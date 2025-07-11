@@ -46,7 +46,7 @@
         "kms:Encrypt",
         "kms:GenerateDataKey"
       ],
-      "Resource": "${kms_arn_resource}"
+      "Resource": ${jsonencode(kms_arns_symmetric)}
     },
     {
       "Sid": "DynamoDB",
