@@ -14,6 +14,7 @@ resource "aws_iam_role_policy" "lambda" {
     kms_arn_root_ca        = var.kms_arn_root_ca,
     kms_arn_tls_keygen     = var.kms_arn_tls_keygen,
     kms_arn_resource       = var.kms_arn_resource,
+    kms_arns_symmetric     = local.kms_arns_symmetric,
     ddb_table_arn          = var.ddb_table_arn,
     external_s3_bucket_arn = var.external_s3_bucket_arn,
     internal_s3_bucket_arn = var.internal_s3_bucket_arn
