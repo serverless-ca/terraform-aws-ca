@@ -84,9 +84,7 @@
         "kms:Encrypt",
         "kms:GenerateDataKey"
       ],
-      "Resource": [
-        ${jsonencode(kms_arns_symmetric)}
-      ]
+      "Resource": ${jsonencode(kms_arns_symmetric)}
     }
   ]
 }
