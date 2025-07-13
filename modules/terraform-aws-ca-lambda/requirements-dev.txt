@@ -1,7 +1,7 @@
-bandit == 1.8.5
+bandit == 1.8.6
 black == 25.1.0
-boto3 == 1.39.1
-cryptography == 45.0.4
+boto3 == 1.39.4
+cryptography == 45.0.5
 dataclasses-json == 0.6.7
 prospector == 1.17.2
 pytest == 8.3.4
