@@ -351,6 +351,7 @@ module "step-function-role" {
   env                    = var.env
   function_name          = "ca"
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "state"
   assume_role_policy     = "state"
