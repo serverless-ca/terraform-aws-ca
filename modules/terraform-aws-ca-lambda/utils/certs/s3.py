@@ -70,11 +70,11 @@ def is_cert_gitops(tls_file, subject):
     ou = subject_json.get("OU")
 
     if tls_file is None:
-        gitops_certs = []
+        return False
 
-    else:
-        # convert to json dictionary
-        gitops_certs = json.loads(tls_file["Body"].read())
+    gitops_certs = json.loads(tls_file["Body"].read())
+    if not gitops_certs:
+        return False
 
     for cert in gitops_certs:
         common_name = cert["common_name"]
