@@ -1,6 +1,10 @@
 from cryptography.hazmat.primitives import serialization
 from utils.certs.kms import kms_get_kms_key_id, kms_get_public_key, kms_describe_key
-from utils.certs.crypto import crypto_ca_key_info, crypto_revoked_certificate
+from utils.certs.crypto import (
+    crypto_ca_key_info,
+    crypto_revoked_certificate,
+    crypto_convert_crl_to_pem,
+)
 from utils.certs.ca import ca_name, ca_kms_publish_crl
 from utils.certs.db import db_list_certificates, db_update_crl_number, db_revocation_date
 from utils.certs.s3 import s3_download, s3_upload
@@ -34,7 +38,7 @@ def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, inte
     return revoked_certs
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument
+def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
@@ -71,7 +75,11 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
     ).public_bytes(encoding=serialization.Encoding.DER)
 
+    # convert CRL to PEM format
+    crl_pem = crypto_convert_crl_to_pem(crl)
+
     # upload CRL to S3
     s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl, f"{ca_slug}.crl")
+    s3_upload(external_s3_bucket_name, internal_s3_bucket_name, crl_pem, f"{ca_slug}.crl.pem")
 
     return

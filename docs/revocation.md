@@ -5,6 +5,8 @@
 * Certificates can be revoked using a Certificate Revocation List (CRL)
 * Online Certificate Status Protocol (OCSP) is not supported
 
+How-to guide: [Revoking access to IAM Roles Anywhere using open-source private CA](how-to-guides/crl.md)
+
 ## CRL publication
 CRLs are published to `external` S3 bucket, not directly accessible from public Internet
 
@@ -16,6 +18,11 @@ Applying Terraform will result in:
 * CA certificates published to a public URL via CloudFront
 * CRL Distribution Point (CDP) extension added to certificates
 * Authority Information Access (AIA) extension added to certificates
+
+## CRL file formats
+CRLs are published as:
+* DER file format with `.crl` extension
+* PEM file format with `.crl.pem` extension
 
 ## CRL location
 CRL locations are detailed in [CA Cert Locations](locations.md)

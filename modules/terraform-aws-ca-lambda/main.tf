@@ -45,6 +45,7 @@ resource "aws_lambda_function" "lambda" {
   memory_size      = var.memory_size
   timeout          = var.timeout
   publish          = true
+  tags             = var.tags
 
   environment {
     variables = {
@@ -53,13 +54,13 @@ resource "aws_lambda_function" "lambda" {
       PROD_ENVIRONMENTS   = jsonencode(var.prod_envs)
       EXTERNAL_S3_BUCKET  = var.external_s3_bucket
       INTERNAL_S3_BUCKET  = var.internal_s3_bucket
-      ISSUING_CA_INFO     = jsonencode(var.issuing_ca_info)
+      ISSUING_CA_INFO     = jsonencode({ for k, v in var.issuing_ca_info : k => v if v != null })
       ISSUING_CRL_DAYS    = tostring(var.issuing_crl_days)
       ISSUING_CRL_SECONDS = tostring(var.issuing_crl_seconds)
       MAX_CERT_LIFETIME   = tostring(var.max_cert_lifetime)
       PROJECT             = var.project
       PUBLIC_CRL          = local.public_crl
-      ROOT_CA_INFO        = jsonencode(var.root_ca_info)
+      ROOT_CA_INFO        = jsonencode({ for k, v in var.root_ca_info : k => v if v != null })
       ROOT_CRL_DAYS       = tostring(var.root_crl_days)
       ROOT_CRL_SECONDS    = tostring(var.root_crl_seconds)
       SNS_TOPIC_ARN       = var.sns_topic_arn

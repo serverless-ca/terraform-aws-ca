@@ -16,6 +16,8 @@ module "certificate_authority" {
   kms_key_alias       = "custom-kms-encryption-key"
   xray_enabled        = false
 
+  additional_dynamodb_tags      = local.additional_dynamodb_tags
+  additional_s3_tags            = local.additional_s3_tags
   custom_sns_topic_display_name = "My Company CA Notifications Production"
 
   providers = {

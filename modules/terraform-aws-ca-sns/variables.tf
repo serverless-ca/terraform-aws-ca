@@ -61,3 +61,8 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "workload_account_id" {
+  description = "Workload account ID allowed to subscribe to SNS topic if cross-account policy used"
+  default     = ""
+}

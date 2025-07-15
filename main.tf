@@ -41,6 +41,7 @@ module "dynamodb" {
   project          = var.project
   env              = var.env
   kms_arn_resource = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  tags             = merge(var.tags, var.additional_dynamodb_tags)
 }
 
 module "external_s3" {
@@ -57,6 +58,7 @@ module "external_s3" {
   public_crl             = var.public_crl
   server_side_encryption = false
   app_aws_principals     = var.s3_aws_principals
+  tags                   = merge(var.tags, var.additional_s3_tags)
 }
 
 module "internal_s3" {
@@ -72,6 +74,7 @@ module "internal_s3" {
   kms_key_alias       = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_name : var.kms_key_alias
   default_aws_kms_key = var.default_aws_kms_key_for_s3
   bucket_key_enabled  = var.bucket_key_enabled
+  tags                = merge(var.tags, var.additional_s3_tags)
 }
 
 resource "aws_s3_object" "cert_info" {
@@ -109,6 +112,7 @@ module "create_root_ca_iam" {
   function_name          = "create-root-ca"
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "root_ca"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
@@ -126,6 +130,7 @@ module "create_issuing_ca_iam" {
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "issuing_ca"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
@@ -142,6 +147,7 @@ module "root_crl_iam" {
   function_name          = "root-crl"
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "root_crl"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
@@ -158,6 +164,7 @@ module "issuing_crl_iam" {
   function_name          = "issuing-crl"
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "issuing_crl"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
@@ -204,6 +211,7 @@ module "create_rsa_root_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "create_rsa_issuing_ca_lambda" {
@@ -227,6 +235,7 @@ module "create_rsa_issuing_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_root_ca_crl_lambda" {
@@ -252,6 +261,7 @@ module "rsa_root_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_issuing_ca_crl_lambda" {
@@ -277,6 +287,7 @@ module "rsa_issuing_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "rsa_tls_cert_lambda" {
@@ -302,6 +313,7 @@ module "rsa_tls_cert_lambda" {
   allowed_invocation_principals   = var.aws_principals
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
 module "cloudfront_certificate" {
@@ -328,6 +340,7 @@ module "ca_cloudfront" {
   certificate_arn             = module.cloudfront_certificate[0].certificate_arn
   environment                 = var.env
   zone_id                     = var.hosted_zone_id
+  web_acl_id                  = var.cloudfront_web_acl_id
 }
 
 module "step-function-role" {
@@ -338,6 +351,7 @@ module "step-function-role" {
   env                    = var.env
   function_name          = "ca"
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "state"
   assume_role_policy     = "state"
@@ -384,7 +398,7 @@ module "scheduler" {
 module "db-reader-role" {
   # IAM role and policy for DynamoDB reader from other AWS account
   source = "./modules/terraform-aws-ca-iam"
-  count  = var.aws_principals == [] ? 0 : 1
+  count  = length(var.aws_principals) > 0 ? 1 : 0
 
   project            = var.project
   env                = var.env
@@ -408,4 +422,7 @@ module "sns_ca_notifications" {
   email_subscriptions           = var.sns_email_subscriptions
   lambda_subscriptions          = var.sns_lambda_subscriptions
   sqs_subscriptions             = var.sns_sqs_subscriptions
+  sns_policy                    = var.sns_policy
+  sns_policy_template           = var.sns_policy_template
+  workload_account_id           = var.workload_account_id
 }

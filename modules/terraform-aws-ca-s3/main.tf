@@ -85,6 +85,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle" {
   rule {
     id = "StandardRotation"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = var.ia_transition
       storage_class = "STANDARD_IA"

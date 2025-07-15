@@ -123,6 +123,11 @@ variable "subscription_filter_destination" {
   default     = ""
 }
 
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
+
 variable "timeout" {
   description = "Amount of time Lambda Function has to run in seconds"
   default     = 180

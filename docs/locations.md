@@ -23,12 +23,21 @@ See [Revocation](revocation.md) for details of how to enable public CRLs and CA 
 
 ![CRL distribution point](assets/images/cdp.png?raw=true)
 
-## CRL Distribution Point (CDP)
+## CRL Distribution Point (CDP) - DER format
 
 | environment | hosted zone domain |                                       CDP - Root CA                                        |                                         CDP - Issuing CA                                         |
 |-------------|:------------------:|:------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------:|
 | dev *       | dev.ca.celidor.io  |                    http://dev.ca.celidor.io/serverless-root-ca-dev.crl                     |                      http://dev.ca.celidor.io/serverless-issuing-ca-dev.crl                      |
 | prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crl](https://ca.celidor.io/serverless-root-ca.crl) | [http://ca.celidor.io/serverless-issuing-ca.crl](https://ca.celidor.io/serverless-issuing-ca.crl) |
+
+* `dev` environment not deployed, for illustration only
+
+## CRL - PEM format
+
+| environment | hosted zone domain |                                       Root CA                                        |                                         Issuing CA                                         |
+|-------------|:------------------:|:------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------:|
+| dev *       | dev.ca.celidor.io  |                    http://dev.ca.celidor.io/serverless-root-ca-dev.crl.pem                     |                      http://dev.ca.celidor.io/serverless-issuing-ca-dev.crl.pem                      |
+| prod        |   ca.celidor.io    | [http://ca.celidor.io/serverless-root-ca.crl.pem](https://ca.celidor.io/serverless-root-ca.crl.pem) | [http://ca.celidor.io/serverless-issuing-ca.crl.pem](https://ca.celidor.io/serverless-issuing-ca.crl.pem) |
 
 * `dev` environment not deployed, for illustration only
 

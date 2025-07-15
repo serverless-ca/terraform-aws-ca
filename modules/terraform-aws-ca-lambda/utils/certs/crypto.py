@@ -190,3 +190,9 @@ def certificate_metadata(common_name, csr, passphrase=False, lifetime=1):
     }
 
     return certificate_json
+
+
+def crypto_convert_crl_to_pem(crl_der):
+    """Converts CRL from DER to PEM format"""
+    crl = x509.load_der_x509_crl(crl_der)
+    return crl.public_bytes(serialization.Encoding.PEM).decode("utf-8")

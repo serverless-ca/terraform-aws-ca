@@ -18,6 +18,12 @@ locals {
     commonName           = "My Company Root CA"
     pathLengthConstraint = 1
   }
+
+  additional_dynamodb_tags = {
+    "BackupPolicy" = "ca-prod"
+  }
+
+  additional_s3_tags = {
+    "BackupPolicy" = "ca-prod"
+  }
 }
-
-

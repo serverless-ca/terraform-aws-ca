@@ -1,8 +1,3 @@
-variable "tags" {
-  type    = map(string)
-  default = {}
-}
-
 variable "bucket_prefix" {
   description = "first part of bucket name to ensure uniqueness, if left blank a random suffix will be used instead"
   default     = ""
@@ -143,3 +138,9 @@ variable "abort_uploads" {
   description = "Days at which to abort multipart uploads if lifecycle policy set"
   default     = 2
 }
+
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
+

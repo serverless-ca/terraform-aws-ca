@@ -16,6 +16,7 @@ resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "Static web site for ${local.domain_name}"
+  web_acl_id          = var.web_acl_id
   default_root_object = "index.html"
 
   aliases = [var.domain_prefix == "" ? var.base_domain : "${var.domain_prefix}.${var.base_domain}"]
@@ -26,7 +27,7 @@ resource "aws_cloudfront_distribution" "website" {
     target_origin_id           = "${local.domain_ref}-${var.environment}"
     origin_request_policy_id   = aws_cloudfront_origin_request_policy.policy.id
     response_headers_policy_id = aws_cloudfront_response_headers_policy.policy.id
-    cache_policy_id            = aws_cloudfront_cache_policy.policy.id
+    cache_policy_id            = data.aws_cloudfront_cache_policy.disabled.id
     viewer_protocol_policy     = "allow-all"
   }
 

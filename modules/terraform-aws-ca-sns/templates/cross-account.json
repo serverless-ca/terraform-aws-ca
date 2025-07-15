@@ -1,9 +1,9 @@
 {
   "Version": "2012-10-17",
-  "Id": "allow_account_access_to_topic_policy",
+  "Id": "CrossAccountPolicy",
   "Statement": [
     {
-      "Sid": "allow_account_access_to_topic",
+      "Sid": "CaAccount",
       "Effect": "Allow",
       "Principal": {
         "AWS": "*"
@@ -27,12 +27,14 @@
       }
     },
     {
-      "Sid": "allow_eventbridge_access_to_topic",
+      "Sid": "WorkloadAccountSubscription",
       "Effect": "Allow",
       "Principal": {
-        "Service": "events.amazonaws.com"
+        "AWS": "arn:aws:iam::${workload_account_id}:root"
       },
-      "Action": "sns:Publish",
+      "Action": [
+        "sns:Subscribe"
+      ],
       "Resource": "arn:aws:sns:${region}:${account_id}:${sns_topic_name}"
     }
   ]
