@@ -56,7 +56,7 @@ If you don't specify and DNS names by omitting the optional `sans` entry within 
 
 If you specify `sans` these will take precedence over the common name.
 
-Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.
+Valid DNS, URI, and IP entries will be included in the Subject Alternative Name X.509 certificate extension.
 
 ## GitOps
 
