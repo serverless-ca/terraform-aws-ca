@@ -127,7 +127,7 @@ class CsrInfo:
     subject: Subject
     lifetime: int = 30
 
-    sans: list[str] = field(init=True, repr=True, default_factory=list)
+    sans: list[str] = field(init=True, repr=True, default_factory=list)  # Can be DNS, IP, or URI
     _sans: list[str] = field(init=False, repr=False)
 
     purposes: list[str] = field(init=True, repr=True, default_factory=list)

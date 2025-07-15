@@ -102,7 +102,7 @@ def ca_kms_sign_ca_certificate_request(
         .not_valid_before(datetime.now(timezone.utc))
         .not_valid_after(datetime.now(timezone.utc) + timedelta(days=lifetime))
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_public_key(ca_cert.public_key()), critical=False)
         .add_extension(
             x509.KeyUsage(
                 digital_signature=True,
@@ -297,7 +297,7 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
             critical=True,
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(public_key), critical=False)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_public_key(public_key), critical=False)
         .sign(private_key, crypto_hash_class(kms_signing_algorithm))
     )
 
@@ -358,7 +358,7 @@ def ca_kms_publish_crl(
     builder = builder.issuer_name(x509.Name(issuer))
     builder = builder.last_update(datetime.today())
     builder = builder.next_update(datetime.today() + time_delta)
-    builder = builder.add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
+    builder = builder.add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_public_key(public_key), critical=False)
     builder = builder.add_extension(x509.CRLNumber(crl_number), critical=False)
 
     for revoked_cert in revoked_certs:

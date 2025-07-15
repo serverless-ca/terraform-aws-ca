@@ -59,7 +59,7 @@ Otherwise:
 ## Local Python development - MacOS / Linux
 * create virtual environment
 ```bash
-cd modules\terraform-aws-ca-lambda
+cd modules/terraform-aws-ca-lambda
 python -m venv .venv
 ```
 * activate virtual environment
@@ -67,7 +67,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 * install dependencies
-```powershell
+```bash
 pip install -r requirements-dev.txt
 ```
 * set environment variables for dev environment

@@ -11,6 +11,7 @@ from .crypto_kms_classes import (
     AWSKMSRSAPrivateKey,
 )
 from cryptography.x509 import DNSName, IPAddress, UniformResourceIdentifier
+from validators import domain as domain_validator
 
 
 def crypto_cert_info(cert, common_name):
@@ -30,6 +31,14 @@ def crypto_ca_key_info(public_key, kms_key_id, common_name):
     }
 
 
+def is_valid_ip(s):
+    try:
+        ipaddress.ip_address(s)
+        return True
+    except ValueError:
+        return False
+
+
 def crypto_cert_request_info(csr_cert, csr_info):
     """Creates a dictionary with the information needed to sign a certificate"""
     # get common name from csr_info
@@ -42,16 +51,22 @@ def crypto_cert_request_info(csr_cert, csr_info):
     # convert to x509 cryptography format
     x509_sans = []
     for san in sans:
-        try:
-            # Try IP address
+        print(f"Processing SAN: {san}")
+        if "://" in san:
+            # URI
+            x509_sans.append(UniformResourceIdentifier(san))
+        elif is_valid_ip(san):
+            # IP Address
             x509_sans.append(IPAddress(ipaddress.ip_address(san)))
-        except ValueError:
-            if "://" in san:
-                # URI
-                x509_sans.append(UniformResourceIdentifier(san))
-            else:
-                # DNS
-                x509_sans.append(DNSName(san))
+        elif san.startswith("*.") and domain_validator(san[2:]):
+            # Allow wildcard DNS SANs
+            x509_sans.append(DNSName(san))
+        elif domain_validator(san):
+            # Allow valid DNS names
+            x509_sans.append(DNSName(san))
+        else:
+            # Invalid SAN
+            raise ValueError(f"Invalid SAN {san} excluded from SANs")
 
     return {
         "CommonName": common_name,
