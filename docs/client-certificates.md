@@ -113,6 +113,10 @@ python utils/generate-csr.py --server
 ```
  csr_files = ["server-cert-request.csr"]
 ```
+* alternatively, so you don't need to update this list in future:
+```
+csr_files = tolist(fileset("${path.module}/certs/dev/csrs", "*.csr"))
+```
 * apply Terraform
 * start the CA Step Function
 * certificates will be issued and can be downloaded from the DynamoDB table
