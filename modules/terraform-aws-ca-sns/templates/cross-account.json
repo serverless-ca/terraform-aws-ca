@@ -33,6 +33,7 @@
         "AWS": "arn:aws:iam::${workload_account_id}:root"
       },
       "Action": [
+        "sns:ListSubscriptionsByTopic",
         "sns:Subscribe"
       ],
       "Resource": "arn:aws:sns:${region}:${account_id}:${sns_topic_name}"
