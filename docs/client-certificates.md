@@ -52,7 +52,7 @@ To specify both client and server authentication extensions:
 If `purposes` isn't specified, the certificate will only include the client authentication extension.
 
 ## Subject Alternative Names
-If you don't specify and DNS names by omitting the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
+If you don't specify any DNS names, either by including in the CSR, or by the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
 
 If you specify `sans` these will take precedence over the common name.
 
