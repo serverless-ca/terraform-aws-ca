@@ -33,7 +33,7 @@ jobs:
           echo "LOWER_REPO_NAME=$(basename ${{ github.repository }} | tr [:upper:] [:lower:])" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@b47578312673ae6fa5b5096b330d9fbac3d116df # v4.2.1
+        uses: aws-actions/configure-aws-credentials@59b441846ad109fa4a1549b73ef4e149c4bfb53b # v4.3.0
         with:
           role-to-assume: "${{ secrets.AWS_BACKUP_ROLE_PREFIX }}${{ env.LOWER_REPO_NAME }}"
           aws-region: "${{ secrets.AWS_REGION }}"
