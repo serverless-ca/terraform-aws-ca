@@ -335,6 +335,7 @@ variable "sse_algorithm" {
     condition = contains([
       "AES256",
       "aws:kms",
+      "",
     ], var.sse_algorithm)
     error_message = "Invalid sse_algorithm"
   }
