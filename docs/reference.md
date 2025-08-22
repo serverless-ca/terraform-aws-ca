@@ -93,6 +93,7 @@
 | <a name="input_sns_policy"></a> [sns\_policy](#input\_sns\_policy) | A string containing the SNS policy, if used | `string` | `""` | no |
 | <a name="input_sns_policy_template"></a> [sns\_policy\_template](#input\_sns\_policy\_template) | Name of SNS policy template file, if used | `string` | `"default"` | no |
 | <a name="input_sns_sqs_subscriptions"></a> [sns\_sqs\_subscriptions](#input\_sns\_sqs\_subscriptions) | A map of SQS names to arns to subscribe to the SNS topic | `map(string)` | `{}` | no |
+| <a name="input_sse_algorithm"></a> [sse\_algorithm](#input\_sse\_algorithm) | Server side encryption algorithm for internal S3 bucket object upload | `string` | `""` | no |
 | <a name="input_subscription_filter_destination"></a> [subscription\_filter\_destination](#input\_subscription\_filter\_destination) | CloudWatch log subscription filter destination, last section of ARN | `string` | `""` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | see also additional\_s3\_tags, additional\_dynamodb\_tags, additional\_lambda\_tags | `map(string)` | `{}` | no |
 | <a name="input_timeout"></a> [timeout](#input\_timeout) | Amount of time Lambda Function has to run in seconds | `number` | `180` | no |
