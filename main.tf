@@ -87,7 +87,7 @@ resource "aws_s3_object" "cert_info" {
   content_type = "application/json"
   source       = "${path.cwd}/certs/${var.env}/${each.key}.json"
   source_hash  = filemd5("${path.cwd}/certs/${var.env}/${each.key}.json")
-  kms_key_id   = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  kms_key_id   = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
 }
 
 resource "aws_s3_object" "csrs" {
@@ -100,7 +100,7 @@ resource "aws_s3_object" "csrs" {
   content_type = "text/plain"
   source       = "${path.cwd}/certs/${var.env}/csrs/${each.key}"
   source_hash  = filemd5("${path.cwd}/certs/${var.env}/csrs/${each.key}")
-  kms_key_id   = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  kms_key_id   = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
 }
 
 module "create_root_ca_iam" {
