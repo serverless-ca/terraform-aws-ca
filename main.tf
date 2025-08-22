@@ -81,26 +81,28 @@ resource "aws_s3_object" "cert_info" {
   # JSON files with details of certificates to be issued and revoked
   for_each = toset(var.cert_info_files)
 
-  key          = "${each.key}.json"
-  bucket       = module.internal_s3.s3_bucket_name
-  acl          = "private"
-  content_type = "application/json"
-  source       = "${path.cwd}/certs/${var.env}/${each.key}.json"
-  source_hash  = filemd5("${path.cwd}/certs/${var.env}/${each.key}.json")
-  kms_key_id   = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  key                    = "${each.key}.json"
+  bucket                 = module.internal_s3.s3_bucket_name
+  acl                    = "private"
+  content_type           = "application/json"
+  source                 = "${path.cwd}/certs/${var.env}/${each.key}.json"
+  source_hash            = filemd5("${path.cwd}/certs/${var.env}/${each.key}.json")
+  kms_key_id             = var.sse_algorithm == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  server_side_encryption = var.sse_algorithm == "" ? null : var.sse_algorithm
 }
 
 resource "aws_s3_object" "csrs" {
   # Certificate Signing Request (CSR) files for processing
   for_each = toset(var.csr_files)
 
-  key          = "csrs/${each.key}"
-  bucket       = module.internal_s3.s3_bucket_name
-  acl          = "private"
-  content_type = "text/plain"
-  source       = "${path.cwd}/certs/${var.env}/csrs/${each.key}"
-  source_hash  = filemd5("${path.cwd}/certs/${var.env}/csrs/${each.key}")
-  kms_key_id   = var.kms_key_alias == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  key                    = "csrs/${each.key}"
+  bucket                 = module.internal_s3.s3_bucket_name
+  acl                    = "private"
+  content_type           = "text/plain"
+  source                 = "${path.cwd}/certs/${var.env}/csrs/${each.key}"
+  source_hash            = filemd5("${path.cwd}/certs/${var.env}/csrs/${each.key}")
+  kms_key_id             = var.sse_algorithm == "" ? module.kms_tls_keygen.kms_alias_target_key_arn : null
+  server_side_encryption = var.sse_algorithm == "" ? null : var.sse_algorithm
 }
 
 module "create_root_ca_iam" {
