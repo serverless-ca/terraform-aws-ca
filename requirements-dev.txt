@@ -3,13 +3,13 @@ asn1crypto == 1.5.1
 assertpy == 1.1
 bandit == 1.8.6
 black == 25.1.0
-boto3 == 1.39.9
+boto3 == 1.40.15
 certvalidator == 0.11.1
-cryptography == 45.0.5
+cryptography == 45.0.6
 dataclasses-json == 0.6.7
-prospector == 1.17.2
-pytest == 8.4.0
-requests == 2.32.4
+prospector == 1.17.3
+pytest == 8.4.1
+requests == 2.32.5
 structlog == 25.4.0
 validators == 0.35.0
 
