@@ -326,6 +326,21 @@ variable "sns_sqs_subscriptions" {
   default     = {}
 }
 
+variable "sse_algorithm" {
+  type        = string
+  description = "Server side encryption algorithm for internal S3 bucket object upload"
+  default     = ""
+
+  validation {
+    condition = contains([
+      "AES256",
+      "aws:kms",
+      "",
+    ], var.sse_algorithm)
+    error_message = "Invalid sse_algorithm"
+  }
+}
+
 variable "subscription_filter_destination" {
   type        = string
   description = "CloudWatch log subscription filter destination, last section of ARN"
