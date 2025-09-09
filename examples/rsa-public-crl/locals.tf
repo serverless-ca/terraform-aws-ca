@@ -20,10 +20,10 @@ locals {
   }
 
   additional_dynamodb_tags = {
-    "BackupPolicy" = "ca-prod"
+    "BackupPolicy" = "ca-prod-important"
   }
 
   additional_s3_tags = {
-    "BackupPolicy" = "ca-prod"
+    "BackupPolicy" = "ca-prod-important"
   }
 }
