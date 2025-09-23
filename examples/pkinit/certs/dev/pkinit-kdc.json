@@ -1,0 +1,13 @@
+[
+  {
+    "common_name": "krbtgt/EXAMPLE.COM@EXAMPLE.COM",
+    "organization": "Example Corp",
+    "organizational_unit": "IT Department",
+    "country": "US",
+    "state": "California",
+    "locality": "San Francisco",
+    "lifetime": 3650,
+    "profile": "pkinit_kdc",
+    "force_issue": true
+  }
+]

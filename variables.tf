@@ -370,3 +370,23 @@ variable "xray_enabled" {
   description = "Whether to enable active tracing with AWS X-Ray"
   default     = true
 }
+
+variable "certificate_profiles" {
+  type = map(object({
+    description                = string
+    key_usage                  = optional(map(bool), {})
+    extended_key_usage         = optional(list(string), [])
+    basic_constraints          = optional(map(any), null)
+    subject_alt_names          = optional(list(string), null)
+    certificate_policies       = optional(list(string), null)
+    crl_distribution_points    = optional(list(string), null)
+    authority_info_access      = optional(list(map(string)), null)
+    custom_extensions          = optional(list(map(any)), null)
+    lifetime_days              = optional(number, null)
+    max_lifetime_days          = optional(number, null)
+    require_common_name        = optional(bool, true)
+    allow_wildcard_sans        = optional(bool, false)
+  }))
+  description = "Custom certificate profiles for different use cases (e.g., PKINIT, TLS, etc.)"
+  default     = {}
+}

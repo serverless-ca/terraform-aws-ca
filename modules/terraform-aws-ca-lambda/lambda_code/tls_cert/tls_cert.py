@@ -48,6 +48,7 @@ class Request:
     force_issue: Optional[bool] = False
     cert_bundle: Optional[bool] = False
     ca_chain_only: Optional[bool] = False
+    profile: Optional[str] = None  # Certificate profile name
 
 
 @dataclass_json(letter_case=LetterCase.PASCAL)
@@ -187,10 +188,11 @@ def create_csr_info(event) -> CsrInfo:
     lifetime = int(event.get("lifetime", 30))
     purposes = event.get("purposes")
     sans = event.get("sans")
+    profile = event.get("profile")
 
     subject = create_csr_subject(event)
 
-    csr_info = CsrInfo(subject, lifetime=lifetime, purposes=purposes, sans=sans)
+    csr_info = CsrInfo(subject, lifetime=lifetime, purposes=purposes, sans=sans, profile=profile)
 
     return csr_info
 

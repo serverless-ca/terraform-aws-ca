@@ -1,0 +1,24 @@
+[
+  {
+    "common_name": "user@EXAMPLE.COM",
+    "organization": "Example Corp",
+    "organizational_unit": "IT Department",
+    "country": "US",
+    "state": "California",
+    "locality": "San Francisco",
+    "lifetime": 365,
+    "profile": "pkinit_client",
+    "force_issue": true
+  },
+  {
+    "common_name": "service@EXAMPLE.COM",
+    "organization": "Example Corp",
+    "organizational_unit": "IT Department",
+    "country": "US",
+    "state": "California",
+    "locality": "San Francisco",
+    "lifetime": 365,
+    "profile": "pkinit_client",
+    "force_issue": true
+  }
+]

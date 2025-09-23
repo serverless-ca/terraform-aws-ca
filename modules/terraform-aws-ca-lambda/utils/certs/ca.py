@@ -16,6 +16,11 @@ from .crypto import (
     crypto_hash_class,
 )
 from .types import Subject
+from .profiles import (
+    profile_manager,
+    apply_profile_to_certificate_builder,
+    create_pkinit_principal_san,
+)
 
 
 def ca_name(project, env_name, hierarchy):
@@ -140,19 +145,25 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
-    purposes = cert_request_info["Purposes"]
-
+def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info, domain=None):
+    """Build certificate with optional profile support"""
     x509_subject = tls_cert_construct_subject_name(csr_cert, cert_request_info)
-
-    extended_key_usage_oids = []
-    for purpose in purposes:
-        if purpose == "server_auth":
-            extended_key_usage_oids.append(ExtendedKeyUsageOID.SERVER_AUTH)
-        if purpose == "client_auth":
-            extended_key_usage_oids.append(ExtendedKeyUsageOID.CLIENT_AUTH)
-
-    return (
+    
+    # Get profile if specified
+    profile_name = cert_request_info.get("Profile")
+    profile = None
+    if profile_name:
+        profile = profile_manager.get_profile(profile_name)
+        if profile:
+            print(f"Using certificate profile: {profile_name}")
+            # Override lifetime if profile specifies it
+            if profile.lifetime_days:
+                lifetime = min(lifetime, profile.lifetime_days)
+        else:
+            print(f"Warning: Profile '{profile_name}' not found, using default certificate extensions")
+    
+    # Start building certificate
+    builder = (
         x509.CertificateBuilder()
         .subject_name(x509_subject)
         .issuer_name(ca_cert.subject)
@@ -160,30 +171,64 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
         .serial_number(x509.random_serial_number())
         .not_valid_before((datetime.now(timezone.utc)) - delta)
         .not_valid_after((datetime.now(timezone.utc)) + timedelta(days=lifetime))
-        .add_extension(
-            x509.KeyUsage(
-                digital_signature=True,
-                key_cert_sign=False,
-                crl_sign=False,
-                content_commitment=False,
-                key_encipherment=True,
-                data_encipherment=False,
-                key_agreement=False,
-                encipher_only=False,
-                decipher_only=False,
-            ),
-            critical=True,
-        )
-        .add_extension(
-            x509.ExtendedKeyUsage(extended_key_usage_oids),
-            critical=False,
-        )
-        .add_extension(
-            x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
-            critical=False,
-        )
-        .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
+    
+    # Apply profile if available, otherwise use default extensions
+    if profile:
+        # Get SANs from cert_request_info
+        x509_sans = cert_request_info.get("x509Sans", [])
+        sans = [san.value for san in x509_sans] if x509_sans else []
+        
+        # Apply profile extensions
+        builder = apply_profile_to_certificate_builder(builder, profile, domain, sans)
+        
+        # Add PKINIT principal SAN if this is a PKINIT profile
+        if profile_name in ["pkinit_kdc", "pkinit_client"]:
+            # Extract principal from common name or use it directly
+            principal = cert_request_info.get("CommonName", "")
+            if principal and "@" in principal:
+                pkinit_san = create_pkinit_principal_san(principal)
+                builder = builder.add_extension(pkinit_san, critical=False)
+    else:
+        # Default certificate extensions (backward compatibility)
+        purposes = cert_request_info["Purposes"]
+        extended_key_usage_oids = []
+        for purpose in purposes:
+            if purpose == "server_auth":
+                extended_key_usage_oids.append(ExtendedKeyUsageOID.SERVER_AUTH)
+            if purpose == "client_auth":
+                extended_key_usage_oids.append(ExtendedKeyUsageOID.CLIENT_AUTH)
+
+        builder = (
+            builder
+            .add_extension(
+                x509.KeyUsage(
+                    digital_signature=True,
+                    key_cert_sign=False,
+                    crl_sign=False,
+                    content_commitment=False,
+                    key_encipherment=True,
+                    data_encipherment=False,
+                    key_agreement=False,
+                    encipher_only=False,
+                    decipher_only=False,
+                ),
+                critical=True,
+            )
+            .add_extension(
+                x509.ExtendedKeyUsage(extended_key_usage_oids),
+                critical=False,
+            )
+            .add_extension(
+                x509.CertificatePolicies([PolicyInformation(ObjectIdentifier("2.23.140.1.2.1"), None)]),
+                critical=False,
+            )
+        )
+    
+    # Always add Subject Key Identifier
+    builder = builder.add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
+    
+    return builder
 
 
 # pylint:disable=too-many-arguments,too-many-positional-arguments,too-many-locals
@@ -207,9 +252,11 @@ def ca_kms_sign_tls_certificate_request(
 
     delta = timedelta(minutes=5)  # time delta to avoid clock skew issues
 
-    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info)
+    cert = ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info, domain)
 
-    if len(x509_dns_names) > 0:
+    # Add SAN extension only if not using a profile (backward compatibility)
+    profile_name = cert_request_info.get("Profile")
+    if not profile_name and len(x509_dns_names) > 0:
         cert = cert.add_extension(
             x509.SubjectAlternativeName(x509_dns_names),
             critical=False,

@@ -36,6 +36,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
     # get values from csr_info
     purposes = csr_info.purposes
     sans = csr_info.sans
+    profile = csr_info.profile
 
     # convert to x509 cryptography format
     x509_sans = []
@@ -54,6 +55,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
         "Purposes": purposes,
         "State": csr_info.subject.state,
         "x509Sans": x509_sans,
+        "Profile": profile,
     }
 
 

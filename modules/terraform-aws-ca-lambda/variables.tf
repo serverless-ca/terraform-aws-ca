@@ -137,3 +137,9 @@ variable "xray_enabled" {
   description = "Whether to enable active tracing with AWS X-Ray"
   default     = true
 }
+
+variable "certificate_profiles" {
+  description = "Custom certificate profiles for different use cases"
+  type        = map(any)
+  default     = {}
+}

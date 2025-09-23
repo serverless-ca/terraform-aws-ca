@@ -100,6 +100,7 @@ def filter_and_validate_sans(common_name: str, sans: list[str]) -> list[str]:
 class CsrInfo:
     subject: Subject
     lifetime: int = 30
+    profile: Optional[str] = None  # Certificate profile name
 
     sans: list[str] = field(init=True, repr=True, default_factory=list)
     _sans: list[str] = field(init=False, repr=False)

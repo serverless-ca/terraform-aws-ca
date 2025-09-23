@@ -213,6 +213,7 @@ module "create_rsa_root_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  certificate_profiles            = var.certificate_profiles
   tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
@@ -237,6 +238,7 @@ module "create_rsa_issuing_ca_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  certificate_profiles            = var.certificate_profiles
   tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
@@ -263,6 +265,7 @@ module "rsa_root_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  certificate_profiles            = var.certificate_profiles
   tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
@@ -289,6 +292,7 @@ module "rsa_issuing_ca_crl_lambda" {
   public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  certificate_profiles            = var.certificate_profiles
   tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 
@@ -315,6 +319,7 @@ module "rsa_tls_cert_lambda" {
   allowed_invocation_principals   = var.aws_principals
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
+  certificate_profiles            = var.certificate_profiles
   tags                            = merge(var.tags, var.additional_lambda_tags)
 }
 

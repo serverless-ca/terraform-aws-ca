@@ -13,6 +13,7 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 * 100% serverless
 * CA private keys stored in [FIPS 140-2 level 3 certified hardware](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3)
 * Wide range of [configuration options](options.md)
+* Flexible [certificate profiles](certificate-profiles.md) for different use cases (PKINIT, TLS, custom)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
 ![Alt text](assets/images/ca-architecture-options.png?raw=true "CA architecture")
