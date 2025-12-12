@@ -30,6 +30,8 @@ Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
 
 > 📖 [AWS Application Load Balancer mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/aws-application-load-balancer-mtls-with-open-source-cloud-ca-277cb40d60c7)
 
+> 📖 [Amazon CloudFront mTLS with open-source serverless CA](https://medium.com/@paulschwarzenberger/amazon-cloudfront-mtls-with-open-source-serverless-ca-f49ce2bc9874)
+
 > 📖 [AWS IAM Roles Anywhere with open-source private CA](https://medium.com/@paulschwarzenberger/aws-iam-roles-anywhere-with-open-source-private-ca-6c0ec5758b2b)
 
 > 📖 [API Gateway mTLS with open-source cloud CA](https://medium.com/@paulschwarzenberger/api-gateway-mtls-with-open-source-cloud-ca-3362438445de)

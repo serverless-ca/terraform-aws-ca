@@ -58,6 +58,7 @@ nav:
   - How-to guides:
     - API Gateway: how-to-guides/api.md 
     - Application load balancer: how-to-guides/alb.md
+    - CloudFront: how-to-guides/cloudfront.md
     - IAM Roles Anywhere: how-to-guides/iam.md
     - Revoking certificates: how-to-guides/crl.md
   - Terraform reference: reference.md
