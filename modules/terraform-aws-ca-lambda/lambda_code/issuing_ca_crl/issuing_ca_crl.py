@@ -24,7 +24,7 @@ def list_revoked_certs_from_db(project, env_name, ca_slug):
     revoked_certs_db = db_list_revoked_certificates(project, env_name)
 
     # exclude revoked CA certificates
-    # TO DO: only include certs in database revoked by this Issuing CA
+    # TODO: only include certs in database revoked by this Issuing CA
     revoked_certs_db = [cert for cert in revoked_certs_db if cert["CommonName"]["S"] != ca_slug]
 
     revoked_certs = []
