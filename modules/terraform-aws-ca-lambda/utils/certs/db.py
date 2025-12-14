@@ -207,7 +207,7 @@ def db_revocation_date(project, env_name, common_name, serial_number):
 def db_list_revoked_certificates(project, env_name):
     """
     Scans DynamoDB table for certificates with Revoked attribute.
-    Returns list of certificates"
+    Returns list of certificates
     """
     client = boto3.client("dynamodb")
 
