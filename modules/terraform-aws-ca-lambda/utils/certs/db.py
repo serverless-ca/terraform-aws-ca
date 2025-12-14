@@ -202,3 +202,20 @@ def db_revocation_date(project, env_name, common_name, serial_number):
     )
 
     return now
+
+
+def db_list_revoked_certificates(project, env_name):
+    """
+    Scans DynamoDB table for certificates with Revoked attribute.
+    Returns list of certificates"
+    """
+    client = boto3.client("dynamodb")
+
+    table_name = db_get_table_name(project, env_name)
+
+    print(f"scanning DynamoDB table {table_name} for revoked certificates")
+    response = client.scan(
+        TableName=table_name,
+        FilterExpression="attribute_exists(Revoked)",
+    )
+    return response["Items"]
