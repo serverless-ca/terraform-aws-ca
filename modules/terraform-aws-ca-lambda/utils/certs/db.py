@@ -214,8 +214,16 @@ def db_list_revoked_certificates(project, env_name):
     table_name = db_get_table_name(project, env_name)
 
     print(f"scanning DynamoDB table {table_name} for revoked certificates")
-    response = client.scan(
-        TableName=table_name,
-        FilterExpression="attribute_exists(Revoked)",
-    )
-    return response["Items"]
+    items = []
+    scan_kwargs = {
+        "TableName": table_name,
+        "FilterExpression": "attribute_exists(Revoked)",
+    }
+    while True:
+        response = client.scan(**scan_kwargs)
+        items.extend(response.get("Items", []))
+        if "LastEvaluatedKey" in response:
+            scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+        else:
+            break
+    return items
