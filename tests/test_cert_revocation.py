@@ -25,13 +25,13 @@ structlog.configure(
 
 log = structlog.get_logger()
 
+common_name = "pipeline-test-certificate-revoked"
+
 
 def test_certificate_revoked():
     """
     Test certificate revoked by CA
     """
-    common_name = "pipeline-test-certificate-revoked"
-
     # Get KMS details for key generation KMS key
     key_alias, kms_arn = get_kms_details("-tls-keygen")
     log.info("generating key pair using KMS key", kms_key_alias=key_alias, kms_key_arn=kms_arn)
@@ -147,3 +147,44 @@ def test_certificate_revoked():
     assert_that(crl.get_revoked_certificate_by_serial_number(int(serial_number)).serial_number).is_equal_to(
         int(serial_number)
     )
+
+
+def test_crl_includes_revoked_certs_from_db():
+    """
+    Test CRL includes revoked certificates from database
+    """
+
+    # Identify S3 buckets
+    external_bucket_name = get_s3_bucket("external")
+    internal_bucket_name = get_s3_bucket()
+
+    # Get current CRL after revocation from previous test, not listed in revoked.json
+    objects = list_s3_object_keys(external_bucket_name)
+    crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
+    crl_data = get_s3_object(external_bucket_name, crl_file_name)
+    crl = load_der_x509_crl(crl_data)
+    log.info(
+        "retrieved CRL (pre-revocation)",
+        bucket=external_bucket_name,
+        key=crl_file_name,
+        revoked_certificate_count=len(crl),
+    )
+    number_of_revoked_certificates_before = len(crl)
+
+    # Invoke Issuing CA CRL Lambda function
+    function_name = get_lambda_name("issuing-ca-crl")
+    log.info("invoking lambda function", function_name=function_name)
+    response = invoke_lambda(function_name, {})
+
+    # Get CRL after revocation
+    crl_data = get_s3_object(external_bucket_name, crl_file_name)
+    crl = load_der_x509_crl(crl_data)
+    log.info(
+        "retrieved CRL (post-revocation)",
+        bucket=external_bucket_name,
+        key=crl_file_name,
+        revoked_certificate_count=len(crl),
+    )
+    number_of_revoked_certificates_after = len(crl)
+
+    assert_that(number_of_revoked_certificates_after).is_equal_to(number_of_revoked_certificates_before)
