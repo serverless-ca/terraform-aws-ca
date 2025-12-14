@@ -156,7 +156,6 @@ def test_crl_includes_revoked_certs_from_db():
 
     # Identify S3 buckets
     external_bucket_name = get_s3_bucket("external")
-    internal_bucket_name = get_s3_bucket()
 
     # Get current CRL after revocation from previous test, not listed in revoked.json
     objects = list_s3_object_keys(external_bucket_name)
