@@ -173,7 +173,7 @@ def test_crl_includes_revoked_certs_from_db():
     # Invoke Issuing CA CRL Lambda function
     function_name = get_lambda_name("issuing-ca-crl")
     log.info("invoking lambda function", function_name=function_name)
-    response = invoke_lambda(function_name, {})
+    invoke_lambda(function_name, {})
 
     # Get CRL after revocation
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
