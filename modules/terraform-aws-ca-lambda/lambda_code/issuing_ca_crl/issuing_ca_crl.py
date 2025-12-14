@@ -30,7 +30,6 @@ def list_revoked_certs_from_db(project, env_name, ca_slug):
     revoked_certs = []
     for revoked_cert_db in revoked_certs_db:
         serial_number = revoked_cert_db["SerialNumber"]["S"]
-        common_name = revoked_cert_db["CommonName"]["S"]
         revocation_date_str = revoked_cert_db["Revoked"]["S"]
         # Parse the ISO format string to datetime object
         revocation_date = datetime.datetime.fromisoformat(revocation_date_str.replace("Z", "+00:00"))
