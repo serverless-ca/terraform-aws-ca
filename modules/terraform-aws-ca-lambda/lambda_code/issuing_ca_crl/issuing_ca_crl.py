@@ -31,8 +31,8 @@ def list_revoked_certs_from_db(project, env_name, ca_slug):
     for revoked_cert_db in revoked_certs_db:
         serial_number = revoked_cert_db["SerialNumber"]["S"]
         revocation_date_str = revoked_cert_db["Revoked"]["S"]
-        # Parse the ISO format string to datetime object
-        revocation_date = datetime.datetime.fromisoformat(revocation_date_str.replace("Z", "+00:00"))
+        # Parse the stored date string to datetime object using the correct format
+        revocation_date = datetime.datetime.strptime(revocation_date_str, "%Y-%m-%d %H:%M:%S")
         revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
         revoked_certs.append(revoked_cert)
 
