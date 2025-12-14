@@ -149,6 +149,7 @@ def test_certificate_revoked():
     )
 
 
+# This test must run after test_certificate_revoked
 def test_crl_includes_revoked_certs_from_db():
     """
     Test CRL includes revoked certificates from database
