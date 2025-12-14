@@ -8,6 +8,7 @@ from utils.certs.crypto import (
 from utils.certs.ca import ca_name, ca_kms_publish_crl, ca_get_ca_info
 from utils.certs.db import (
     db_list_certificates,
+    db_list_revoked_certificates,
     db_update_crl_number,
     db_revocation_date,
 )
@@ -18,8 +19,29 @@ import json
 import os
 
 
-def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
-    """Build list of revoked certificates for CRL"""
+def list_revoked_certs_from_db(project, env_name, ca_slug):
+    """List revoked certificates from DynamoDB"""
+    revoked_certs_db = db_list_revoked_certificates(project, env_name)
+
+    # exclude revoked CA certificates
+    # TODO: only include certs in database revoked by this Issuing CA
+    revoked_certs_db = [cert for cert in revoked_certs_db if cert["CommonName"]["S"] != ca_slug]
+
+    revoked_certs = []
+    for revoked_cert_db in revoked_certs_db:
+        serial_number = revoked_cert_db["SerialNumber"]["S"]
+        revocation_date_str = revoked_cert_db["Revoked"]["S"]
+        # Parse the stored date string to datetime object using the correct format
+        revocation_date = datetime.datetime.strptime(revocation_date_str, "%Y-%m-%d %H:%M:%S")
+        revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
+        revoked_certs.append(revoked_cert)
+
+    print(f"CA {ca_name(project, env_name, 'issuing')} has {len(revoked_certs)} revoked certificates from DB")
+    return revoked_certs
+
+
+def list_revoked_certs_from_s3(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
+    """List revoked certificates from S3"""
     # handle certificate revocation not enabled
     if not s3_download(external_s3_bucket_name, internal_s3_bucket_name, "revoked.json"):
         print("revoked.json not found")
@@ -38,8 +60,19 @@ def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, inte
         revoked_cert = crypto_revoked_certificate(serial_number, revocation_date)
         revoked_certs.append(revoked_cert)
 
-    print(f"CA {ca_name(project, env_name, 'issuing')} has {len(revoked_certs)} revoked certificates")
+    print(f"CA {ca_name(project, env_name, 'issuing')} has {len(revoked_certs)} revoked certificates from S3")
     return revoked_certs
+
+
+def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name, ca_slug):
+    revoked_certs_db = list_revoked_certs_from_db(project, env_name, ca_slug)
+    revoked_certs_s3 = list_revoked_certs_from_s3(project, env_name, external_s3_bucket_name, internal_s3_bucket_name)
+
+    # Use dict to deduplicate by serial number (keeps first occurrence)
+    unique_certs = {cert.serial_number: cert for cert in revoked_certs_db + revoked_certs_s3}
+
+    # Sort by serial number and return as list
+    return sorted(unique_certs.values(), key=lambda cert: cert.serial_number)
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
@@ -75,7 +108,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         ca_info,
         ca_key_info,
         timedelta,
-        build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name),
+        build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, internal_s3_bucket_name, ca_slug),
         db_update_crl_number(
             project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
         ),

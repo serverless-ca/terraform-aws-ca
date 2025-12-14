@@ -135,10 +135,38 @@ black --line-length 120 .
 prospector
 bandit -r lambda_code utils
 ```
+* Test Issuing CRL lambda
+```bash
+export AWS_DEFAULT_REGION="eu-west-2"
+export ENVIRONMENT_NAME="prod"
+export EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-prod"
+export INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-prod"
+ISSUING_CA_INFO=$(jq -n '{country: "GB", state: "London", lifetime: 3650, locality: "London", organization: "My Company", organizationalUnit: "Security Operations", commonName: "My Company Issuing CA", emailAddress: "secops@example.com", pathLengthConstraint: 0}')
+export ISSUING_CA_INFO
+export ISSUING_CRL_DAYS="1"
+export ISSUING_CRL_SECONDS="600"
+export MAX_CERT_LIFETIME="365"
+export PROJECT="serverless"
+export PUBLIC_CRL="enabled"
+ROOT_CA_INFO=$(jq -n '{}')
+export ROOT_CA_INFO
+export ROOT_CRL_DAYS="1"
+export ROOT_CRL_SECONDS="600"
+export SNS_TOPIC_ARN="arn:aws:sns:<REGION>:<ACCOUNT-ID>:serverless-ca-notifications-prod"
+```
+* test Lambda function
+```python
+from lambda_code.issuing_ca_crl.issuing_ca_crl import lambda_handler
+lambda_handler({},{})
+```
+* download and view CRL
+```
+curl -s http://ca.example.com/serverless-issuing-ca.crl | openssl crl -inform DER -text -noout
+```
 
 ## Local Python development - Windows
 * create virtual environment
-```bash
+```powershell
 cd modules\terraform-aws-ca-lambda
 python -m venv .venv
 ```
@@ -209,4 +237,30 @@ pytest -v .
 black --line-length 120 .
 prospector
 bandit -r lambda_code utils
+```
+* Test Issuing CRL lambda
+```powershell
+$Env:AWS_DEFAULT_REGION="eu-west-2"
+$Env:ENVIRONMENT_NAME="prod"
+$Env:EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-prod"
+$Env:INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-prod"
+$Env:ISSUING_CA_INFO=(@{country = "GB"; state = "London"; lifetime = 3650; locality = "London"; organization = "serverless"; organizationalUnit = "Security Operations"; commonName = "My Company Issuing CA"; emailAddress = "secops@example.com"; pathLengthConstraint = 0} | ConvertTo-Json)
+$Env:ISSUING_CRL_DAYS="1"
+$Env:ISSUING_CRL_SECONDS="600"
+$Env:MAX_CERT_LIFETIME="365"
+$Env:PROJECT="serverless"
+$Env:PUBLIC_CRL="enabled"
+$Env:ROOT_CA_INFO=(@{} | ConvertTo-Json)
+$Env:ROOT_CRL_DAYS="1"
+$Env:ROOT_CRL_SECONDS="600"
+$Env:SNS_TOPIC_ARN="arn:aws:sns:<REGION>:<ACCOUNT-ID>:serverless-ca-notifications-prod"
+```
+* test Lambda function
+```python
+from lambda_code.issuing_ca_crl.issuing_ca_crl import lambda_handler
+lambda_handler({},{})
+```
+* download and view CRL
+```
+curl -s http://ca.example.com/serverless-issuing-ca.crl | openssl crl -inform DER -text -noout
 ```
