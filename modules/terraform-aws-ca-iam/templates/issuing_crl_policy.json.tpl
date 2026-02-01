@@ -96,6 +96,16 @@
       "Resource": [
         "${internal_s3_bucket_arn}/*"
       ]
+    },
+    {
+      "Sid": "SNSPublish",
+      "Effect": "Allow",
+      "Action": [
+        "sns:Publish"
+      ],
+      "Resource": [
+        "${sns_topic_arn}"
+      ]
     }
   ]
 }

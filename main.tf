@@ -171,6 +171,7 @@ module "issuing_crl_iam" {
   policy                 = "issuing_crl"
   external_s3_bucket_arn = module.external_s3.s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
   xray_enabled           = var.xray_enabled
 }
 

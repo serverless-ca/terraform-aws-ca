@@ -85,7 +85,7 @@ If you followed the [Getting Started](getting-started.md) guide, you'll already 
 **Subscribe to SNS Topic**
 
 * Using the AWS console, SNS, subscribe to the CA Notifications SNS Topic using your email address
-* Confirm the susbscription
+* Confirm the subscription
 
 **Adding CSR File to CA repository**
 
