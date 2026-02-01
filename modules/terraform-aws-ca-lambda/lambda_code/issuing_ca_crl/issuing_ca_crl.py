@@ -44,6 +44,7 @@ def list_revoked_certs_from_db(project, env_name, ca_slug):
     return revoked_certs
 
 
+# pylint:disable=too-many-locals
 def list_revoked_certs_from_s3(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
     """List revoked certificates from S3"""
     newly_revoked_details = []
