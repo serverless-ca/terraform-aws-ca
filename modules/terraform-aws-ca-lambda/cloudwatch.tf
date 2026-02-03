@@ -12,5 +12,5 @@ resource "aws_cloudwatch_log_subscription_filter" "logs_to_s3_sentinel" {
   name            = "${lower(replace(aws_lambda_function.lambda.function_name, " ", "-"))}-logs-to-s3-sentinel-${var.env}"
   log_group_name  = aws_cloudwatch_log_group.function_log_group.name
   filter_pattern  = var.filter_pattern
-  destination_arn = "arn:aws:logs:${data.aws_region.current.name}:${var.logging_account_id}:destination:${var.subscription_filter_destination}"
+  destination_arn = "arn:aws:logs:${data.aws_region.current.region}:${var.logging_account_id}:destination:${var.subscription_filter_destination}"
 }

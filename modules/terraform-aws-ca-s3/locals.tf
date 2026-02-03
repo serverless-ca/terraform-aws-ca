@@ -16,8 +16,8 @@ locals {
   standard_bucket_name = local.bucket_prefix == "" ? "${var.purpose}-${var.environment}-${random_string.suffix[0].result}" : "${local.bucket_prefix}-${var.purpose}-${var.environment}"
   global_bucket_name   = local.bucket_prefix == "" ? "${var.purpose}-${random_string.suffix[0].result}" : "${local.bucket_prefix}-${var.purpose}"
   bucket_name          = var.global_bucket ? local.global_bucket_name : local.standard_bucket_name
-  kms_key_alias_arn    = "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${var.kms_key_alias}"
-  region               = data.aws_region.current.name
+  kms_key_alias_arn    = "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:${var.kms_key_alias}"
+  region               = data.aws_region.current.region
   tags = merge(var.tags, {
     Terraform = "true"
     Name      = local.bucket_name,
