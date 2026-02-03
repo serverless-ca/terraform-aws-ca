@@ -3,13 +3,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0 |
 
 ## Modules
 
@@ -85,7 +85,7 @@
 | <a name="input_root_ca_key_spec"></a> [root\_ca\_key\_spec](#input\_root\_ca\_key\_spec) | Root CA key specification | `string` | `"ECC_NIST_P384"` | no |
 | <a name="input_root_crl_days"></a> [root\_crl\_days](#input\_root\_crl\_days) | Number of days before Root CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval | `number` | `1` | no |
 | <a name="input_root_crl_seconds"></a> [root\_crl\_seconds](#input\_root\_crl\_seconds) | Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew | `number` | `600` | no |
-| <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime | `string` | `"python3.13"` | no |
+| <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime | `string` | `"python3.14"` | no |
 | <a name="input_s3_aws_principals"></a> [s3\_aws\_principals](#input\_s3\_aws\_principals) | List of AWS Principals to allow access to external S3 bucket | `list(string)` | `[]` | no |
 | <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | Step function schedule in cron format, interval should normally be the same as issuing\_crl\_days | `string` | `"cron(15 8 * * ? *)"` | no |
 | <a name="input_sns_email_subscriptions"></a> [sns\_email\_subscriptions](#input\_sns\_email\_subscriptions) | List of email addresses to subscribe to SNS topic | `list(string)` | `[]` | no |
