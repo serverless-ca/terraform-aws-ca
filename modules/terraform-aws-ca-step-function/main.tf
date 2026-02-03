@@ -9,7 +9,7 @@ resource "aws_sfn_state_machine" "state_machine" {
     account_id         = data.aws_caller_identity.current.account_id,
     project            = var.project,
     env                = var.env,
-    region             = data.aws_region.current.name
+    region             = data.aws_region.current.region
     internal_s3_bucket = var.internal_s3_bucket
   })
   name     = "${var.project}-${var.purpose}-${var.env}"

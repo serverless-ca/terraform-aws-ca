@@ -4,7 +4,7 @@ resource "aws_kms_key" "encryption" {
   enable_key_rotation     = var.enable_key_rotation
   policy = templatefile("${path.module}/templates/${var.kms_policy}.json.tpl", {
     account_id = data.aws_caller_identity.current.account_id,
-    region     = data.aws_region.current.name
+    region     = data.aws_region.current.region
   })
   customer_master_key_spec = var.customer_master_key_spec
   key_usage                = var.key_usage

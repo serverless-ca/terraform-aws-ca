@@ -9,7 +9,6 @@ from utils.certs.s3 import s3_upload
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 
-
 lifetime = 7300
 
 
