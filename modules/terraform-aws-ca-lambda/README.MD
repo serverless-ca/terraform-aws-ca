@@ -72,6 +72,8 @@ pip install -r requirements-dev.txt
 ```
 * set environment variables for dev environment
 ```bash
+export AWS_DEFAULT_REGION="eu-west-2"
+export AWS_REGION="eu-west-2"
 export DOMAIN="ca.example.com"
 export ENVIRONMENT_NAME="dev"
 export EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-dev"
@@ -88,7 +90,7 @@ export PUBLIC_CRL="disabled"
 export ROOT_CRL_DAYS="1"
 export ROOT_CRL_SECONDS="600"
 ```
-* copy and paste AWS macOS / Linux CLI variables to terminal
+* use `aws sso login`, or copy and paste AWS macOS / Linux CLI variables to terminal
 
 * test Lambda function locally
 * enter `python`
@@ -100,6 +102,8 @@ lambda_handler({},{})
 * Create Certificate Signing Request (CSR) file `client-cert-request.csr` following instructions in [Client Certificates](../../docs/client-certificates.md)
 * Upload CSR file to `csrs` folder in Internal S3 bucket
 ```bash
+export AWS_DEFAULT_REGION="eu-west-2"
+export AWS_REGION="eu-west-2"
 export DOMAIN="ca.example.com"
 export ENVIRONMENT_NAME="dev"
 export EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-dev"
@@ -117,7 +121,7 @@ export ROOT_CRL_DAYS="1"
 export ROOT_CRL_SECONDS="600"
 export SNS_TOPIC_ARN="arn:aws:sns:<REGION>:<ACCOUNT-ID>:serverless-ca-notifications-dev"
 ```
-* copy and paste AWS Powershell CLI variables to terminal
+* use `aws sso login`, or copy and paste AWS MacOS / Linux CLI variables to terminal
 * enter `python`
 ```python
 from lambda_code.tls_cert.tls_cert import lambda_handler
@@ -138,6 +142,7 @@ bandit -r lambda_code utils
 * Test Issuing CRL lambda
 ```bash
 export AWS_DEFAULT_REGION="eu-west-2"
+export AWS_REGION="eu-west-2"
 export ENVIRONMENT_NAME="prod"
 export EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-prod"
 export INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-prod"
@@ -180,6 +185,8 @@ pip install -r requirements-dev.txt
 ```
 * set environment variables for dev environment
 ```powershell
+$Env:AWS_DEFAULT_REGION="eu-west-2"
+$Env:AWS_REGION="eu-west-2"
 $Env:DOMAIN="ca.example.com"
 $Env:ENVIRONMENT_NAME="dev"
 $Env:EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-dev"
@@ -206,6 +213,8 @@ lambda_handler({},{})
 * Create Certificate Signing Request (CSR) file `client-cert-request.csr` following instructions in [Client Certificates](../../docs/client-certificates.md)
 * Upload CSR file to `csrs` folder in Internal S3 bucket
 ```powershell
+$Env:AWS_DEFAULT_REGION="eu-west-2"
+$Env:AWS_REGION="eu-west-2"
 $Env:DOMAIN="ca.example.com"
 $Env:ENVIRONMENT_NAME="dev"
 $Env:EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-dev"
@@ -241,6 +250,7 @@ bandit -r lambda_code utils
 * Test Issuing CRL lambda
 ```powershell
 $Env:AWS_DEFAULT_REGION="eu-west-2"
+$Env:AWS_REGION="eu-west-2"
 $Env:ENVIRONMENT_NAME="prod"
 $Env:EXTERNAL_S3_BUCKET="my-company-serverless-ca-external-prod"
 $Env:INTERNAL_S3_BUCKET="my-company-serverless-ca-internal-prod"

@@ -222,6 +222,27 @@ def sns_notify_cert_issued(cert_json, sns_topic_arn):
     print(f"Certificate details for {common_name} published to SNS")
 
 
+def sns_notify_csr_rejected(csr_info, csr, reason, sns_topic_arn):
+    """Publishes rejection details to SNS when a certificate request is rejected"""
+    csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode("utf-8")
+    rejection_data = {
+        "CSRInfo": {
+            "CommonName": csr_info.subject.common_name,
+            "Lifetime": csr_info.lifetime,
+            "Purposes": csr_info.purposes,
+            "SANs": csr_info.sans,
+        },
+        "CSRPem": csr_pem,
+        "Subject": csr.subject.rfc4514_string(),
+        "Reason": reason,
+    }
+    keys_to_publish = ["CSRInfo", "CSRPem", "Subject", "Reason"]
+    response = publish_to_sns(rejection_data, "Certificate Request Rejected", sns_topic_arn, keys_to_publish)
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+    print(f"Certificate request rejection for {csr_info.subject.common_name} published to SNS")
+
+
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
@@ -270,6 +291,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         request.force_issue,
     )
     if validation_error:
+        sns_notify_csr_rejected(csr_info, csr, validation_error["error"], sns_topic_arn)
         return validation_error
 
     base64_certificate, cert_info = sign_csr(

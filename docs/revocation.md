@@ -57,7 +57,9 @@ add files and subdirectory following the [rsa-public-crl example](https://github
 
 When a certificate is revoked, a notification is published to the CA Notifications SNS Topic:
 
-![Revocation notification](assets/images/revocation-sns.png)
+![Revocation notification](assets/images/sns-cert-revoked.png)
+
+See [Notifications](notifications.md) for further information.
 
 ## CRL publication frequency
 If required, the default CRL publication frequency of once per day can be changed, as described in [Configuration Options](./options.md#crl-publication-frequency)

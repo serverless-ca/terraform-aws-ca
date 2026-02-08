@@ -124,9 +124,9 @@ csr_files = tolist(fileset("${path.module}/certs/dev/csrs", "*.csr"))
 
 **Get certificate from SNS notification**
 
-Details of GitOps issued certificate are published to SNS
+Details of GitOps issued certificate are published to SNS, see [Notifications](notifications.md) for further details.
 
-![Alt text](assets/images/sns-cert-issued.png?raw=true "SNS Notification")
+![SNS Notification](assets/images/sns-cert-issued.png)
 
 * From your SNS email, copy the value of the JSON key `Base64Certificate`
 
@@ -160,11 +160,11 @@ If you haven't subscribed to SNS, or you want to retrieve a non-GitOps issued ce
 * using the console, navigate to the CA DynamoDB table
 * select Explore table items
 * run a query, searching for the Common Name
-![Alt text](assets/images/dynamodb-test-server-cert.png?raw=true "DynamoDB query")
+![DynamoDB query](assets/images/dynamodb-test-server-cert.png)
 
 * select the issued certificate by clicking on the link
 
-![Alt text](assets/images/dynamodb-test-server-cert-details.png?raw=true "DynamoDB item details")
+![DynamoDB item details](assets/images/dynamodb-test-server-cert-details.png)
 
 * copy the certificate value, this is double Base64 encoded when viewed in the console
 
