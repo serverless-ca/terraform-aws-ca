@@ -82,5 +82,5 @@ Certificate Revoked notification - example JSON:
 To subscribe a Lambda function or other service in a separate account to the CA SNS Topic, set Terraform variables:
 ```
 sns_policy_template = "cross-account"
-workload_account_id = 012345678901
+workload_account_id = "012345678901"
 ```
