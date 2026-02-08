@@ -54,7 +54,7 @@ resource "aws_s3_bucket_policy" "bucket" {
   policy = templatefile("${path.module}/templates/${local.bucket_policy}.json.tpl", {
     bucket_name        = aws_s3_bucket.bucket.id,
     account_id         = data.aws_caller_identity.current.account_id,
-    region             = data.aws_region.current.name,
+    region             = data.aws_region.current.region,
     oai_arn            = var.oai_arn,
     app_aws_principals = var.app_aws_principals
   })

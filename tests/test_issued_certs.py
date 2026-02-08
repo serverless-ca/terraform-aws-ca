@@ -31,7 +31,6 @@ from .helper import (
     helper_fetch_ca_chain_der,
 )
 
-
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
