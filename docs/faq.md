@@ -111,7 +111,7 @@ The Serverless CA publishes details of selected events to a SNS Topic included a
 
 You can receive email notifications by subscribing directly to the SNS Topic.
 
-Alternatively, subscribe to the SNS Topic using a separate Lambda function, to customise communications to your with CA administrators and users.
+Alternatively, subscribe to the SNS Topic using a separate Lambda function, to customise communications to your  CA administrators and users.
 
 ### How can I change the name or details of my CA?
 Changing the name or other details of a CA invalidates its digital signature, so you need to:
