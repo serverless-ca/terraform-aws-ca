@@ -37,6 +37,7 @@ Certificate Issued notification - example JSON:
 ##  Certificate Request Rejected notification
 
 Certificate request rejections result in a SNS Notification. Possible reasons for rejection include:
+
 * CSR must include a Common Name
 * Lifetime must be at least 1 day
 * Private key has already been used for a certificate
