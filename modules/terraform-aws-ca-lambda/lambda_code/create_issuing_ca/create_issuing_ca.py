@@ -12,7 +12,6 @@ from utils.certs.db import db_ca_cert_issued, db_list_certificates
 from utils.certs.s3 import s3_upload
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 
-
 lifetime = 3650
 
 
