@@ -79,7 +79,7 @@ def list_revoked_certs_from_s3(project, env_name, external_s3_bucket_name, inter
                     "CommonName": common_name,
                     "SerialNumber": serial_number,
                     "Revoked": str(revocation_date),
-                    "DistinguishedName": dn,
+                    "Subject": dn,
                 }
             )
 
@@ -101,7 +101,7 @@ def build_list_of_revoked_certs(project, env_name, external_s3_bucket_name, inte
 
 
 def sns_notify_cert_revoked(cert_details, sns_topic_arn):
-    keys_to_publish = ["CommonName", "SerialNumber", "Revoked", "DistinguishedName"]
+    keys_to_publish = ["CommonName", "SerialNumber", "Revoked", "Subject"]
     response = publish_to_sns(cert_details, "Certificate Revoked", sns_topic_arn, keys_to_publish)
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
