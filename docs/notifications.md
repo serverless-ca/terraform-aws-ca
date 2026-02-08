@@ -62,7 +62,7 @@ Certificate Request Rejected notification - example JSON:
 
 ##  Certificate Revoked notification
 
-An SNS notification is published when a certificate is revoked:
+A SNS notification is published when a certificate is revoked:
 
 ![Certificate Revoked](assets/images/sns-cert-revoked.png)
 
