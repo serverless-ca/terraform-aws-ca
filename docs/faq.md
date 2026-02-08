@@ -106,6 +106,13 @@ The default setting for CRL lifetime of 1 day should be appropriate for most use
 ### How do I renew a certificate?
 Create a new Certificate Signing Request (CSR) using a new private key. Resubmit as detailed in [Client Certificates](client-certificates.md#renewing-certificates).
 
+### Can the CA send emails or Slack messages when a new certificate is issued?
+The Serverless CA publishes details of selected events to a SNS Topic included as part of the module, see [Notifications](notifications.md). 
+
+You can receive email notifications by subscribing directly to the SNS Topic.
+
+Alternatively, subscribe to the SNS Topic using a separate Lambda function, to customise communications to your CA administrators and users.
+
 ### How can I change the name or details of my CA?
 Changing the name or other details of a CA invalidates its digital signature, so you need to:
 
@@ -132,3 +139,9 @@ A walkthrough with configuration of certificate authentication for AWS Applicati
 
 ### Can the CA be used for AWS IAM Roles Anywhere?
 A walkthrough showing how to configure AWS IAM Roles Anywhere with the CA is provided in [How-to Guides](https://serverlessca.com/how-to-guides/iam/) and [this blog post](https://medium.com/@paulschwarzenberger/aws-iam-roles-anywhere-with-open-source-private-ca-6c0ec5758b2b).
+
+### Can the CA be used with Amazon API Gateway?
+A walkthrough showing how to configure Amazon API Gateway mTLS with the CA is provided in [How-to Guides](https://serverlessca.com/how-to-guides/api/) and [this blog post](https://medium.com/@paulschwarzenberger/api-gateway-mtls-with-open-source-cloud-ca-3362438445de).
+
+### Can the CA be used with Amazon CloudFront?
+A walkthrough showing how to configure Amazon CloudFront mTLS with the CA is provided in [How-to Guides](https://serverlessca.com/how-to-guides/cloudfront/) and [this blog post](https://medium.com/@paulschwarzenberger/amazon-cloudfront-mtls-with-open-source-serverless-ca-f49ce2bc9874).

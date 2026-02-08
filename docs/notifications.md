@@ -1,6 +1,6 @@
 # Notifications
 
-The module provides SNS notifications for different events. You can directly subscribe to the CA Notifications SNS Topic to receive email notifications.
+The Serverless CA module provides SNS notifications for different events. You can directly subscribe to the CA Notifications SNS Topic to receive email notifications.
 
 You can also add your own infrastructure to that provided by the module, and deliver customised messaging to your CA administrators and users, for example:
 
@@ -75,4 +75,12 @@ Certificate Revoked notification - example JSON:
   "Revoked": "2026-02-03 21:34:04.753865",
   "Subject": "ST=New York,OU=DevOps,O=Override CSR Org,L=Override CSR Location,C=US,CN=pipeline-test-csr-s3-upload"
 }
+```
+
+##  Cross-account subscription to SNS Topic
+
+To subscribe a Lambda function or other service in a separate account to the CA SNS Topic, set Terraform variables:
+```
+sns_policy_template = "cross-account"
+workload_account_id = "012345678901"
 ```
