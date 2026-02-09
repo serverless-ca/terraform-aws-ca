@@ -225,6 +225,7 @@ def sns_notify_cert_issued(cert_json, sns_topic_arn):
 def sns_notify_csr_rejected(csr_info, csr, reason, sns_topic_arn):
     """Publishes rejection details to SNS when a certificate request is rejected"""
     csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode("utf-8")
+    base64_csr = base64.b64encode(csr_pem.encode("utf-8")).decode("utf-8")
     rejection_data = {
         "CSRInfo": {
             "CommonName": csr_info.subject.common_name,
@@ -232,11 +233,11 @@ def sns_notify_csr_rejected(csr_info, csr, reason, sns_topic_arn):
             "Purposes": csr_info.purposes,
             "SANs": csr_info.sans,
         },
-        "CSRPem": csr_pem,
+        "Base64CSR": base64_csr,
         "Subject": csr.subject.rfc4514_string(),
         "Reason": reason,
     }
-    keys_to_publish = ["CSRInfo", "CSRPem", "Subject", "Reason"]
+    keys_to_publish = ["CSRInfo", "Base64CSR", "Subject", "Reason"]
     response = publish_to_sns(rejection_data, "Certificate Request Rejected", sns_topic_arn, keys_to_publish)
 
     assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
