@@ -42,6 +42,7 @@ class Request:
     state: Optional[str] = None
     lifetime: Optional[int] = 30
     purposes: Optional[list[str]] = field(default_factory=lambda: ["client_auth"])
+    extended_key_usages: Optional[list[str]] = None
     sans: Optional[list[str]] = None
     csr_file: Optional[str] = None
     base64_csr_data: Optional[str] = None
@@ -186,11 +187,14 @@ def create_csr_subject(event) -> Subject:
 def create_csr_info(event) -> CsrInfo:
     lifetime = int(event.get("lifetime", 30))
     purposes = event.get("purposes")
+    extended_key_usages = event.get("extended_key_usages")
     sans = event.get("sans")
 
     subject = create_csr_subject(event)
 
-    csr_info = CsrInfo(subject, lifetime=lifetime, purposes=purposes, sans=sans)
+    csr_info = CsrInfo(
+        subject, lifetime=lifetime, purposes=purposes, extended_key_usages=extended_key_usages, sans=sans
+    )
 
     return csr_info
 

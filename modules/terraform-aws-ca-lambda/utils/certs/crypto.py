@@ -35,6 +35,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
 
     # get values from csr_info
     purposes = csr_info.purposes
+    extended_key_usages = csr_info.extended_key_usages
     sans = csr_info.sans
 
     # convert to x509 cryptography format
@@ -47,6 +48,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
         "Country": csr_info.subject.country,
         "CsrCert": csr_cert,
         "EmailAddress": csr_info.subject.email_address,
+        "ExtendedKeyUsages": extended_key_usages,
         "Lifetime": csr_info.lifetime,
         "Locality": csr_info.subject.locality,
         "Organization": csr_info.subject.organization,
