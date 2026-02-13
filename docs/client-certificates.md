@@ -51,6 +51,55 @@ To specify both client and server authentication extensions:
 ```
 If `purposes` isn't specified, the certificate will only include the client authentication extension.
 
+## Extended Key Usages
+You can use the `extended_key_usages` JSON key to specify additional Extended Key Usage extensions beyond those provided by `purposes`.
+
+Supported values:
+
+| Value | OID | Description |
+|-------|-----|-------------|
+| `TLS_WEB_SERVER_AUTHENTICATION` | 1.3.6.1.5.5.7.3.1 | Server authentication |
+| `TLS_WEB_CLIENT_AUTHENTICATION` | 1.3.6.1.5.5.7.3.2 | Client authentication |
+| `CODE_SIGNING` | 1.3.6.1.5.5.7.3.3 | Code signing |
+| `EMAIL_PROTECTION` | 1.3.6.1.5.5.7.3.4 | Email protection (S/MIME) |
+| `TIME_STAMPING` | 1.3.6.1.5.5.7.3.8 | Trusted timestamping |
+| `OCSP_SIGNING` | 1.3.6.1.5.5.7.3.9 | OCSP signing |
+| `IPSEC_END_SYSTEM` | 1.3.6.1.5.5.7.3.5 | IPSec end system |
+| `IPSEC_TUNNEL` | 1.3.6.1.5.5.7.3.6 | IPSec tunnel |
+| `IPSEC_USER` | 1.3.6.1.5.5.7.3.7 | IPSec user |
+| `ANY` | 2.5.29.37.0 | Any extended key usage |
+| `NONE` | - | No additional extended key usages |
+
+You can also specify custom OIDs directly, e.g. `"1.3.6.1.5.5.7.3.17"` for Internationalized Email Addresses.
+
+**Example - Code signing certificate:**
+```json
+{
+  "common_name": "my-code-signer",
+  "purposes": ["client_auth"],
+  "extended_key_usages": ["CODE_SIGNING"]
+}
+```
+
+**Example - Multiple extended key usages:**
+```json
+{
+  "common_name": "my-cert",
+  "purposes": ["client_auth"],
+  "extended_key_usages": ["CODE_SIGNING", "EMAIL_PROTECTION", "TIME_STAMPING"]
+}
+```
+
+**Example - Custom OID:**
+```json
+{
+  "common_name": "my-cert",
+  "extended_key_usages": ["1.3.6.1.5.5.7.3.17"]
+}
+```
+
+Extended key usages from both `purposes` and `extended_key_usages` are combined. Duplicate OIDs are automatically removed.
+
 ## Subject Alternative Names
 If you don't specify any DNS names, either by including in the CSR, or by the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
 
