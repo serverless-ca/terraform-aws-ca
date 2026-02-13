@@ -156,6 +156,7 @@ def construct_json_data(
     csr: bytes,
     common_name: str,
     purposes: Optional[list[str]] = None,
+    extended_key_usages: Optional[list[str]] = None,
     passphrase: Optional[bool] = None,
     lifetime: int = 1,
     cert_bundle: bool = True,
@@ -180,6 +181,9 @@ def construct_json_data(
     if purposes is not None:
         json_data["purposes"] = purposes
 
+    if extended_key_usages is not None:
+        json_data["extended_key_usages"] = extended_key_usages
+
     if passphrase is not None:
         json_data["passphrase"] = passphrase
 
@@ -201,6 +205,7 @@ def construct_json_data(
 def helper_get_certificate(
     csr_info: dict[str, str],
     purposes: Optional[list[str]] = None,
+    extended_key_usages: Optional[list[str]] = None,
     passphrase: Optional[bool] = None,
     lifetime: int = 1,
     cert_bundle: bool = True,
@@ -218,6 +223,7 @@ def helper_get_certificate(
         csr,
         common_name,
         purposes=purposes,
+        extended_key_usages=extended_key_usages,
         passphrase=passphrase,
         lifetime=lifetime,
         cert_bundle=cert_bundle,

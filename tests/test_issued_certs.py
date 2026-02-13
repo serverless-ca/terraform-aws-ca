@@ -6,7 +6,7 @@ from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 
 from cryptography.x509 import DNSName, load_pem_x509_certificate
-from cryptography.x509.oid import ExtensionOID
+from cryptography.x509.oid import ExtensionOID, ExtendedKeyUsageOID
 from cryptography.hazmat.backends import default_backend
 
 
@@ -398,3 +398,129 @@ def test_include_ca_chain_no_cert_bundle():
 
 def test_include_ca_chain_with_cert_bundle():
     return _test_include_ca_chain(cert_bundle=True)
+
+
+def test_extended_key_usage_code_signing():
+    """
+    Test certificate issued with CODE_SIGNING extended key usage
+    """
+    common_name = "pipeline-test-eku-code-signing"
+    purposes = ["client_auth"]
+    extended_key_usages = ["CODE_SIGNING"]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(
+        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
+    )
+
+    # check extended key usage extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    eku_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
+    eku_oids = list(eku_extension.value)
+
+    log.info("extended key usages", eku_oids=[str(oid) for oid in eku_oids])
+
+    # Assert CODE_SIGNING OID is present
+    assert_that(ExtendedKeyUsageOID.CODE_SIGNING in eku_oids).is_true()
+    # Assert CLIENT_AUTH OID is present (from purposes)
+    assert_that(ExtendedKeyUsageOID.CLIENT_AUTH in eku_oids).is_true()
+
+
+def test_extended_key_usage_multiple():
+    """
+    Test certificate issued with multiple extended key usages
+    """
+    common_name = "pipeline-test-eku-multiple"
+    purposes = ["client_auth"]
+    extended_key_usages = ["CODE_SIGNING", "EMAIL_PROTECTION", "TIME_STAMPING"]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(
+        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
+    )
+
+    # check extended key usage extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    eku_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
+    eku_oids = list(eku_extension.value)
+
+    log.info("extended key usages", eku_oids=[str(oid) for oid in eku_oids])
+
+    # Assert all expected OIDs are present
+    assert_that(ExtendedKeyUsageOID.CLIENT_AUTH in eku_oids).is_true()
+    assert_that(ExtendedKeyUsageOID.CODE_SIGNING in eku_oids).is_true()
+    assert_that(ExtendedKeyUsageOID.EMAIL_PROTECTION in eku_oids).is_true()
+    assert_that(ExtendedKeyUsageOID.TIME_STAMPING in eku_oids).is_true()
+
+    # Assert total count is 4 (client_auth + 3 extended key usages)
+    assert_that(len(eku_oids)).is_equal_to(4)
+
+
+def test_extended_key_usage_with_custom_oid():
+    """
+    Test certificate issued with a custom OID extended key usage
+    """
+    common_name = "pipeline-test-eku-custom-oid"
+    purposes = ["client_auth"]
+    # IPSEC_END_SYSTEM OID specified as string
+    custom_oid = "1.3.6.1.5.5.7.3.5"
+    extended_key_usages = [custom_oid]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(
+        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
+    )
+
+    # check extended key usage extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    eku_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
+    eku_oids = list(eku_extension.value)
+
+    log.info("extended key usages", eku_oids=[str(oid) for oid in eku_oids])
+
+    # Assert custom OID is present by checking dotted string representation
+    oid_strings = [oid.dotted_string for oid in eku_oids]
+    assert_that(custom_oid in oid_strings).is_true()
+
+    # Assert CLIENT_AUTH is also present
+    assert_that(ExtendedKeyUsageOID.CLIENT_AUTH in eku_oids).is_true()
+
+
+def test_extended_key_usage_no_duplicates():
+    """
+    Test that duplicate extended key usages are not added to certificate
+    """
+    common_name = "pipeline-test-eku-no-duplicates"
+    # Request client_auth in both purposes and extended_key_usages
+    purposes = ["client_auth"]
+    extended_key_usages = ["TLS_WEB_CLIENT_AUTHENTICATION"]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(
+        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
+    )
+
+    # check extended key usage extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    eku_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
+    eku_oids = list(eku_extension.value)
+
+    log.info("extended key usages", eku_oids=[str(oid) for oid in eku_oids])
+
+    # Assert only one CLIENT_AUTH OID is present (no duplicates)
+    client_auth_count = sum(1 for oid in eku_oids if oid == ExtendedKeyUsageOID.CLIENT_AUTH)
+    assert_that(client_auth_count).is_equal_to(1)
+    assert_that(len(eku_oids)).is_equal_to(1)
+
