@@ -410,9 +410,7 @@ def test_extended_key_usage_code_signing():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data, ca_chain = helper_get_certificate(
-        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
-    )
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, extended_key_usages=extended_key_usages)
 
     # check extended key usage extension in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -439,9 +437,7 @@ def test_extended_key_usage_multiple():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data, ca_chain = helper_get_certificate(
-        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
-    )
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, extended_key_usages=extended_key_usages)
 
     # check extended key usage extension in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -474,9 +470,7 @@ def test_extended_key_usage_with_custom_oid():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data, ca_chain = helper_get_certificate(
-        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
-    )
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, extended_key_usages=extended_key_usages)
 
     # check extended key usage extension in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -506,9 +500,7 @@ def test_extended_key_usage_no_duplicates():
 
     csr_info = helper_create_csr_info(common_name)
 
-    cert_data, ca_chain = helper_get_certificate(
-        csr_info, purposes=purposes, extended_key_usages=extended_key_usages
-    )
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, extended_key_usages=extended_key_usages)
 
     # check extended key usage extension in issued certificate
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
@@ -523,4 +515,3 @@ def test_extended_key_usage_no_duplicates():
     client_auth_count = sum(1 for oid in eku_oids if oid == ExtendedKeyUsageOID.CLIENT_AUTH)
     assert_that(client_auth_count).is_equal_to(1)
     assert_that(len(eku_oids)).is_equal_to(1)
-
