@@ -69,6 +69,39 @@ def filter_and_validate_purposes(purposes: list[str]) -> list[str]:
     return _purposes
 
 
+# Valid extended key usage values based on AWS Private CA
+VALID_EXTENDED_KEY_USAGES = [
+    "TLS_WEB_SERVER_AUTHENTICATION",
+    "TLS_WEB_CLIENT_AUTHENTICATION",
+    "CODE_SIGNING",
+    "EMAIL_PROTECTION",
+    "TIME_STAMPING",
+    "OCSP_SIGNING",
+    "IPSEC_END_SYSTEM",
+    "IPSEC_TUNNEL",
+    "IPSEC_USER",
+    "ANY",
+    "NONE",
+]
+
+
+def filter_and_validate_extended_key_usages(extended_key_usages: list[str]) -> list[str]:
+    if extended_key_usages is None:
+        return []
+
+    _extended_key_usages = []
+    for eku in extended_key_usages:
+        if eku in VALID_EXTENDED_KEY_USAGES:
+            _extended_key_usages.append(eku)
+        elif eku.startswith("1.") or eku.startswith("2."):
+            # Allow custom OIDs (format: numbers separated by periods)
+            _extended_key_usages.append(eku)
+        else:
+            print(f"Invalid extended key usage {eku} excluded")
+
+    return _extended_key_usages
+
+
 def filter_and_validate_sans(common_name: str, sans: list[str]) -> list[str]:
     valid_common_name = domain_validator(common_name)
     _sans = sans
@@ -107,6 +140,9 @@ class CsrInfo:
     purposes: list[str] = field(init=True, repr=True, default_factory=list)
     _purposes: list[str] = field(init=False, repr=False)
 
+    extended_key_usages: list[str] = field(init=True, repr=True, default_factory=list)
+    _extended_key_usages: list[str] = field(init=False, repr=False)
+
     @property
     def sans(self) -> list[str]:  # noqa: F811
         if isinstance(self._sans, list):
@@ -127,3 +163,13 @@ class CsrInfo:
     @purposes.setter
     def purposes(self, _purposes: list[str]) -> None:
         self._purposes = _purposes
+
+    @property
+    def extended_key_usages(self) -> list[str]:  # noqa: F811
+        if isinstance(self._extended_key_usages, list):
+            return filter_and_validate_extended_key_usages(self._extended_key_usages)
+        return []
+
+    @extended_key_usages.setter
+    def extended_key_usages(self, _extended_key_usages: list[str]) -> None:
+        self._extended_key_usages = _extended_key_usages

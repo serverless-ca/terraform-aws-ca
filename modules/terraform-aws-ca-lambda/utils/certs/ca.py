@@ -140,17 +140,50 @@ def ca_kms_sign_ca_certificate_request(
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
+# Mapping of extended key usage names to OIDs
+EXTENDED_KEY_USAGE_OID_MAP = {
+    "TLS_WEB_SERVER_AUTHENTICATION": ExtendedKeyUsageOID.SERVER_AUTH,
+    "TLS_WEB_CLIENT_AUTHENTICATION": ExtendedKeyUsageOID.CLIENT_AUTH,
+    "CODE_SIGNING": ExtendedKeyUsageOID.CODE_SIGNING,
+    "EMAIL_PROTECTION": ExtendedKeyUsageOID.EMAIL_PROTECTION,
+    "TIME_STAMPING": ExtendedKeyUsageOID.TIME_STAMPING,
+    "OCSP_SIGNING": ExtendedKeyUsageOID.OCSP_SIGNING,
+    "IPSEC_END_SYSTEM": ObjectIdentifier("1.3.6.1.5.5.7.3.5"),
+    "IPSEC_TUNNEL": ObjectIdentifier("1.3.6.1.5.5.7.3.6"),
+    "IPSEC_USER": ObjectIdentifier("1.3.6.1.5.5.7.3.7"),
+    "ANY": ObjectIdentifier("2.5.29.37.0"),
+}
+
+
 def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
     purposes = cert_request_info["Purposes"]
+    extended_key_usages = cert_request_info.get("ExtendedKeyUsages", [])
 
     x509_subject = tls_cert_construct_subject_name(csr_cert, cert_request_info)
 
     extended_key_usage_oids = []
+
+    # Add OIDs from purposes (legacy support)
     for purpose in purposes:
         if purpose == "server_auth":
             extended_key_usage_oids.append(ExtendedKeyUsageOID.SERVER_AUTH)
         if purpose == "client_auth":
             extended_key_usage_oids.append(ExtendedKeyUsageOID.CLIENT_AUTH)
+
+    # Add OIDs from extended_key_usages
+    for eku in extended_key_usages:
+        if eku == "NONE":
+            # Skip NONE - means no additional extended key usages
+            continue
+        if eku in EXTENDED_KEY_USAGE_OID_MAP:
+            oid = EXTENDED_KEY_USAGE_OID_MAP[eku]
+            if oid not in extended_key_usage_oids:
+                extended_key_usage_oids.append(oid)
+        elif eku.startswith("1.") or eku.startswith("2."):
+            # Custom OID
+            oid = ObjectIdentifier(eku)
+            if oid not in extended_key_usage_oids:
+                extended_key_usage_oids.append(oid)
 
     return (
         x509.CertificateBuilder()
