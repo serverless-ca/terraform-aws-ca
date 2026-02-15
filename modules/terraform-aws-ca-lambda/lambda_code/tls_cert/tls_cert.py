@@ -25,7 +25,7 @@ from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, LetterCase
-from typing import Optional
+from typing import Optional, Union
 
 # TODO: Request and Response classes use different naming convention
 
@@ -43,7 +43,7 @@ class Request:
     lifetime: Optional[int] = 30
     purposes: Optional[list[str]] = field(default_factory=lambda: ["client_auth"])
     extended_key_usages: Optional[list[str]] = None
-    sans: Optional[list[str]] = None
+    sans: Optional[Union[str, list, dict]] = None
     csr_file: Optional[str] = None
     base64_csr_data: Optional[str] = None
     force_issue: Optional[bool] = False
