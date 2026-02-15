@@ -187,6 +187,51 @@ def validate_san_value(san_type: str, value: str) -> bool:
     return False
 
 
+def _default_san_from_common_name(common_name: str) -> list[dict[str, str]]:
+    """Return common name as DNS_NAME SAN if valid, otherwise empty list."""
+    if domain_validator(common_name):
+        return [{"type": "DNS_NAME", "value": common_name}]
+    return []
+
+
+def _normalize_list_of_dicts(sans_list: list[dict]) -> list[dict[str, str]]:
+    """Normalize a list of dicts to consistent format."""
+    normalized = []
+    for item in sans_list:
+        san_type = item.get("type", "DNS_NAME").upper()
+        value = item.get("value")
+        if san_type and value:
+            normalized.append({"type": san_type, "value": value})
+    return normalized
+
+
+def _normalize_dict_format(sans_dict: dict) -> list[dict[str, str]]:
+    """Normalize dict format: {"DNS_NAME": ["example.com"], "IP_ADDRESS": "192.168.1.1"}"""
+    normalized = []
+    for san_type, values in sans_dict.items():
+        san_type_upper = san_type.upper()
+        if isinstance(values, str):
+            values = [values]
+        if isinstance(values, list):
+            for value in values:
+                normalized.append({"type": san_type_upper, "value": value})
+    return normalized
+
+
+def _normalize_list_input(common_name: str, sans_list: list) -> list[dict[str, str]]:
+    """Normalize list input (strings or dicts)."""
+    if not sans_list:
+        return _default_san_from_common_name(common_name)
+
+    if all(isinstance(item, str) for item in sans_list):
+        return [{"type": "DNS_NAME", "value": s} for s in sans_list]
+
+    if all(isinstance(item, dict) for item in sans_list):
+        return _normalize_list_of_dicts(sans_list)
+
+    return []
+
+
 def normalize_sans_input(common_name: str, sans_input: Union[None, str, list, dict]) -> list[dict[str, str]]:
     """
     Normalize SANs input to a consistent format: list of dicts with 'type' and 'value' keys.
@@ -199,48 +244,16 @@ def normalize_sans_input(common_name: str, sans_input: Union[None, str, list, di
     - dict: Map of type -> value or type -> [values]
     """
     if sans_input is None:
-        # No SANs provided - use common name if it's a valid domain
-        if domain_validator(common_name):
-            return [{"type": "DNS_NAME", "value": common_name}]
-        return []
+        return _default_san_from_common_name(common_name)
 
     if isinstance(sans_input, str):
-        # Single string - treat as DNS name
         return [{"type": "DNS_NAME", "value": sans_input}]
 
     if isinstance(sans_input, list):
-        if not sans_input:
-            # Empty list - use common name if valid
-            if domain_validator(common_name):
-                return [{"type": "DNS_NAME", "value": common_name}]
-            return []
-
-        # Check if it's a list of strings (backwards compatible) or list of dicts
-        if all(isinstance(item, str) for item in sans_input):
-            # List of strings - treat all as DNS names
-            return [{"type": "DNS_NAME", "value": s} for s in sans_input]
-
-        if all(isinstance(item, dict) for item in sans_input):
-            # List of dicts - normalize to consistent format
-            normalized = []
-            for item in sans_input:
-                san_type = item.get("type", "DNS_NAME").upper()
-                value = item.get("value")
-                if san_type and value:
-                    normalized.append({"type": san_type, "value": value})
-            return normalized
+        return _normalize_list_input(common_name, sans_input)
 
     if isinstance(sans_input, dict):
-        # Dict format: {"DNS_NAME": ["example.com"], "IP_ADDRESS": "192.168.1.1"}
-        normalized = []
-        for san_type, values in sans_input.items():
-            san_type_upper = san_type.upper()
-            if isinstance(values, str):
-                values = [values]
-            if isinstance(values, list):
-                for value in values:
-                    normalized.append({"type": san_type_upper, "value": value})
-        return normalized
+        return _normalize_dict_format(sans_input)
 
     return []
 

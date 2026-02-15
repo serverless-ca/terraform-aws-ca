@@ -131,14 +131,14 @@ def test_csr_info_with_extended_key_usages():
 def test_csr_info_with_no_extended_key_usages():
     csr_info = CsrInfo(Subject("blah.example.com"))
 
-    assert csr_info.extended_key_usages == []
+    assert not csr_info.extended_key_usages
 
 
 def test_csr_info_with_invalid_extended_key_usage():
     csr_info = CsrInfo(Subject("blah.example.com"), extended_key_usages=["INVALID_USAGE"])
 
     # Invalid extended key usages are filtered out
-    assert csr_info.extended_key_usages == []
+    assert not csr_info.extended_key_usages
 
 
 def test_csr_info_with_mixed_valid_invalid_extended_key_usages():
