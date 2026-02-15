@@ -58,63 +58,30 @@ To specify both client and server authentication extensions:
 ```json
 "purposes": ["client_auth", "server_auth"],
 ```
-If `purposes` isn't specified, the certificate will only include the client authentication extension.
+If neither `purposes` or `extended_key_usages` are specified, the certificate will only include the client authentication extension.
 
-### Extended Key Usages
-You can use the `extended_key_usages` JSON key to specify additional Extended Key Usage extensions beyond those provided by `purposes`.
-
-Supported values:
-
-| Value | OID | Description |
-|-------|-----|-------------|
-| `TLS_WEB_SERVER_AUTHENTICATION` | 1.3.6.1.5.5.7.3.1 | Server authentication |
-| `TLS_WEB_CLIENT_AUTHENTICATION` | 1.3.6.1.5.5.7.3.2 | Client authentication |
-| `CODE_SIGNING` | 1.3.6.1.5.5.7.3.3 | Code signing |
-| `EMAIL_PROTECTION` | 1.3.6.1.5.5.7.3.4 | Email protection (S/MIME) |
-| `TIME_STAMPING` | 1.3.6.1.5.5.7.3.8 | Trusted timestamping |
-| `OCSP_SIGNING` | 1.3.6.1.5.5.7.3.9 | OCSP signing |
-| `IPSEC_END_SYSTEM` | 1.3.6.1.5.5.7.3.5 | IPSec end system |
-| `IPSEC_TUNNEL` | 1.3.6.1.5.5.7.3.6 | IPSec tunnel |
-| `IPSEC_USER` | 1.3.6.1.5.5.7.3.7 | IPSec user |
-| `ANY` | 2.5.29.37.0 | Any extended key usage |
-| `NONE` | - | No additional extended key usages |
-
-You can also specify custom OIDs directly, e.g. `"1.3.6.1.5.5.7.3.17"` for Internationalized Email Addresses.
-
-**Example - Code signing certificate:**
-```json
-{
-  "common_name": "my-code-signer",
-  "purposes": ["client_auth"],
-  "extended_key_usages": ["CODE_SIGNING"]
-}
-```
-
-**Example - Multiple extended key usages:**
-```json
-{
-  "common_name": "my-cert",
-  "purposes": ["client_auth"],
-  "extended_key_usages": ["CODE_SIGNING", "EMAIL_PROTECTION", "TIME_STAMPING"]
-}
-```
-
-**Example - Custom OID:**
-```json
-{
-  "common_name": "my-cert",
-  "extended_key_usages": ["1.3.6.1.5.5.7.3.17"]
-}
-```
-
-Extended key usages from both `purposes` and `extended_key_usages` are combined. Duplicate OIDs are automatically removed.
+Other Extended Key Usage extensions can be specified using the `extended_key_usages` JSON key, which supports a wider range of predefined values and custom OIDs, see [Extended Key Usages](certificate-settings.md#extended-key-usages) for further details.
 
 ## Subject Alternative Names
-If you don't specify any DNS names, either by including in the CSR, or by the optional `sans` entry within the JSON, the common name will be used provided it's a valid domain.
+The `sans` JSON key allows you to specify Subject Alternative Names for the certificate. The module supports multiple SAN types and input formats for backwards compatibility.
 
-If you specify `sans` these will take precedence over the common name.
+### Input Formats
+The `sans` field accepts multiple input formats:
 
-Only valid domains will be included in the Subject Alternative Name X.509 certificate extension.
+**No SANs specified (default behavior):**
+If `sans` is not specified, the common name will be used as a DNS_NAME SAN if it's a valid domain.
+
+**Single DNS name (string):**
+```json
+"sans": "example.com"
+```
+
+**Multiple DNS names (list of strings):**
+```json
+"sans": ["example.com", "www.example.com", "*.example.com"]
+```
+
+Other types of SAN, e.g. email address and IP addresses, can be specified using a JSON map, see [Subject Alternative Names](certificate-settings.md#subject-alternative-names) for further details.
 
 ## GitOps
 

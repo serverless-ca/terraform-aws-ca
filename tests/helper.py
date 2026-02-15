@@ -3,7 +3,7 @@ import structlog
 from datetime import timedelta
 
 from assertpy import assert_that
-from typing import Optional
+from typing import Optional, Union
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
@@ -160,7 +160,7 @@ def construct_json_data(
     passphrase: Optional[bool] = None,
     lifetime: int = 1,
     cert_bundle: bool = True,
-    sans: Optional[list[str]] = None,
+    sans: Optional[Union[str, list, dict]] = None,
     override_locality: Optional[str] = None,
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,
@@ -209,7 +209,7 @@ def helper_get_certificate(
     passphrase: Optional[bool] = None,
     lifetime: int = 1,
     cert_bundle: bool = True,
-    sans: Optional[list[str]] = None,
+    sans: Optional[Union[str, list, dict]] = None,
     override_locality: Optional[str] = None,
     override_organization: Optional[str] = None,
     csr_file: Optional[str] = None,

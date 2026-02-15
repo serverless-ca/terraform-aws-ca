@@ -1,6 +1,7 @@
 import random
 import string
 import base64
+import ipaddress
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -39,9 +40,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
     sans = csr_info.sans
 
     # convert to x509 cryptography format
-    x509_sans = []
-    for san in sans:
-        x509_sans.append(x509.DNSName(san))
+    x509_sans = convert_sans_to_x509(sans)
 
     return {
         "CommonName": common_name,
@@ -57,6 +56,88 @@ def crypto_cert_request_info(csr_cert, csr_info):
         "State": csr_info.subject.state,
         "x509Sans": x509_sans,
     }
+
+
+def convert_sans_to_x509(sans: list[dict[str, str]]) -> list:
+    """
+    Convert a list of typed SANs to x509 GeneralName objects.
+
+    Args:
+        sans: List of dicts with 'type' and 'value' keys
+
+    Returns:
+        List of x509 GeneralName objects (DNSName, IPAddress, RFC822Name, etc.)
+    """
+    x509_sans = []
+
+    for san in sans:
+        san_type = san.get("type", "DNS_NAME")
+        value = san.get("value", "")
+
+        try:
+            if san_type == "DNS_NAME":
+                x509_sans.append(x509.DNSName(value))
+            elif san_type == "IP_ADDRESS":
+                # Convert string to ip_address object
+                ip_addr = ipaddress.ip_address(value)
+                x509_sans.append(x509.IPAddress(ip_addr))
+            elif san_type == "EMAIL_ADDRESS":
+                x509_sans.append(x509.RFC822Name(value))
+            elif san_type == "URL":
+                x509_sans.append(x509.UniformResourceIdentifier(value))
+            elif san_type == "DN":
+                # Parse DN string to x509.Name
+                x509_name = parse_dn_to_x509_name(value)
+                x509_sans.append(x509.DirectoryName(x509_name))
+        except Exception as e:
+            print(f"Error converting SAN {san_type}:{value} to x509 format: {e}")
+            continue
+
+    return x509_sans
+
+
+def parse_dn_to_x509_name(dn_string: str) -> x509.Name:
+    """
+    Parse a Distinguished Name string to an x509.Name object.
+
+    Supports common DN attributes: CN, O, OU, C, ST, L, E, DC
+
+    Args:
+        dn_string: DN string like "CN=example,O=Org,C=US"
+
+    Returns:
+        x509.Name object
+    """
+    # Map of DN attribute names to OIDs
+    oid_map = {
+        "CN": NameOID.COMMON_NAME,
+        "O": NameOID.ORGANIZATION_NAME,
+        "OU": NameOID.ORGANIZATIONAL_UNIT_NAME,
+        "C": NameOID.COUNTRY_NAME,
+        "ST": NameOID.STATE_OR_PROVINCE_NAME,
+        "L": NameOID.LOCALITY_NAME,
+        "E": NameOID.EMAIL_ADDRESS,
+        "DC": NameOID.DOMAIN_COMPONENT,
+    }
+
+    attributes = []
+
+    # Split by comma, but handle escaped commas
+    parts = dn_string.split(",")
+
+    for part in parts:
+        part = part.strip()
+        if "=" not in part:
+            continue
+
+        key, value = part.split("=", 1)
+        key = key.strip().upper()
+        value = value.strip()
+
+        if key in oid_map:
+            attributes.append(x509.NameAttribute(oid_map[key], value))
+
+    return x509.Name(attributes)
 
 
 def crypto_encode_private_key(key, passphrase=None):
