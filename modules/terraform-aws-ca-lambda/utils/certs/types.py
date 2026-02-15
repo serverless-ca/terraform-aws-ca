@@ -283,6 +283,13 @@ class CsrInfo:
     extended_key_usages: list[str] = field(init=True, repr=True, default_factory=list)
     _extended_key_usages: list[str] = field(init=False, repr=False)
 
+    def __post_init__(self):
+        # Ensure setters are called for fields with default values
+        # This is needed because dataclasses don't call setters for defaults
+        self._sans = self.sans
+        self._purposes = self.purposes
+        self._extended_key_usages = self.extended_key_usages
+
     @property
     def sans(self) -> list[dict[str, str]]:  # noqa: F811
         return filter_and_validate_sans_typed(self.subject.common_name, self._sans)

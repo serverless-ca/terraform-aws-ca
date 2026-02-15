@@ -14,7 +14,7 @@ def test_create_csr_info():
 
     csr_info = create_csr_info(event)
     assert csr_info.purposes == ["client_auth"]
-    assert csr_info.sans == ["blah.example.com"]
+    assert csr_info.sans == [{"type": "DNS_NAME", "value": "blah.example.com"}]
 
 
 def test_create_csr_info_with_purpose_and_sans():
@@ -26,7 +26,7 @@ def test_create_csr_info_with_purpose_and_sans():
 
     csr_info = create_csr_info(event)
     assert csr_info.purposes == ["server_auth"]
-    assert csr_info.sans == ["a.b.d.com"]
+    assert csr_info.sans == [{"type": "DNS_NAME", "value": "a.b.d.com"}]
 
 
 def test_create_csr_info_with_purpose_no_sans():
@@ -37,8 +37,71 @@ def test_create_csr_info_with_purpose_no_sans():
 
     csr_info = create_csr_info(event)
     assert csr_info.purposes == ["server_auth"]
-    assert csr_info.sans == ["blah.example.com"]
+    assert csr_info.sans == [{"type": "DNS_NAME", "value": "blah.example.com"}]
     assert csr_info.subject.common_name == "blah.example.com"
+
+
+def test_create_csr_info_with_typed_sans():
+    """Test SANs with multiple types using list of dicts format"""
+    event = {
+        "common_name": "test.example.com",
+        "sans": [
+            {"type": "DNS_NAME", "value": "www.example.com"},
+            {"type": "IP_ADDRESS", "value": "192.168.1.1"},
+            {"type": "EMAIL_ADDRESS", "value": "admin@example.com"},
+        ],
+    }
+
+    csr_info = create_csr_info(event)
+    assert len(csr_info.sans) == 3
+    assert {"type": "DNS_NAME", "value": "www.example.com"} in csr_info.sans
+    assert {"type": "IP_ADDRESS", "value": "192.168.1.1"} in csr_info.sans
+    assert {"type": "EMAIL_ADDRESS", "value": "admin@example.com"} in csr_info.sans
+
+
+def test_create_csr_info_with_sans_map_format():
+    """Test SANs using map format"""
+    event = {
+        "common_name": "test.example.com",
+        "sans": {
+            "DNS_NAME": ["www.example.com", "api.example.com"],
+            "IP_ADDRESS": "10.0.0.1",
+        },
+    }
+
+    csr_info = create_csr_info(event)
+    assert len(csr_info.sans) == 3
+    assert {"type": "DNS_NAME", "value": "www.example.com"} in csr_info.sans
+    assert {"type": "DNS_NAME", "value": "api.example.com"} in csr_info.sans
+    assert {"type": "IP_ADDRESS", "value": "10.0.0.1"} in csr_info.sans
+
+
+def test_create_csr_info_with_single_string_san():
+    """Test backwards compatibility with single string SAN"""
+    event = {
+        "common_name": "test.example.com",
+        "sans": "www.example.com",
+    }
+
+    csr_info = create_csr_info(event)
+    assert csr_info.sans == [{"type": "DNS_NAME", "value": "www.example.com"}]
+
+
+def test_create_csr_info_invalid_san_excluded():
+    """Test that invalid SANs are excluded"""
+    event = {
+        "common_name": "test.example.com",
+        "sans": [
+            {"type": "DNS_NAME", "value": "valid.example.com"},
+            {"type": "IP_ADDRESS", "value": "not-an-ip"},
+            {"type": "EMAIL_ADDRESS", "value": "not-an-email"},
+        ],
+    }
+
+    csr_info = create_csr_info(event)
+    # Only the valid DNS_NAME should be included
+    assert len(csr_info.sans) == 1
+    assert csr_info.sans == [{"type": "DNS_NAME", "value": "valid.example.com"}]
 
 
 def test_create_csr_subject():
