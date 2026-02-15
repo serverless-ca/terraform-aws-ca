@@ -34,14 +34,23 @@ chmod 600 ~/certs/client-cert-key.pem
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions 
 * They can then be mounted into the application container
 
-## Purposes
-You can use the `purposes` JSON key to specify the certificate purposes extension. Client Authentication and Server Authentication are supported.
+## Extended Key Usages
 
-To specify only the client authentication extension:
+There are two methods of specifying Extended Key Usage extensions:
+
+1. Use the `purposes` JSON key, which supports the values `client_auth` and `server_auth`
+2. Use the `extended_key_usages` JSON key, which supports a wider range of predefined values and custom OIDs
+
+Either or both can be used. If both JSON keys are defined, the resulting certificate will include all unique Extended Key Usage OIDs from both sources.
+
+### Purposes
+You can use the `purposes` JSON key to specify client and server authentication extended key usage.
+
+To specify only the client authentication (TLS_WEB_CLIENT_AUTHENTICATION) extension, 
 ```json
 "purposes": ["client_auth"],
 ```
-To specify only the server authentication extension:
+To specify only the server authentication (TLS_WEB_SERVER_AUTHENTICATION) extension:
 ```json
 "purposes": ["server_auth"],
 ```
@@ -51,7 +60,7 @@ To specify both client and server authentication extensions:
 ```
 If `purposes` isn't specified, the certificate will only include the client authentication extension.
 
-## Extended Key Usages
+### Extended Key Usages
 You can use the `extended_key_usages` JSON key to specify additional Extended Key Usage extensions beyond those provided by `purposes`.
 
 Supported values:
