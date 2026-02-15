@@ -58,7 +58,7 @@ To specify both client and server authentication extensions:
 ```json
 "purposes": ["client_auth", "server_auth"],
 ```
-If `purposes` isn't specified, the certificate will only include the client authentication extension.
+If neither `purposes` or `extended_key_usages` are specified, the certificate will only include the client authentication extension.
 
 Other Extended Key Usage extensions can be specified using the `extended_key_usages` JSON key, which supports a wider range of predefined values and custom OIDs, see [Extended Key Usages](certificate-settings.md#extended-key-usages) for further details.
 

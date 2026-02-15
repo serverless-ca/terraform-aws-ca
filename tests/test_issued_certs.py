@@ -5,9 +5,17 @@ import structlog
 from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
 
-from cryptography.x509 import DNSName, load_pem_x509_certificate
-from cryptography.x509.oid import ExtensionOID, ExtendedKeyUsageOID
+from cryptography.x509 import (
+    DNSName,
+    IPAddress,
+    RFC822Name,
+    UniformResourceIdentifier,
+    DirectoryName,
+    load_pem_x509_certificate,
+)
+from cryptography.x509.oid import ExtensionOID, ExtendedKeyUsageOID, NameOID
 from cryptography.hazmat.backends import default_backend
+import ipaddress
 
 
 from utils.modules.certs.crypto import (
@@ -515,3 +523,314 @@ def test_extended_key_usage_no_duplicates():
     client_auth_count = sum(1 for oid in eku_oids if oid == ExtendedKeyUsageOID.CLIENT_AUTH)
     assert_that(client_auth_count).is_equal_to(1)
     assert_that(len(eku_oids)).is_equal_to(1)
+
+
+# SAN Types Integration Tests
+
+
+def test_san_type_ip_address():
+    """
+    Test certificate issued with IP_ADDRESS SAN type
+    """
+    common_name = "pipeline-test-san-ip-address"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "IP_ADDRESS", "value": "192.168.1.100"},
+        {"type": "IP_ADDRESS", "value": "10.0.0.1"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    ip_sans = sans_extension.value.get_values_for_type(IPAddress)
+
+    log.info("IP address SANs", ip_sans=[str(ip) for ip in ip_sans])
+
+    # Assert both IP addresses are present
+    assert_that(len(ip_sans)).is_equal_to(2)
+    assert_that(ipaddress.ip_address("192.168.1.100") in ip_sans).is_true()
+    assert_that(ipaddress.ip_address("10.0.0.1") in ip_sans).is_true()
+
+
+def test_san_type_email_address():
+    """
+    Test certificate issued with EMAIL_ADDRESS SAN type
+    """
+    common_name = "pipeline-test-san-email"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "EMAIL_ADDRESS", "value": "admin@example.com"},
+        {"type": "EMAIL_ADDRESS", "value": "security@example.org"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    email_sans = sans_extension.value.get_values_for_type(RFC822Name)
+
+    log.info("Email SANs", email_sans=email_sans)
+
+    # Assert both email addresses are present
+    assert_that(len(email_sans)).is_equal_to(2)
+    assert_that("admin@example.com" in email_sans).is_true()
+    assert_that("security@example.org" in email_sans).is_true()
+
+
+def test_san_type_url():
+    """
+    Test certificate issued with URL SAN type
+    """
+    common_name = "pipeline-test-san-url"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "URL", "value": "https://example.com/certificate"},
+        {"type": "URL", "value": "https://api.example.org/auth"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    url_sans = sans_extension.value.get_values_for_type(UniformResourceIdentifier)
+
+    log.info("URL SANs", url_sans=url_sans)
+
+    # Assert both URLs are present
+    assert_that(len(url_sans)).is_equal_to(2)
+    assert_that("https://example.com/certificate" in url_sans).is_true()
+    assert_that("https://api.example.org/auth" in url_sans).is_true()
+
+
+def test_san_type_directory_name():
+    """
+    Test certificate issued with DN (DirectoryName) SAN type
+    """
+    common_name = "pipeline-test-san-dn"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "DN", "value": "CN=Partner System,O=Partner Org,C=US"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    dn_sans = sans_extension.value.get_values_for_type(DirectoryName)
+
+    log.info("DirectoryName SANs", dn_sans=[dn.rfc4514_string() for dn in dn_sans])
+
+    # Assert DN is present
+    assert_that(len(dn_sans)).is_equal_to(1)
+
+    # Check the DN contains expected attributes
+    dn = dn_sans[0]
+    cn_attrs = dn.get_attributes_for_oid(NameOID.COMMON_NAME)
+    assert_that(len(cn_attrs)).is_greater_than(0)
+    assert_that(cn_attrs[0].value).is_equal_to("Partner System")
+
+
+def test_san_multiple_types_combined():
+    """
+    Test certificate issued with multiple SAN types in a single request
+    """
+    common_name = "pipeline-test-san-multi-type"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "DNS_NAME", "value": "www.example.com"},
+        {"type": "DNS_NAME", "value": "api.example.com"},
+        {"type": "IP_ADDRESS", "value": "192.168.1.1"},
+        {"type": "EMAIL_ADDRESS", "value": "admin@example.com"},
+        {"type": "URL", "value": "https://example.com"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+
+    # Check DNS names
+    dns_sans = sans_extension.value.get_values_for_type(DNSName)
+    log.info("DNS SANs", dns_sans=dns_sans)
+    assert_that(len(dns_sans)).is_equal_to(2)
+    assert_that("www.example.com" in dns_sans).is_true()
+    assert_that("api.example.com" in dns_sans).is_true()
+
+    # Check IP addresses
+    ip_sans = sans_extension.value.get_values_for_type(IPAddress)
+    log.info("IP SANs", ip_sans=[str(ip) for ip in ip_sans])
+    assert_that(len(ip_sans)).is_equal_to(1)
+    assert_that(ipaddress.ip_address("192.168.1.1") in ip_sans).is_true()
+
+    # Check email addresses
+    email_sans = sans_extension.value.get_values_for_type(RFC822Name)
+    log.info("Email SANs", email_sans=email_sans)
+    assert_that(len(email_sans)).is_equal_to(1)
+    assert_that("admin@example.com" in email_sans).is_true()
+
+    # Check URLs
+    url_sans = sans_extension.value.get_values_for_type(UniformResourceIdentifier)
+    log.info("URL SANs", url_sans=url_sans)
+    assert_that(len(url_sans)).is_equal_to(1)
+    assert_that("https://example.com" in url_sans).is_true()
+
+
+def test_san_map_format():
+    """
+    Test certificate issued with SANs using map format input
+    """
+    common_name = "pipeline-test-san-map-format"
+    purposes = ["client_auth"]
+    # Using map format: {"TYPE": ["value1", "value2"]}
+    sans = {
+        "DNS_NAME": ["map1.example.com", "map2.example.com"],
+        "IP_ADDRESS": "172.16.0.1",
+    }
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+
+    # Check DNS names
+    dns_sans = sans_extension.value.get_values_for_type(DNSName)
+    log.info("DNS SANs", dns_sans=dns_sans)
+    assert_that(len(dns_sans)).is_equal_to(2)
+    assert_that("map1.example.com" in dns_sans).is_true()
+    assert_that("map2.example.com" in dns_sans).is_true()
+
+    # Check IP addresses
+    ip_sans = sans_extension.value.get_values_for_type(IPAddress)
+    log.info("IP SANs", ip_sans=[str(ip) for ip in ip_sans])
+    assert_that(len(ip_sans)).is_equal_to(1)
+    assert_that(ipaddress.ip_address("172.16.0.1") in ip_sans).is_true()
+
+
+def test_san_backwards_compatible_string_list():
+    """
+    Test certificate issued with SANs using backwards compatible string list format
+    """
+    common_name = "pipeline-test-san-backwards-compat"
+    purposes = ["client_auth"]
+    # Using backwards compatible format: list of strings (all treated as DNS names)
+    sans = ["compat1.example.com", "compat2.example.com", "*.example.org"]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+
+    # Check DNS names
+    dns_sans = sans_extension.value.get_values_for_type(DNSName)
+    log.info("DNS SANs", dns_sans=dns_sans)
+    assert_that(len(dns_sans)).is_equal_to(3)
+    assert_that("compat1.example.com" in dns_sans).is_true()
+    assert_that("compat2.example.com" in dns_sans).is_true()
+    assert_that("*.example.org" in dns_sans).is_true()
+
+
+def test_san_ipv6_address():
+    """
+    Test certificate issued with IPv6 address SAN
+    """
+    common_name = "pipeline-test-san-ipv6"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "IP_ADDRESS", "value": "2001:db8::1"},
+        {"type": "IP_ADDRESS", "value": "::1"},
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    ip_sans = sans_extension.value.get_values_for_type(IPAddress)
+
+    log.info("IPv6 SANs", ip_sans=[str(ip) for ip in ip_sans])
+
+    # Assert both IPv6 addresses are present
+    assert_that(len(ip_sans)).is_equal_to(2)
+    assert_that(ipaddress.ip_address("2001:db8::1") in ip_sans).is_true()
+    assert_that(ipaddress.ip_address("::1") in ip_sans).is_true()
+
+
+def test_san_invalid_values_excluded():
+    """
+    Test that invalid SAN values are excluded but valid ones are included
+    """
+    common_name = "pipeline-test-san-invalid-excluded"
+    purposes = ["client_auth"]
+    sans = [
+        {"type": "DNS_NAME", "value": "valid.example.com"},
+        {"type": "IP_ADDRESS", "value": "not-an-ip-address"},  # Invalid - should be excluded
+        {"type": "EMAIL_ADDRESS", "value": "not-an-email"},  # Invalid - should be excluded
+        {"type": "IP_ADDRESS", "value": "10.20.30.40"},  # Valid
+    ]
+
+    csr_info = helper_create_csr_info(common_name)
+
+    cert_data, ca_chain = helper_get_certificate(csr_info, purposes=purposes, sans=sans)
+
+    # check SAN extension in issued certificate
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    sans_extension = issued_cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+
+    # Check DNS names - should have the valid one
+    dns_sans = sans_extension.value.get_values_for_type(DNSName)
+    log.info("DNS SANs", dns_sans=dns_sans)
+    assert_that(len(dns_sans)).is_equal_to(1)
+    assert_that("valid.example.com" in dns_sans).is_true()
+
+    # Check IP addresses - should only have the valid one
+    ip_sans = sans_extension.value.get_values_for_type(IPAddress)
+    log.info("IP SANs", ip_sans=[str(ip) for ip in ip_sans])
+    assert_that(len(ip_sans)).is_equal_to(1)
+    assert_that(ipaddress.ip_address("10.20.30.40") in ip_sans).is_true()
+
+    # Check email addresses - should be empty (invalid one excluded)
+    email_sans = sans_extension.value.get_values_for_type(RFC822Name)
+    log.info("Email SANs", email_sans=email_sans)
+    assert_that(len(email_sans)).is_equal_to(0)

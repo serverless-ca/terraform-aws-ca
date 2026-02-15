@@ -2,8 +2,8 @@
 
 Advanced certificate settings:
 
-* Extended Key Usages other than client and server authentication
-* SANS types other than DNS names
+* Extended Key Usages (other than client and server authentication)
+* SANS types (other than DNS names)
 
 ## Extended Key Usages
 You can use the `extended_key_usages` JSON key to specify additional Extended Key Usage extensions beyond those provided by `purposes`.
@@ -81,7 +81,7 @@ If `sans` is not specified, the common name will be used as a DNS_NAME SAN if it
 "sans": "example.com"
 ```
 
-**Multiple DNS names (list of strings - backwards compatible):**
+**Multiple DNS names (list of strings):**
 ```json
 "sans": ["example.com", "www.example.com", "*.example.com"]
 ```
