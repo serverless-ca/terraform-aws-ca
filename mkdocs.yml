@@ -47,7 +47,7 @@ extra:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
-  - Advanced certificate options: certificate-options.md
+  - Advanced certificate options: certificate-settings.md
   - Automation: automation.md
   - CA Certificate locations: locations.md
   - Client certificates: client-certificates.md
