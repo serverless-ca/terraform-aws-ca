@@ -108,6 +108,7 @@ If `sans` is not specified, the common name will be used as a DNS_NAME SAN if it
 
 ### Validation
 All SAN values are validated based on their type:
+
 - **DNS_NAME**: Must be a valid domain name (wildcards supported)
 - **IP_ADDRESS**: Must be a valid IPv4 or IPv6 address
 - **EMAIL_ADDRESS**: Must be a valid email address format
