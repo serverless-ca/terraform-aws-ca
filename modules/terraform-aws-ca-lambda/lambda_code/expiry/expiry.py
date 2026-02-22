@@ -176,6 +176,4 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         days_remaining = _process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now)
 
         if days_remaining is not None:
-            db_record_expiry_reminder(
-                project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining
-            )
+            db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
