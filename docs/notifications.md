@@ -10,9 +10,35 @@ You can also add your own infrastructure to that provided by the module, and del
 
 | Event                        | GitOps | Lambda Invocation  |
 |------------------------------|:------:|:------------------:|
+| Certificate Expiry Warning   |   ✅    |         -          |
 | Certificate Issued           |   ✅    |         -          |
 | Certificate Request Rejected |   ✅    |         ✅          |
 | Certificate Revoked          |   ✅    |         ✅          |
+
+##  Certificate Expiry Warning
+
+SNS notifications are published for GitOps issued certificate expiry according to the schedule in days set by the Terraform variable:
+```terraform
+expiry_reminders = [30, 15, 7, 1]
+```
+Certificate expiry warnings can be disabled by setting `expiry_reminders` to an empty list.
+
+![Certificate Expiry Warning](assets/images/sns-expiry.png)
+
+Certificate Expiry warning - example JSON:
+```json
+{
+  "CertificateInfo": {
+    "CommonName": "Cloud Engineer",
+    "SerialNumber": "430630438465918376136249210634111108993623737029",
+    "Issued": "2025-11-30 15:41:49",
+    "Expires": "2026-11-30 15:46:49"
+  },
+  "Base64Certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM2VENDQW8rZ0F3SUJBZ0lVUzI0aS8wV2p0NGhvdXVSMVJhRGV2b1l6UXNVd0NnWUlLb1pJemowRUF3SXcKYWpFWk1CY0dBMVVFQXd3UVEyeHZkV1FnU1hOemRXbHVaeUJEUVRFTE1Ba0dBMVVFQmhNQ1IwSXhEekFOQmdOVgpCQWNNQmt4dmJtUnZiakVSTUE4R0ExVUVDZ3dJUTJ4dmRXUWdRMEV4SERBYUJnTlZCQXNNRTFObFkzVnlhWFI1CklFOXdaWEpoZEdsdmJuTXdIaGNOTWpVeE1UTXdNVFUwTVRRNVdoY05Nall4TVRNd01UVTBOalE1V2pDQmdERVgKTUJVR0ExVUVBd3dPUTJ4dmRXUWdSVzVuYVc1bFpYSXhDekFKQmdOVkJBWVRBa2RDTVE4d0RRWURWUVFIREFaTQpiMjVrYjI0eEZ6QVZCZ05WQkFvTURsTmxjblpsY214bGMzTWdTVzVqTVJ3d0dnWURWUVFMREJOVFpXTjFjbWwwCmVTQlBjR1Z5WVhScGIyNXpNUkF3RGdZRFZRUUlEQWRGYm1kc1lXNWtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkkKemowREFRY0RRZ0FFUGNTK0ZPbnN2WFduWnQxWmNLQnRXdHlla0dVUGhlbWVYMkhmQ0RlclNGZGhNRFQxSEVmeApPQWtnckNiUFhORitxTC9zT1hMd3FTR3FrZzFicFF0dVVLT0IrekNCK0RBT0JnTlZIUThCQWY4RUJBTUNCYUF3CkV3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3SXdFd1lEVlIwZ0JBd3dDakFJQmdabmdRd0JBZ0V3SFFZRFZSME8KQkJZRUZFdm50YkJnOGMxcSs4elZyaTR4VXVPMkZONjlNRWdHQTFVZEh3UkJNRDh3UGFBN29EbUdOMmgwZEhBNgpMeTlqWlhKMGN5NWpiRzkxWkMxallTNWpiMjB2YzJWeWRtVnliR1Z6Y3kxcGMzTjFhVzVuTFdOaExXUmxkaTVqCmNtd3dVd1lJS3dZQkJRVUhBUUVFUnpCRk1FTUdDQ3NHQVFVRkJ6QUNoamRvZEhSd09pOHZZMlZ5ZEhNdVkyeHYKZFdRdFkyRXVZMjl0TDNObGNuWmxjbXhsYzNNdGFYTnpkV2x1WnkxallTMWtaWFl1WTNKME1Bb0dDQ3FHU000OQpCQU1DQTBnQU1FVUNJUURsR0tjVVNjSkRLek54MDlyQjZBM3cvRnNDVlc0NmpwOE56VWtXVU9RNnFnSWdDV05WCkVMaDBHQzVtQ3NHNWdOMkw5UEVHbllTRi8xVEh1Vkd5QmRaS3ZEZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+  "Subject": "ST=England,OU=Security Operations,O=Serverless Inc,L=London,C=GB,CN=Cloud Engineer",
+  "DaysRemaining": 30
+}
+```
 
 ##  Certificate Issued notification
 
@@ -74,31 +100,6 @@ Certificate Revoked notification - example JSON:
   "SerialNumber": "253508645453578743400361452260705386159413554723",
   "Revoked": "2026-02-03 21:34:04.753865",
   "Subject": "ST=New York,OU=DevOps,O=Override CSR Org,L=Override CSR Location,C=US,CN=pipeline-test-csr-s3-upload"
-}
-```
-
-##  Certificate Expiry Warning
-
-SNS notifications are published for GitOps issued certificate expiry according to the schedule in days, set by the Terraform variable:
-```terraform
-expiry_reminders = [30, 15, 7, 1]
-```
-Certificate expiry warnings can be disabled by setting `expiry_reminders` to an empty list.
-
-![Certificate Expiry Warning](assets/images/sns-expiry.png)
-
-Certificate Expiry warning - example JSON:
-```json
-{
-  "CertificateInfo": {
-    "CommonName": "Cloud Engineer",
-    "SerialNumber": "430630438465918376136249210634111108993623737029",
-    "Issued": "2025-11-30 15:41:49",
-    "Expires": "2026-11-30 15:46:49"
-  },
-  "Base64Certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM2VENDQW8rZ0F3SUJBZ0lVUzI0aS8wV2p0NGhvdXVSMVJhRGV2b1l6UXNVd0NnWUlLb1pJemowRUF3SXcKYWpFWk1CY0dBMVVFQXd3UVEyeHZkV1FnU1hOemRXbHVaeUJEUVRFTE1Ba0dBMVVFQmhNQ1IwSXhEekFOQmdOVgpCQWNNQmt4dmJtUnZiakVSTUE4R0ExVUVDZ3dJUTJ4dmRXUWdRMEV4SERBYUJnTlZCQXNNRTFObFkzVnlhWFI1CklFOXdaWEpoZEdsdmJuTXdIaGNOTWpVeE1UTXdNVFUwTVRRNVdoY05Nall4TVRNd01UVTBOalE1V2pDQmdERVgKTUJVR0ExVUVBd3dPUTJ4dmRXUWdSVzVuYVc1bFpYSXhDekFKQmdOVkJBWVRBa2RDTVE4d0RRWURWUVFIREFaTQpiMjVrYjI0eEZ6QVZCZ05WQkFvTURsTmxjblpsY214bGMzTWdTVzVqTVJ3d0dnWURWUVFMREJOVFpXTjFjbWwwCmVTQlBjR1Z5WVhScGIyNXpNUkF3RGdZRFZRUUlEQWRGYm1kc1lXNWtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkkKemowREFRY0RRZ0FFUGNTK0ZPbnN2WFduWnQxWmNLQnRXdHlla0dVUGhlbWVYMkhmQ0RlclNGZGhNRFQxSEVmeApPQWtnckNiUFhORitxTC9zT1hMd3FTR3FrZzFicFF0dVVLT0IrekNCK0RBT0JnTlZIUThCQWY4RUJBTUNCYUF3CkV3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3SXdFd1lEVlIwZ0JBd3dDakFJQmdabmdRd0JBZ0V3SFFZRFZSME8KQkJZRUZFdm50YkJnOGMxcSs4elZyaTR4VXVPMkZONjlNRWdHQTFVZEh3UkJNRDh3UGFBN29EbUdOMmgwZEhBNgpMeTlqWlhKMGN5NWpiRzkxWkMxallTNWpiMjB2YzJWeWRtVnliR1Z6Y3kxcGMzTjFhVzVuTFdOaExXUmxkaTVqCmNtd3dVd1lJS3dZQkJRVUhBUUVFUnpCRk1FTUdDQ3NHQVFVRkJ6QUNoamRvZEhSd09pOHZZMlZ5ZEhNdVkyeHYKZFdRdFkyRXVZMjl0TDNObGNuWmxjbXhsYzNNdGFYTnpkV2x1WnkxallTMWtaWFl1WTNKME1Bb0dDQ3FHU000OQpCQU1DQTBnQU1FVUNJUURsR0tjVVNjSkRLek54MDlyQjZBM3cvRnNDVlc0NmpwOE56VWtXVU9RNnFnSWdDV05WCkVMaDBHQzVtQ3NHNWdOMkw5UEVHbllTRi8xVEh1Vkd5QmRaS3ZEZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
-  "Subject": "ST=England,OU=Security Operations,O=Serverless Inc,L=London,C=GB,CN=Cloud Engineer",
-  "DaysRemaining": 30
 }
 ```
 
