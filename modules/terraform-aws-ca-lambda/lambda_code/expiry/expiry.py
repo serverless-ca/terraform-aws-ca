@@ -133,23 +133,23 @@ def process_gitops_certificate(project, env_name, external_s3_bucket_name, inter
     return get_latest_certificate(project, env_name, common_name, csr_public_key_pem)
 
 
-def _process_certificate_expiry(project, env_name, certificate, common_name, expiry_reminders, sns_topic_arn, now):
+def _process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now):
     """Evaluate whether an expiry reminder should be sent for a certificate"""
     expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
     days_remaining = (expiry_date - now).days
 
     if days_remaining not in expiry_reminders:
         print(f"{common_name} expires in {days_remaining} days, no reminder needed")
-        return
+        return None
 
     if db_expiry_reminder_already_sent(certificate):
         print(f"Expiry reminder already sent for {common_name} at {days_remaining} days")
-        return
+        return None
 
     cert_details = build_cert_expiry_details(certificate, common_name, days_remaining)
     sns_notify_cert_expiry(cert_details, sns_topic_arn)
 
-    db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
+    return days_remaining
 
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
@@ -172,6 +172,10 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         if certificate is None:
             continue
 
-        _process_certificate_expiry(
-            project, env_name, certificate, gitops_cert["common_name"], expiry_reminders, sns_topic_arn, now
-        )
+        common_name = gitops_cert["common_name"]
+        days_remaining = _process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now)
+
+        if days_remaining is not None:
+            db_record_expiry_reminder(
+                project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining
+            )
