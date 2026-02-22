@@ -38,6 +38,8 @@ Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
 
 > 📖 [Revoking access to IAM Roles Anywhere using open-source private CA](https://medium.com/@paulschwarzenberger/revoking-access-to-iam-roles-anywhere-using-open-source-private-ca-47667cc92299)
 
+> 📖 [Amazon CloudFront origin mTLS with open-source serverless CA](https://medium.com/@paulschwarzenberger/amazon-cloudfront-origin-mtls-with-open-source-serverless-ca-66878107b1d5)
+
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 

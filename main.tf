@@ -196,7 +196,7 @@ module "tls_keygen_iam" {
 module "expiry_iam" {
   # IAM role and policy assumed by Expiry lambda
   source = "./modules/terraform-aws-ca-iam"
-  count  = length(var.expiry_reminders) > 0 ? 1 : 0
+  count  = length(var.expiry_reminders) > 0 && contains(var.cert_info_files, "tls") ? 1 : 0
 
   project                = var.project
   env                    = var.env
@@ -345,7 +345,7 @@ module "rsa_tls_cert_lambda" {
 module "expiry_lambda" {
   # Lambda function to check for expiring GitOps certificates and send notifications to SNS
   source = "./modules/terraform-aws-ca-lambda"
-  count  = length(var.expiry_reminders) > 0 ? 1 : 0
+  count  = length(var.expiry_reminders) > 0 && contains(var.cert_info_files, "tls") ? 1 : 0
 
   project                         = var.project
   env                             = var.env
@@ -421,6 +421,7 @@ module "step-function" {
   kms_arn            = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   internal_s3_bucket = module.internal_s3.s3_bucket_name
   cert_info_files    = var.cert_info_files
+  expiry_reminders   = var.expiry_reminders
 }
 
 module "scheduler-role" {
