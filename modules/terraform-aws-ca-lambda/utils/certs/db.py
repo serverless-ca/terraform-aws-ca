@@ -227,3 +227,49 @@ def db_list_revoked_certificates(project, env_name):
         else:
             break
     return items
+
+
+def db_expiry_reminder_already_sent(certificate, days_remaining):
+    """Check whether an expiry reminder has already been sent today for the specified days remaining"""
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    expiry_reminders = certificate.get("ExpiryReminders", {}).get("L", [])
+    for reminder in expiry_reminders:
+        if reminder["S"].startswith(today):
+            return True
+
+    return False
+
+
+def db_record_expiry_reminder(project, env_name, common_name, serial_number, days_remaining):
+    """Record that an expiry reminder was sent by appending datetime to ExpiryReminders list"""
+    client = boto3.client("dynamodb")
+
+    table_name = db_get_table_name(project, env_name)
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    print(f"recording expiry reminder ({days_remaining} days) for {common_name} serial {serial_number}")
+
+    try:
+        # append to existing list
+        client.update_item(
+            TableName=table_name,
+            Key={
+                "CommonName": {"S": common_name},
+                "SerialNumber": {"S": serial_number},
+            },
+            UpdateExpression="SET ExpiryReminders = list_append(ExpiryReminders, :r)",
+            ExpressionAttributeValues={":r": {"L": [{"S": now}]}},
+            ConditionExpression="attribute_exists(ExpiryReminders)",
+        )
+    except client.exceptions.ConditionalCheckFailedException:
+        # create new list if attribute doesn't exist
+        client.update_item(
+            TableName=table_name,
+            Key={
+                "CommonName": {"S": common_name},
+                "SerialNumber": {"S": serial_number},
+            },
+            UpdateExpression="SET ExpiryReminders = :r",
+            ExpressionAttributeValues={":r": {"L": [{"S": now}]}},
+        )

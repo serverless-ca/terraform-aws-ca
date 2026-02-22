@@ -1,6 +1,6 @@
 # Advanced Certificate Settings
 
-Advanced certificate settings:
+In addition to [standard certificate options](client-certificates.md) you can configure advanced certificate settings:
 
 * Extended Key Usages (other than client and server authentication)
 * SANS types (other than DNS names)

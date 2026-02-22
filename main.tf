@@ -193,6 +193,24 @@ module "tls_keygen_iam" {
   xray_enabled           = var.xray_enabled
 }
 
+module "expiry_iam" {
+  # IAM role and policy assumed by Expiry lambda
+  source = "./modules/terraform-aws-ca-iam"
+  count  = length(var.expiry_reminders) > 0 ? 1 : 0
+
+  project                = var.project
+  env                    = var.env
+  function_name          = "expiry"
+  kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
+  kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  ddb_table_arn          = module.dynamodb.ddb_table_arn
+  policy                 = "expiry"
+  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
+  sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled           = var.xray_enabled
+}
+
 module "create_rsa_root_ca_lambda" {
   # Lambda function to check for existence and otherwise create Root CA using KMS private key
   source = "./modules/terraform-aws-ca-lambda"
@@ -202,6 +220,7 @@ module "create_rsa_root_ca_lambda" {
   prod_envs                       = var.prod_envs
   function_name                   = "create-root-ca"
   description                     = "create Root Certificate Authority with KMS private key"
+  expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
@@ -226,6 +245,7 @@ module "create_rsa_issuing_ca_lambda" {
   prod_envs                       = var.prod_envs
   function_name                   = "create-issuing-ca"
   description                     = "create Issuing Certificate Authority with KMS private key"
+  expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
@@ -250,6 +270,7 @@ module "rsa_root_ca_crl_lambda" {
   prod_envs                       = var.prod_envs
   function_name                   = "root-ca-crl"
   description                     = "publish Root CA certificate revocation list signed by KMS private key"
+  expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
@@ -276,6 +297,7 @@ module "rsa_issuing_ca_crl_lambda" {
   prod_envs                       = var.prod_envs
   function_name                   = "issuing-ca-crl"
   description                     = "publish Issuing CA certificate revocation list signed by KMS private key"
+  expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
@@ -302,6 +324,7 @@ module "rsa_tls_cert_lambda" {
   prod_envs                       = var.prod_envs
   function_name                   = "tls-cert"
   description                     = "issue TLS certificates signed by KMS private key"
+  expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
@@ -314,6 +337,32 @@ module "rsa_tls_cert_lambda" {
   public_crl                      = var.public_crl
   max_cert_lifetime               = var.max_cert_lifetime
   allowed_invocation_principals   = var.aws_principals
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
+}
+
+module "expiry_lambda" {
+  # Lambda function to check for expiring GitOps certificates and send notifications to SNS
+  source = "./modules/terraform-aws-ca-lambda"
+  count  = length(var.expiry_reminders) > 0 ? 1 : 0
+
+  project                         = var.project
+  env                             = var.env
+  prod_envs                       = var.prod_envs
+  function_name                   = "expiry"
+  description                     = "Check for expiring GitOps certificates and send notifications to SNS topic"
+  expiry_reminders                = var.expiry_reminders
+  external_s3_bucket              = module.external_s3.s3_bucket_name
+  internal_s3_bucket              = module.internal_s3.s3_bucket_name
+  logging_account_id              = var.logging_account_id
+  subscription_filter_destination = var.subscription_filter_destination
+  filter_pattern                  = var.filter_pattern
+  issuing_ca_info                 = var.issuing_ca_info
+  lambda_role_arn                 = module.expiry_iam[0].lambda_role_arn
+  domain                          = var.hosted_zone_domain
+  runtime                         = var.runtime
+  public_crl                      = var.public_crl
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled
   tags                            = merge(var.tags, var.additional_lambda_tags)
