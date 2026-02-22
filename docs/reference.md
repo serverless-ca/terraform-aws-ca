@@ -23,6 +23,8 @@
 | <a name="module_create_rsa_root_ca_lambda"></a> [create\_rsa\_root\_ca\_lambda](#module\_create\_rsa\_root\_ca\_lambda) | ./modules/terraform-aws-ca-lambda | n/a |
 | <a name="module_db-reader-role"></a> [db-reader-role](#module\_db-reader-role) | ./modules/terraform-aws-ca-iam | n/a |
 | <a name="module_dynamodb"></a> [dynamodb](#module\_dynamodb) | ./modules/terraform-aws-ca-dynamodb | n/a |
+| <a name="module_expiry_iam"></a> [expiry\_iam](#module\_expiry\_iam) | ./modules/terraform-aws-ca-iam | n/a |
+| <a name="module_expiry_lambda"></a> [expiry\_lambda](#module\_expiry\_lambda) | ./modules/terraform-aws-ca-lambda | n/a |
 | <a name="module_external_s3"></a> [external\_s3](#module\_external\_s3) | ./modules/terraform-aws-ca-s3 | n/a |
 | <a name="module_internal_s3"></a> [internal\_s3](#module\_internal\_s3) | ./modules/terraform-aws-ca-s3 | n/a |
 | <a name="module_issuing_crl_iam"></a> [issuing\_crl\_iam](#module\_issuing\_crl\_iam) | ./modules/terraform-aws-ca-iam | n/a |
@@ -59,12 +61,13 @@
 | <a name="input_bucket_key_enabled"></a> [bucket\_key\_enabled](#input\_bucket\_key\_enabled) | Whether or not to use Amazon S3 Bucket Keys for SSE-KMS | `bool` | `false` | no |
 | <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
 | <a name="input_cert_info_files"></a> [cert\_info\_files](#input\_cert\_info\_files) | List of file names to be uploaded to internal S3 bucket for processing | `list(string)` | `[]` | no |
-| <a name="input_cloudfront_web_acl_id"></a> [cloudfront\_web\_acl\_id](#input\_cloudfront\_web\_acl\_id) | WAF attachment for the public CRL Cloudfront distribution, expects the WAF ARN | `string` | `null` | no |
+| <a name="input_cloudfront_web_acl_id"></a> [cloudfront\_web\_acl\_id](#input\_cloudfront\_web\_acl\_id) | WAF attachment for the public CRL CloudFront distribution, expects the WAF ARN | `string` | `null` | no |
 | <a name="input_csr_files"></a> [csr\_files](#input\_csr\_files) | List of CSR file names to be uploaded to internal S3 bucket for processing | `list(string)` | `[]` | no |
 | <a name="input_custom_sns_topic_display_name"></a> [custom\_sns\_topic\_display\_name](#input\_custom\_sns\_topic\_display\_name) | Customised SNS topic display name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_custom_sns_topic_name"></a> [custom\_sns\_topic\_name](#input\_custom\_sns\_topic\_name) | Customised SNS topic name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_default_aws_kms_key_for_s3"></a> [default\_aws\_kms\_key\_for\_s3](#input\_default\_aws\_kms\_key\_for\_s3) | Use default AWS KMS key instead of customer managed key for S3 bucket encryption. Applicable only if "sse\_algorithm" is "aws:kms" | `bool` | `false` | no |
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
+| <a name="input_expiry_reminders"></a> [expiry\_reminders](#input\_expiry\_reminders) | List of days before certificate expiry to send reminder notifications, set to empty list to disable expiry reminders | `list(number)` | <pre>[<br/>  30,<br/>  15,<br/>  7,<br/>  1<br/>]</pre> | no |
 | <a name="input_filter_pattern"></a> [filter\_pattern](#input\_filter\_pattern) | Filter pattern for CloudWatch logs subscription filter | `string` | `""` | no |
 | <a name="input_hosted_zone_domain"></a> [hosted\_zone\_domain](#input\_hosted\_zone\_domain) | Hosted zone domain, e.g. dev.ca.example.com | `string` | `""` | no |
 | <a name="input_hosted_zone_id"></a> [hosted\_zone\_id](#input\_hosted\_zone\_id) | Hosted zone ID for public zone, e.g. Z0123456XXXXXXXXXXX | `string` | `""` | no |
