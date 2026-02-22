@@ -48,7 +48,7 @@ variable "csr_files" {
 
 variable "cloudfront_web_acl_id" {
   type        = string
-  description = "WAF attachment for the public CRL Cloudfront distribution, expects the WAF ARN"
+  description = "WAF attachment for the public CRL CloudFront distribution, expects the WAF ARN"
   default     = null
 }
 
@@ -68,6 +68,12 @@ variable "env" {
   type        = string
   description = "Environment name, e.g. dev"
   default     = "dev"
+}
+
+variable "expiry_reminders" {
+  type        = list(number)
+  description = "List of days before certificate expiry to send reminder notifications, set to empty list to disable expiry reminders"
+  default     = [30, 15, 7, 1]
 }
 
 variable "filter_pattern" {

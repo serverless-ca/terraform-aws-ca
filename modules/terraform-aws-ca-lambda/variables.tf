@@ -25,6 +25,10 @@ variable "prod_envs" {
   default     = ["prd", "prod"]
 }
 
+variable "expiry_reminders" {
+  description = "List of days before certificate expiration to send reminders"
+}
+
 variable "external_s3_bucket" {
   description = "External S3 Bucket Name"
 }

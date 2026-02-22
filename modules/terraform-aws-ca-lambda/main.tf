@@ -52,6 +52,7 @@ resource "aws_lambda_function" "lambda" {
       DOMAIN              = var.domain
       ENVIRONMENT_NAME    = var.env
       PROD_ENVIRONMENTS   = jsonencode(var.prod_envs)
+      EXPIRY_REMINDERS    = jsonencode(var.expiry_reminders)
       EXTERNAL_S3_BUCKET  = var.external_s3_bucket
       INTERNAL_S3_BUCKET  = var.internal_s3_bucket
       ISSUING_CA_INFO     = jsonencode({ for k, v in var.issuing_ca_info : k => v if v != null })
