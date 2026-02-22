@@ -76,6 +76,28 @@ def get_latest_certificate(project, env_name, common_name, csr_public_key_pem):
     return latest_certificate
 
 
+def build_cert_expiry_details(certificate, common_name, days_remaining):
+    """Build SNS message details for certificate expiry warning"""
+    b64_encoded_certificate = certificate["Certificate"]["B"]
+    cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
+
+    return {
+        "CertificateInfo": {
+            "CommonName": common_name,
+            "SerialNumber": certificate["SerialNumber"]["S"],
+            "Issued": certificate["Issued"]["S"],
+            "Expires": certificate["Expires"]["S"],
+        },
+        "Base64Certificate": (
+            b64_encoded_certificate.decode("utf-8")
+            if isinstance(b64_encoded_certificate, bytes)
+            else b64_encoded_certificate
+        ),
+        "Subject": cert.subject.rfc4514_string(),
+        "DaysRemaining": days_remaining,
+    }
+
+
 def sns_notify_cert_expiry(cert_details, sns_topic_arn):
     keys_to_publish = ["CertificateInfo", "Base64Certificate", "Subject", "DaysRemaining"]
     response = publish_to_sns(cert_details, "Certificate Expiry Warning", sns_topic_arn, keys_to_publish)
@@ -85,7 +107,31 @@ def sns_notify_cert_expiry(cert_details, sns_topic_arn):
     print(f"Expiry warning for {common_name} published to SNS")
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
+def process_gitops_certificate(project, env_name, external_s3_bucket_name, internal_s3_bucket_name, gitops_cert):
+    """Download CSR from S3 and return the latest matching certificate, or None"""
+    common_name = gitops_cert["common_name"]
+    csr_file = gitops_cert["csr_file"]
+
+    csr_response = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")
+    if csr_response is None:
+        print(f"CSR file csrs/{csr_file} not found, skipping {common_name}")
+        return None
+
+    csr = load_pem_x509_csr(csr_response["Body"].read())
+
+    csr_public_key_pem = (
+        csr.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode("utf-8")
+    )
+
+    return get_latest_certificate(project, env_name, common_name, csr_public_key_pem)
+
+
+def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
     external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
@@ -100,70 +146,25 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
 
     for gitops_cert in gitops_certificates:
         common_name = gitops_cert["common_name"]
-        csr_file = gitops_cert["csr_file"]
 
-        # download CSR from S3
-        csr_response = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{csr_file}")
-        if csr_response is None:
-            print(f"CSR file csrs/{csr_file} not found, skipping {common_name}")
-            continue
-
-        csr_file_contents = csr_response["Body"].read()
-        csr = load_pem_x509_csr(csr_file_contents)
-
-        # extract public key from CSR
-        csr_public_key_pem = (
-            csr.public_key()
-            .public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo,
-            )
-            .decode("utf-8")
+        certificate = process_gitops_certificate(
+            project, env_name, external_s3_bucket_name, internal_s3_bucket_name, gitops_cert
         )
-
-        # look up latest certificate with matching common name and subject
-        certificate = get_latest_certificate(project, env_name, common_name, csr_public_key_pem)
         if certificate is None:
             continue
 
-        expiry = certificate["Expires"]["S"]
-        expiry_date = datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S")
+        expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
         days_remaining = (expiry_date - now).days
 
         if days_remaining not in expiry_reminders:
             print(f"{common_name} expires in {days_remaining} days, no reminder needed")
             continue
 
-        # check if a reminder has already been sent for this number of days remaining
-        if db_expiry_reminder_already_sent(certificate, days_remaining):
+        if db_expiry_reminder_already_sent(certificate):
             print(f"Expiry reminder already sent for {common_name} at {days_remaining} days")
             continue
 
-        # build SNS message
-        serial_number = certificate["SerialNumber"]["S"]
-        issued = certificate["Issued"]["S"]
-        b64_encoded_certificate = certificate["Certificate"]["B"]
-        cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
-
-        cert_details = {
-            "CertificateInfo": {
-                "CommonName": common_name,
-                "SerialNumber": serial_number,
-                "Issued": issued,
-                "Expires": expiry,
-            },
-            "Base64Certificate": (
-                b64_encoded_certificate.decode("utf-8")
-                if isinstance(b64_encoded_certificate, bytes)
-                else b64_encoded_certificate
-            ),
-            "Subject": cert.subject.rfc4514_string(),
-            "DaysRemaining": days_remaining,
-        }
-
+        cert_details = build_cert_expiry_details(certificate, common_name, days_remaining)
         sns_notify_cert_expiry(cert_details, sns_topic_arn)
 
-        # record that a reminder was sent
-        db_record_expiry_reminder(project, env_name, common_name, serial_number, days_remaining)
-
-    return
+        db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)

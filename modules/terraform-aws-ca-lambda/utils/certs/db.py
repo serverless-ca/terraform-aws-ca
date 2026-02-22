@@ -229,8 +229,8 @@ def db_list_revoked_certificates(project, env_name):
     return items
 
 
-def db_expiry_reminder_already_sent(certificate, days_remaining):
-    """Check whether an expiry reminder has already been sent today for the specified days remaining"""
+def db_expiry_reminder_already_sent(certificate):
+    """Check whether an expiry reminder has already been sent today"""
     today = datetime.now().strftime("%Y-%m-%d")
 
     expiry_reminders = certificate.get("ExpiryReminders", {}).get("L", [])
