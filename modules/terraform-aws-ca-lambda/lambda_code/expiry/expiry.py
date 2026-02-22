@@ -13,22 +13,8 @@ import os
 from datetime import datetime
 
 
-def get_latest_certificate(project, env_name, common_name, csr_public_key_pem):
-    """Find the certificate with the latest expiry matching the common name and subject.
-
-    First locates the certificate matching the CSR public key to determine the subject,
-    then searches all certificates with the same common name and subject to find the one
-    with the latest expiry date.
-    """
-
-    certificates = db_list_certificates(project, env_name, common_name)
-
-    if not certificates:
-        print(f"No certificates found for {common_name}")
-        return None
-
-    # find the certificate matching the CSR public key to determine the subject
-    subject = None
+def _get_subject_from_csr_match(certificates, csr_public_key_pem, common_name):
+    """Find the subject of the certificate matching the CSR public key"""
     for certificate in certificates:
         b64_encoded_certificate = certificate["Certificate"]["B"]
         cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
@@ -44,8 +30,26 @@ def get_latest_certificate(project, env_name, common_name, csr_public_key_pem):
         if cert_public_key_pem == csr_public_key_pem:
             subject = cert.subject.rfc4514_string()
             print(f"Found CSR-matching certificate for {common_name} with subject {subject}")
-            break
+            return subject
 
+    return None
+
+
+def get_latest_certificate(project, env_name, common_name, csr_public_key_pem):
+    """Find the certificate with the latest expiry matching the common name and subject.
+
+    First locates the certificate matching the CSR public key to determine the subject,
+    then searches all certificates with the same common name and subject to find the one
+    with the latest expiry date.
+    """
+
+    certificates = db_list_certificates(project, env_name, common_name)
+
+    if not certificates:
+        print(f"No certificates found for {common_name}")
+        return None
+
+    subject = _get_subject_from_csr_match(certificates, csr_public_key_pem, common_name)
     if subject is None:
         print(f"No matching certificate found for {common_name} with the provided CSR public key")
         return None
@@ -57,13 +61,11 @@ def get_latest_certificate(project, env_name, common_name, csr_public_key_pem):
     for certificate in certificates:
         b64_encoded_certificate = certificate["Certificate"]["B"]
         cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
-        cert_subject = cert.subject.rfc4514_string()
 
-        if cert_subject != subject:
+        if cert.subject.rfc4514_string() != subject:
             continue
 
-        expiry = certificate["Expires"]["S"]
-        expiry_date = datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S")
+        expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
 
         if latest_expiry is None or expiry_date > latest_expiry:
             latest_expiry = expiry_date
@@ -131,6 +133,25 @@ def process_gitops_certificate(project, env_name, external_s3_bucket_name, inter
     return get_latest_certificate(project, env_name, common_name, csr_public_key_pem)
 
 
+def _process_certificate_expiry(project, env_name, certificate, common_name, expiry_reminders, sns_topic_arn, now):
+    """Evaluate whether an expiry reminder should be sent for a certificate"""
+    expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
+    days_remaining = (expiry_date - now).days
+
+    if days_remaining not in expiry_reminders:
+        print(f"{common_name} expires in {days_remaining} days, no reminder needed")
+        return
+
+    if db_expiry_reminder_already_sent(certificate):
+        print(f"Expiry reminder already sent for {common_name} at {days_remaining} days")
+        return
+
+    cert_details = build_cert_expiry_details(certificate, common_name, days_remaining)
+    sns_notify_cert_expiry(cert_details, sns_topic_arn)
+
+    db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
+
+
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
@@ -145,26 +166,12 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     now = datetime.now()
 
     for gitops_cert in gitops_certificates:
-        common_name = gitops_cert["common_name"]
-
         certificate = process_gitops_certificate(
             project, env_name, external_s3_bucket_name, internal_s3_bucket_name, gitops_cert
         )
         if certificate is None:
             continue
 
-        expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
-        days_remaining = (expiry_date - now).days
-
-        if days_remaining not in expiry_reminders:
-            print(f"{common_name} expires in {days_remaining} days, no reminder needed")
-            continue
-
-        if db_expiry_reminder_already_sent(certificate):
-            print(f"Expiry reminder already sent for {common_name} at {days_remaining} days")
-            continue
-
-        cert_details = build_cert_expiry_details(certificate, common_name, days_remaining)
-        sns_notify_cert_expiry(cert_details, sns_topic_arn)
-
-        db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
+        _process_certificate_expiry(
+            project, env_name, certificate, gitops_cert["common_name"], expiry_reminders, sns_topic_arn, now
+        )
