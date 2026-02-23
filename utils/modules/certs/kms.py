@@ -16,18 +16,16 @@ def kms_generate_key_pair(key_id, key_pair_spec="ECC_NIST_P256", session=None):
 
 
 def kms_get_kms_key_id(alias, session=None):
-    """returns the KMS Key ARN for a specified alias"""
+    """returns the KMS Key ID for a specified alias"""
 
     if session is None:
         client = boto3.client(service_name="kms")
     else:
         client = session.client(service_name="kms")
 
-    aliases = client.list_aliases(Limit=100)["Aliases"]
+    alias_name = f"alias/{alias}"
     try:
-        key_id_list = [a for a in aliases if a["AliasName"] == f"alias/{alias}"]
-        key_id = key_id_list[0]["TargetKeyId"]
+        response = client.describe_key(KeyId=alias_name)
+        return response["KeyMetadata"]["KeyId"]
     except Exception as e:
-        key_id = {"error": f"Failed to get KMS key ID. {e}"}
-
-    return key_id
+        return {"error": f"Failed to get KMS key ID. {e}"}
