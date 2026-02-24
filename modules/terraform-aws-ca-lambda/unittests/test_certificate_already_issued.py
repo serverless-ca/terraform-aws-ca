@@ -146,14 +146,16 @@ def test_certificate_already_issued_cert_has_full_subject_event_has_cn_only(mock
     csr = _generate_test_csr(private_key, common_name="Cloud Architect")
 
     # Certificate has full subject (added during signing from CSR file fields)
-    full_x509_subject = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, "Cloud Architect"),
-        x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, "London"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Serverless Inc"),
-        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Security Operations"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "England"),
-    ])
+    full_x509_subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "Cloud Architect"),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "London"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Serverless Inc"),
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Security Operations"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "England"),
+        ]
+    )
 
     cert = _generate_test_cert(
         private_key,
