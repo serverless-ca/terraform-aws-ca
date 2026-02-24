@@ -146,7 +146,7 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
         .decode("utf-8")
     )
 
-    csr_subject = csr.subject.rfc4514_string()
+    csr_subject = subject.x509_name().rfc4514_string()
     last_modified_date = last_modified.strftime("%Y-%m-%d")
 
     for certificate in certificates:
