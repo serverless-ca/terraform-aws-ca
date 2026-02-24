@@ -122,7 +122,7 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
     return base64.b64encode(pem_certificate), info
 
 
-# pylint:disable=too-many-arguments
+# pylint:disable=too-many-arguments, too-many-locals
 def certificate_already_issued(csr, subject, last_modified, project, env_name, force_issue):
     """Check if a certificate has already been issued for this CSR"""
     if force_issue:
