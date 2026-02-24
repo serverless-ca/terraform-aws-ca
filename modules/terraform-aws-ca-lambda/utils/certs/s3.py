@@ -19,7 +19,7 @@ def s3_download_file(bucket_name, key):
 
 
 def s3_download_file_details(bucket_name, key):
-    """Download file from S3 and return the object body and last modified datetime"""
+    """Download file from S3 and return the get_object response dict plus last modified datetime"""
     client = boto3.client("s3")
 
     print(f"downloading {key} from s3 bucket {bucket_name}")

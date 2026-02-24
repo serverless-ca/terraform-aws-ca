@@ -122,8 +122,12 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
     return base64.b64encode(pem_certificate), info
 
 
-def certificate_already_issued(csr, subject, last_modified, project, env_name):
+# pylint:disable=too-many-arguments
+def certificate_already_issued(csr, subject, last_modified, project, env_name, force_issue):
     """Check if a certificate has already been issued for this CSR"""
+    if force_issue:
+        return False
+
     if last_modified is None:
         return False
 
@@ -329,13 +333,15 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
 
     if request.csr_file:
         csr_response, last_modified = s3_download_file_details(internal_s3_bucket_name, f"csrs/{request.csr_file}")
+        if csr_response is None:
+            return {"error": f"CSR file '{request.csr_file}' not found in S3 bucket '{internal_s3_bucket_name}'"}
         csr_file_contents = csr_response["Body"].read()
         csr = load_pem_x509_csr(csr_file_contents)
     else:
         last_modified = None
         csr = load_pem_x509_csr(base64.standard_b64decode(request.base64_csr_data))
 
-    if certificate_already_issued(csr, csr_info.subject, last_modified, project, env_name):
+    if certificate_already_issued(csr, csr_info.subject, last_modified, project, env_name, request.force_issue):
         return {"message": "Certificate already issued"}
 
     validation_error = is_invalid_certificate_request(
