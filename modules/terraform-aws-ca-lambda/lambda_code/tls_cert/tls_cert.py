@@ -124,7 +124,11 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
 
 # pylint:disable=too-many-arguments, too-many-locals
 def certificate_already_issued(csr, subject, last_modified, project, env_name, force_issue):
-    """Check if a certificate has already been issued for this CSR"""
+    """Check if a certificate has already been issued for this CSR.
+
+    Matches on public key, common name (via db_list_certificates) and
+    CSR file last-modified date vs certificate not-valid-before date.
+    """
     if force_issue:
         return False
 
@@ -146,7 +150,6 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
         .decode("utf-8")
     )
 
-    csr_subject = subject.x509_name().rfc4514_string()
     last_modified_date = last_modified.strftime("%Y-%m-%d")
 
     for certificate in certificates:
@@ -163,9 +166,6 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
         )
 
         if cert_public_key_pem != csr_public_key_pem:
-            continue
-
-        if cert.subject.rfc4514_string() != csr_subject:
             continue
 
         valid_from_date = cert.not_valid_before_utc.strftime("%Y-%m-%d")
