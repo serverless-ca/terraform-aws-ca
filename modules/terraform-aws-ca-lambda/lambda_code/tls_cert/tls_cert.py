@@ -151,6 +151,7 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
     )
 
     last_modified_date = last_modified.strftime("%Y-%m-%d")
+    print(f"Checking if certificate already issued for {common_name}, CSR last modified: {last_modified_date}")
 
     for certificate in certificates:
         b64_encoded_certificate = certificate["Certificate"]["B"]
@@ -166,9 +167,14 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
         )
 
         if cert_public_key_pem != csr_public_key_pem:
+            print(f"Public key mismatch for serial {certificate['SerialNumber']['S']}")
             continue
 
         valid_from_date = cert.not_valid_before_utc.strftime("%Y-%m-%d")
+        print(
+            f"Public key match for serial {certificate['SerialNumber']['S']}, "
+            f"valid_from: {valid_from_date}, last_modified: {last_modified_date}"
+        )
         if valid_from_date == last_modified_date:
             print(f"Certificate already issued for {common_name} on {valid_from_date}")
             return True
