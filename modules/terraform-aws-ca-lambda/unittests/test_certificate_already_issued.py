@@ -55,14 +55,30 @@ def _make_db_certificate(cert):
 
 @patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
 def test_certificate_already_issued_matching(mock_db_list):
-    """Test returns True when CSR matches an existing certificate"""
+    """Test returns True when CSR public key matches an existing certificate"""
+    private_key = _generate_test_key()
+    csr = _generate_test_csr(private_key)
+    cert = _generate_test_cert(private_key)
+
+    mock_db_list.return_value = [_make_db_certificate(cert)]
+    subject = Subject("test.example.com")
+    last_modified = datetime(2026, 2, 24, 20, 36, 36, tzinfo=tzutc())
+
+    result = certificate_already_issued(csr, subject, last_modified, "test-project", "dev", False)
+    assert result is True
+
+
+@patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
+def test_certificate_already_issued_matching_different_dates(mock_db_list):
+    """Test returns True even when CSR last_modified date differs from certificate valid_from date"""
     private_key = _generate_test_key()
     csr = _generate_test_csr(private_key)
     cert = _generate_test_cert(private_key, not_valid_before=datetime(2025, 11, 30, 15, 0, 0, tzinfo=timezone.utc))
 
     mock_db_list.return_value = [_make_db_certificate(cert)]
     subject = Subject("test.example.com")
-    last_modified = datetime(2025, 11, 30, 20, 36, 36, tzinfo=tzutc())
+    # CSR re-uploaded months after certificate was issued
+    last_modified = datetime(2026, 2, 24, 20, 36, 36, tzinfo=tzutc())
 
     result = certificate_already_issued(csr, subject, last_modified, "test-project", "dev", False)
     assert result is True
@@ -83,7 +99,7 @@ def test_certificate_already_issued_force_issue(mock_db_list):
 
 @patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
 def test_certificate_already_issued_last_modified_none(mock_db_list):
-    """Test returns False when last_modified is None"""
+    """Test returns False when last_modified is None (CSR provided inline, not from S3)"""
     private_key = _generate_test_key()
     csr = _generate_test_csr(private_key)
     subject = Subject("test.example.com")
@@ -113,7 +129,7 @@ def test_certificate_already_issued_different_key(mock_db_list):
     csr_key = _generate_test_key()
     cert_key = _generate_test_key()
     csr = _generate_test_csr(csr_key)
-    cert = _generate_test_cert(cert_key, not_valid_before=datetime(2025, 11, 30, 15, 0, 0, tzinfo=timezone.utc))
+    cert = _generate_test_cert(cert_key)
 
     mock_db_list.return_value = [_make_db_certificate(cert)]
     subject = Subject("test.example.com")
@@ -124,23 +140,7 @@ def test_certificate_already_issued_different_key(mock_db_list):
 
 
 @patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
-def test_certificate_already_issued_different_date(mock_db_list):
-    """Test returns False when last_modified date does not match certificate valid_from date"""
-    private_key = _generate_test_key()
-    csr = _generate_test_csr(private_key)
-    cert = _generate_test_cert(private_key, not_valid_before=datetime(2025, 11, 30, 15, 0, 0, tzinfo=timezone.utc))
-
-    mock_db_list.return_value = [_make_db_certificate(cert)]
-    subject = Subject("test.example.com")
-    # last_modified is a different day
-    last_modified = datetime(2025, 12, 1, 20, 36, 36, tzinfo=tzutc())
-
-    result = certificate_already_issued(csr, subject, last_modified, "test-project", "dev", False)
-    assert result is False
-
-
-@patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
-def test_certificate_already_issued_cert_has_full_subject_event_has_cn_only(mock_db_list):
+def test_certificate_already_issued_cert_has_full_subject(mock_db_list):
     """Test returns True when certificate has full subject from CSR but event only has common_name"""
     private_key = _generate_test_key()
     csr = _generate_test_csr(private_key, common_name="Cloud Architect")
@@ -164,36 +164,9 @@ def test_certificate_already_issued_cert_has_full_subject_event_has_cn_only(mock
     )
 
     mock_db_list.return_value = [_make_db_certificate(cert)]
-    # Subject only has common_name (as built from event with no org/state fields)
     subject = Subject("Cloud Architect")
-    last_modified = datetime(2025, 11, 30, 20, 36, 36, tzinfo=tzutc())
+    # CSR re-uploaded months later
+    last_modified = datetime(2026, 2, 24, 20, 36, 36, tzinfo=tzutc())
 
     result = certificate_already_issued(csr, subject, last_modified, "test-project", "dev", False)
-    assert result is True
-
-
-@patch("lambda_code.tls_cert.tls_cert.db_list_certificates")
-def test_certificate_already_issued_full_subject(mock_db_list):
-    """Test returns True when CSR has only CN but certificate and Subject have full org details"""
-    private_key = _generate_test_key()
-    csr = _generate_test_csr(private_key, common_name="Cloud Architect")
-
-    # Certificate has full subject like in production
-    full_subject = Subject("Cloud Architect")
-    full_subject.country = "GB"
-    full_subject.locality = "London"
-    full_subject.organization = "Serverless Inc"
-    full_subject.organizational_unit = "Security Operations"
-    full_subject.state = "England"
-
-    cert = _generate_test_cert(
-        private_key,
-        not_valid_before=datetime(2025, 11, 30, 15, 0, 0, tzinfo=timezone.utc),
-        x509_subject=full_subject.x509_name(),
-    )
-
-    mock_db_list.return_value = [_make_db_certificate(cert)]
-    last_modified = datetime(2025, 11, 30, 20, 36, 36, tzinfo=tzutc())
-
-    result = certificate_already_issued(csr, full_subject, last_modified, "test-project", "dev", False)
     assert result is True

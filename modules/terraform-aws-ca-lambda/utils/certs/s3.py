@@ -18,24 +18,6 @@ def s3_download_file(bucket_name, key):
     return None
 
 
-def s3_download_file_details(bucket_name, key):
-    """Download file from S3 and return the get_object response dict plus last modified datetime"""
-    client = boto3.client("s3")
-
-    print(f"downloading {key} from s3 bucket {bucket_name}")
-
-    try:
-        response = client.get_object(
-            Bucket=bucket_name,
-            Key=key,
-        )
-        return response, response["LastModified"]
-    except client.exceptions.NoSuchKey:
-        print(f"file {key} not found in s3 bucket {bucket_name}")  # noqa
-
-    return None, None
-
-
 def s3_download(external_s3_bucket_name, internal_s3_bucket_name, key, internal=True):
     if internal:
         return s3_download_file(internal_s3_bucket_name, key)

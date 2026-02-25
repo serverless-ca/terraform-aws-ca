@@ -20,7 +20,7 @@ from utils.certs.db import (
     db_list_certificates,
     db_issue_certificate,
 )
-from utils.certs.s3 import cert_issued_via_gitops, s3_download_file_details
+from utils.certs.s3 import cert_issued_via_gitops, s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 from dataclasses import dataclass, field
@@ -122,12 +122,11 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
     return base64.b64encode(pem_certificate), info
 
 
-# pylint:disable=too-many-arguments, too-many-locals
+# pylint:disable=too-many-arguments
 def certificate_already_issued(csr, subject, last_modified, project, env_name, force_issue):
-    """Check if a certificate has already been issued for this CSR.
-
-    Matches on public key, common name (via db_list_certificates) and
-    CSR file last-modified date vs certificate not-valid-before date.
+    """
+    Check if a certificate has already been issued for this CSR.
+    Matches on public key and common name
     """
     if force_issue:
         return False
@@ -150,9 +149,6 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
         .decode("utf-8")
     )
 
-    last_modified_date = last_modified.strftime("%Y-%m-%d")
-    print(f"Checking if certificate already issued for {common_name}, CSR last modified: {last_modified_date}")
-
     for certificate in certificates:
         b64_encoded_certificate = certificate["Certificate"]["B"]
         cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
@@ -166,17 +162,9 @@ def certificate_already_issued(csr, subject, last_modified, project, env_name, f
             .decode("utf-8")
         )
 
-        if cert_public_key_pem != csr_public_key_pem:
-            print(f"Public key mismatch for serial {certificate['SerialNumber']['S']}")
-            continue
-
-        valid_from_date = cert.not_valid_before_utc.strftime("%Y-%m-%d")
-        print(
-            f"Public key match for serial {certificate['SerialNumber']['S']}, "
-            f"valid_from: {valid_from_date}, last_modified: {last_modified_date}"
-        )
-        if valid_from_date == last_modified_date:
-            print(f"Certificate already issued for {common_name} on {valid_from_date}")
+        if cert_public_key_pem == csr_public_key_pem:
+            serial = certificate["SerialNumber"]["S"]
+            print(f"Certificate already issued for {common_name}, serial {serial}")
             return True
 
     return False
@@ -311,6 +299,7 @@ def sns_notify_csr_rejected(csr_info, csr, reason, sns_topic_arn):
 def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-locals
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
     internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
     max_cert_lifetime = int(os.environ["MAX_CERT_LIFETIME"])
     sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
@@ -338,11 +327,11 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     csr_info = create_csr_info(event)
 
     if request.csr_file:
-        csr_response, last_modified = s3_download_file_details(internal_s3_bucket_name, f"csrs/{request.csr_file}")
+        csr_response = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{request.csr_file}")
         if csr_response is None:
             return {"error": f"CSR file '{request.csr_file}' not found in S3 bucket '{internal_s3_bucket_name}'"}
-        csr_file_contents = csr_response["Body"].read()
-        csr = load_pem_x509_csr(csr_file_contents)
+        last_modified = csr_response["LastModified"]
+        csr = load_pem_x509_csr(csr_response["Body"].read())
     else:
         last_modified = None
         csr = load_pem_x509_csr(base64.standard_b64decode(request.base64_csr_data))
