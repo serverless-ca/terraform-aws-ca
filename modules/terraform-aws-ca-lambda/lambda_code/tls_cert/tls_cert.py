@@ -337,7 +337,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         csr = load_pem_x509_csr(base64.standard_b64decode(request.base64_csr_data))
 
     if certificate_already_issued(csr, csr_info.subject, last_modified, project, env_name, request.force_issue):
-        return {"message": "Certificate already issued"}
+        return {"error": "Certificate already issued"}
 
     validation_error = is_invalid_certificate_request(
         project,
