@@ -123,6 +123,54 @@ def sign_csr(project, env_name, csr, ca_name, csr_info, domain, max_cert_lifetim
 
 
 # pylint:disable=too-many-arguments
+def certificate_already_issued(csr, subject, last_modified, project, env_name, force_issue):
+    """
+    Check if a certificate has already been issued for this CSR.
+    Matches on public key and common name
+    """
+    if force_issue:
+        return False
+
+    if last_modified is None:
+        return False
+
+    common_name = subject.common_name
+    certificates = db_list_certificates(project, env_name, common_name)
+
+    if not certificates:
+        return False
+
+    csr_public_key_pem = (
+        csr.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode("utf-8")
+    )
+
+    for certificate in certificates:
+        b64_encoded_certificate = certificate["Certificate"]["B"]
+        cert = load_pem_x509_certificate(base64.b64decode(b64_encoded_certificate))
+
+        cert_public_key_pem = (
+            cert.public_key()
+            .public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+            )
+            .decode("utf-8")
+        )
+
+        if cert_public_key_pem == csr_public_key_pem:
+            serial = certificate["SerialNumber"]["S"]
+            print(f"Certificate already issued for {common_name}, serial {serial}")
+            return True
+
+    return False
+
+
+# pylint:disable=too-many-arguments
 def is_invalid_certificate_request(project, env_name, ca_name, common_name, csr, lifetime, force_issue):
     if not db_list_certificates(project, env_name, ca_name):
         return {"error": f"CA {ca_name} not found"}
@@ -279,12 +327,17 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     csr_info = create_csr_info(event)
 
     if request.csr_file:
-        csr_file_contents = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{request.csr_file}")[
-            "Body"
-        ].read()
-        csr = load_pem_x509_csr(csr_file_contents)
+        csr_response = s3_download(external_s3_bucket_name, internal_s3_bucket_name, f"csrs/{request.csr_file}")
+        if csr_response is None:
+            return {"error": f"CSR file '{request.csr_file}' not found in S3 bucket '{internal_s3_bucket_name}'"}
+        last_modified = csr_response["LastModified"]
+        csr = load_pem_x509_csr(csr_response["Body"].read())
     else:
+        last_modified = None
         csr = load_pem_x509_csr(base64.standard_b64decode(request.base64_csr_data))
+
+    if certificate_already_issued(csr, csr_info.subject, last_modified, project, env_name, request.force_issue):
+        return {"error": "Certificate already issued"}
 
     validation_error = is_invalid_certificate_request(
         project,
