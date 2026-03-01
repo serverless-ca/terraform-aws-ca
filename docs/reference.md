@@ -90,7 +90,7 @@
 | <a name="input_root_crl_seconds"></a> [root\_crl\_seconds](#input\_root\_crl\_seconds) | Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew | `number` | `600` | no |
 | <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime | `string` | `"python3.14"` | no |
 | <a name="input_s3_aws_principals"></a> [s3\_aws\_principals](#input\_s3\_aws\_principals) | List of AWS Principals to allow access to external S3 bucket | `list(string)` | `[]` | no |
-| <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | Step function schedule in cron format, interval should normally be the same as issuing\_crl\_days | `string` | `"cron(15 8 * * ? *)"` | no |
+| <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | Step function schedule in cron format, must be daily or more frequent for expiry reminders to work correctly, interval should be same as issuing\_crl\_days | `string` | `"cron(15 8 * * ? *)"` | no |
 | <a name="input_sns_email_subscriptions"></a> [sns\_email\_subscriptions](#input\_sns\_email\_subscriptions) | List of email addresses to subscribe to SNS topic | `list(string)` | `[]` | no |
 | <a name="input_sns_lambda_subscriptions"></a> [sns\_lambda\_subscriptions](#input\_sns\_lambda\_subscriptions) | A map of lambda names to arns to subscribe to SNS topic | `map(string)` | `{}` | no |
 | <a name="input_sns_policy"></a> [sns\_policy](#input\_sns\_policy) | A string containing the SNS policy, if used | `string` | `""` | no |
