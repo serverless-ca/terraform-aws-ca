@@ -136,7 +136,7 @@ def process_gitops_certificate(project, env_name, external_s3_bucket_name, inter
 def process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now):
     """Evaluate whether an expiry reminder should be sent for a certificate"""
     expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
-    days_remaining = (expiry_date - now).days
+    days_remaining = (expiry_date.date() - now.date()).days
 
     if days_remaining not in expiry_reminders:
         print(f"{common_name} expires in {days_remaining} days, no reminder needed")

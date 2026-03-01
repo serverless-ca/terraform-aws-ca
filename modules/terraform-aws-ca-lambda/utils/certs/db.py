@@ -250,26 +250,15 @@ def db_record_expiry_reminder(project, env_name, common_name, serial_number, day
 
     print(f"recording expiry reminder ({days_remaining} days) for {common_name} serial {serial_number}")
 
-    try:
-        # append to existing list
-        client.update_item(
-            TableName=table_name,
-            Key={
-                "CommonName": {"S": common_name},
-                "SerialNumber": {"S": serial_number},
-            },
-            UpdateExpression="SET ExpiryReminders = list_append(ExpiryReminders, :r)",
-            ExpressionAttributeValues={":r": {"L": [{"S": now}]}},
-            ConditionExpression="attribute_exists(ExpiryReminders)",
-        )
-    except client.exceptions.ConditionalCheckFailedException:
-        # create new list if attribute doesn't exist
-        client.update_item(
-            TableName=table_name,
-            Key={
-                "CommonName": {"S": common_name},
-                "SerialNumber": {"S": serial_number},
-            },
-            UpdateExpression="SET ExpiryReminders = :r",
-            ExpressionAttributeValues={":r": {"L": [{"S": now}]}},
-        )
+    client.update_item(
+        TableName=table_name,
+        Key={
+            "CommonName": {"S": common_name},
+            "SerialNumber": {"S": serial_number},
+        },
+        UpdateExpression="SET ExpiryReminders = list_append(if_not_exists(ExpiryReminders, :empty), :r)",
+        ExpressionAttributeValues={
+            ":r": {"L": [{"S": now}]},
+            ":empty": {"L": []},
+        },
+    )

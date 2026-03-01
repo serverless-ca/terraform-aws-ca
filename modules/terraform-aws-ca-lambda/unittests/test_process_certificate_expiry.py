@@ -257,3 +257,30 @@ def test_process_certificate_expiry_sns_message_contents(mock_already_sent, mock
     assert cert_details["CertificateInfo"]["CommonName"] == "test-expiry.example.com"
     assert "CN=test-expiry.example.com" in cert_details["Subject"]
     assert keys_to_publish == ["CertificateInfo", "Base64Certificate", "Subject", "DaysRemaining"]
+
+
+@patch("lambda_code.expiry.expiry.publish_to_sns")
+@patch("lambda_code.expiry.expiry.db_expiry_reminder_already_sent")
+def test_process_certificate_expiry_time_of_day_does_not_affect_days(mock_already_sent, mock_sns):
+    """Test that days_remaining uses date comparison, not time truncation.
+
+    If now is late in the day and expiry is early in the day, a naive
+    (expiry - now).days would undercount by 1. Using .date() avoids this.
+    """
+    key = _generate_test_key()
+    # now is late evening, expiry is early morning 30 calendar days later
+    now = datetime(2026, 3, 1, 23, 59, 0)
+    expiry = datetime(2026, 3, 31, 1, 0, 0)  # 30 calendar days later
+    cert = _generate_test_cert(key, not_valid_before=expiry - timedelta(days=31))
+    db_cert = _make_db_certificate(cert)
+    db_cert["Expires"]["S"] = expiry.strftime("%Y-%m-%d %H:%M:%S")
+
+    mock_already_sent.return_value = False
+    mock_sns.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+
+    result = process_certificate_expiry(
+        db_cert, "test-expiry.example.com", [30, 15, 7, 1], "arn:aws:sns:eu-west-2:123456789012:test-topic", now
+    )
+
+    assert result == 30
+    mock_sns.assert_called_once()
