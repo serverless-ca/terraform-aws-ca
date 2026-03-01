@@ -6,6 +6,10 @@ variable "env" {
   description = "Environment name, e.g. dev"
 }
 
+variable "expiry_reminders" {
+  description = "List of days before certificate expiration to send reminders"
+}
+
 variable "kms_arn" {}
 
 variable "role_arn" {
