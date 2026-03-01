@@ -351,7 +351,7 @@ module "expiry_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "expiry"
-  description                     = "Check for expiring GitOps certificates and send notifications to SNS topic"
+  description                     = "check for expiring GitOps certificates and send notifications to SNS topic"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name

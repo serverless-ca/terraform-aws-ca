@@ -299,7 +299,7 @@ variable "s3_aws_principals" {
 
 variable "schedule_expression" {
   type        = string
-  description = "Step function schedule in cron format, interval should normally be the same as issuing_crl_days"
+  description = "Step function schedule in cron format, must be daily or more frequent for expiry reminders to work correctly, interval should be same as issuing_crl_days"
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
