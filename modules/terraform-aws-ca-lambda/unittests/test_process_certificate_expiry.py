@@ -1,5 +1,5 @@
 from lambda_code.expiry.expiry import process_certificate_expiry
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
@@ -185,7 +185,7 @@ def test_process_certificate_expiry_1_day(mock_already_sent, mock_sns):
 
 @patch("lambda_code.expiry.expiry.publish_to_sns")
 @patch("lambda_code.expiry.expiry.db_expiry_reminder_already_sent")
-def test_process_certificate_expiry_already_expired(mock_already_sent, mock_sns):
+def test_process_certificate_expiry_already_expired(_mock_already_sent, mock_sns):
     """Test that no reminder is sent when certificate is already expired"""
     key = _generate_test_key()
     now = datetime(2026, 3, 1, 12, 0, 0)
@@ -240,7 +240,7 @@ def test_process_certificate_expiry_sns_message_contents(mock_already_sent, mock
     mock_already_sent.return_value = False
     mock_sns.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
 
-    result = process_certificate_expiry(
+    process_certificate_expiry(
         db_cert, "test-expiry.example.com", [30, 15, 7, 1], "arn:aws:sns:eu-west-2:123456789012:test-topic", now
     )
 
