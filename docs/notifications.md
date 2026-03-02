@@ -18,19 +18,23 @@ You can also add your own infrastructure to that provided by the module, and del
 
 ##  Certificate Expired
 
-A Certificate Expired SNS notification is published when all certificates with the same subject have expired, the latest one having expired in the last 24 hours.
+A SNS notification is published when a GitOps certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued:
+
+![Certificate Expired](assets/images/sns-cert-expired.png)
+
+Certificate Expired notifications can be disabled by setting Terraform variable `expiry_reminders` to an empty list. This will prevent deployment of the Expiry Lambda function, and also disable Certificate expiry warnings.
 
 Certificate Expired notification - example JSON:
 ```json
 {
   "CertificateInfo": {
-    "CommonName": "pipeline-test-expiry-reminder",
+    "CommonName": "test-expiry.example.com",
     "SerialNumber": "430630438465918376136249210634111108993623737029",
     "Issued": "2026-03-01 20:28:22",
     "Expires": "2026-03-02 20:33:22"
   },
   "Base64Certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM2VENDQW8rZ0F3SUJBZ0lVUzI0aS8wV2p0NGhvdXVSMVJhRGV2b1l6UXNVd0NnWUlLb1pJemowRUF3SXcKYWpFWk1CY0dBMVVFQXd3UVEyeHZkV1FnU1hOemRXbHVaeUJEUVRFTE1Ba0dBMVVFQmhNQ1IwSXhEekFOQmdOVgpCQWNNQmt4dmJtUnZiakVSTUE4R0ExVUVDZ3dJUTJ4dmRXUWdRMEV4SERBYUJnTlZCQXNNRTFObFkzVnlhWFI1CklFOXdaWEpoZEdsdmJuTXdIaGNOTWpVeE1UTXdNVFUwTVRRNVdoY05Nall4TVRNd01UVTBOalE1V2pDQmdERVgKTUJVR0ExVUVBd3dPUTJ4dmRXUWdSVzVuYVc1bFpYSXhDekFKQmdOVkJBWVRBa2RDTVE4d0RRWURWUVFIREFaTQpiMjVrYjI0eEZ6QVZCZ05WQkFvTURsTmxjblpsY214bGMzTWdTVzVqTVJ3d0dnWURWUVFMREJOVFpXTjFjbWwwCmVTQlBjR1Z5WVhScGIyNXpNUkF3RGdZRFZRUUlEQWRGYm1kc1lXNWtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkkKemowREFRY0RRZ0FFUGNTK0ZPbnN2WFduWnQxWmNLQnRXdHlla0dVUGhlbWVYMkhmQ0RlclNGZGhNRFQxSEVmeApPQWtnckNiUFhORitxTC9zT1hMd3FTR3FrZzFicFF0dVVLT0IrekNCK0RBT0JnTlZIUThCQWY4RUJBTUNCYUF3CkV3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3SXdFd1lEVlIwZ0JBd3dDakFJQmdabmdRd0JBZ0V3SFFZRFZSME8KQkJZRUZFdm50YkJnOGMxcSs4elZyaTR4VXVPMkZONjlNRWdHQTFVZEh3UkJNRDh3UGFBN29EbUdOMmgwZEhBNgpMeTlqWlhKMGN5NWpiRzkxWkMxallTNWpiMjB2YzJWeWRtVnliR1Z6Y3kxcGMzTjFhVzVuTFdOaExXUmxkaTVqCmNtd3dVd1lJS3dZQkJRVUhBUUVFUnpCRk1FTUdDQ3NHQVFVRkJ6QUNoamRvZEhSd09pOHZZMlZ5ZEhNdVkyeHYKZFdRdFkyRXVZMjl0TDNObGNuWmxjbXhsYzNNdGFYTnpkV2x1WnkxallTMWtaWFl1WTNKME1Bb0dDQ3FHU000OQpCQU1DQTBnQU1FVUNJUURsR0tjVVNjSkRLek54MDlyQjZBM3cvRnNDVlc0NmpwOE56VWtXVU9RNnFnSWdDV05WCkVMaDBHQzVtQ3NHNWdOMkw5UEVHbllTRi8xVEh1Vkd5QmRaS3ZEZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
-  "Subject": "CN=pipeline-test-expiry-reminder",
+  "Subject": "CN=test-expiry.example.com",
   "DaysRemaining": 0
 }
 ```
@@ -41,7 +45,7 @@ SNS notifications are published for GitOps issued certificate expiry according t
 ```terraform
 expiry_reminders = [30, 15, 7, 1]
 ```
-Certificate expiry warnings can be disabled by setting Terraform variable `expiry_reminders` to an empty list.
+Certificate expiry warnings can be disabled by setting Terraform variable `expiry_reminders` to an empty list. This will also disable Certificate Expired notifications.
 
 Expiry checks are performed by a dedicated Expiry Lambda function, only deployed when `expiry_reminders` is not empty, and `cert_info_files` contains `tls`.
 
