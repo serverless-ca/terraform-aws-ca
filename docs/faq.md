@@ -107,7 +107,14 @@ The default setting for CRL lifetime of 1 day should be appropriate for most use
 Create a new Certificate Signing Request (CSR) using a new private key. Resubmit as detailed in [Client Certificates](client-certificates.md#renewing-certificates).
 
 ### Can the CA send emails or Slack messages when a new certificate is issued?
-The Serverless CA publishes details of selected events to a SNS Topic included as part of the module, see [Notifications](notifications.md). 
+The Serverless CA publishes details of selected events to a SNS Topic included as part of this Terraform module, see [Notifications](notifications.md). 
+
+You can receive email notifications by subscribing directly to the SNS Topic.
+
+Alternatively, subscribe to the SNS Topic using a separate Lambda function, to customise communications to your CA administrators and users.
+
+### Can I get reminders when a certificate is about to expire?
+Expiry warnings for GitOps certificates are published to a SNS Topic included as part of this Terraform module, see [Notifications](notifications.md). 
 
 You can receive email notifications by subscribing directly to the SNS Topic.
 

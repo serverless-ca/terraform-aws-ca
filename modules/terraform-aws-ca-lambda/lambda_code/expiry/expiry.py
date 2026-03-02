@@ -109,6 +109,16 @@ def sns_notify_cert_expiry(cert_details, sns_topic_arn):
     print(f"Expiry warning for {common_name} published to SNS")
 
 
+def sns_notify_cert_expired(cert_details, sns_topic_arn):
+    """Publish certificate expired notification to SNS"""
+    keys_to_publish = ["CertificateInfo", "Base64Certificate", "Subject", "DaysRemaining"]
+    response = publish_to_sns(cert_details, "Certificate Expired", sns_topic_arn, keys_to_publish)
+
+    assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
+    common_name = cert_details["CertificateInfo"]["CommonName"]
+    print(f"Expired notification for {common_name} published to SNS")
+
+
 def process_gitops_certificate(project, env_name, external_s3_bucket_name, internal_s3_bucket_name, gitops_cert):
     """Download CSR from S3 and return the latest matching certificate, or None"""
     common_name = gitops_cert["common_name"]
@@ -152,6 +162,28 @@ def process_certificate_expiry(certificate, common_name, expiry_reminders, sns_t
     return days_remaining
 
 
+def process_certificate_expired(certificate, common_name, sns_topic_arn, now):
+    """Check if a certificate has expired within the last 24 hours and send notification"""
+    expiry_date = datetime.strptime(certificate["Expires"]["S"], "%Y-%m-%d %H:%M:%S")
+    hours_since_expiry = (now - expiry_date).total_seconds() / 3600
+
+    if hours_since_expiry <= 0:
+        return None
+
+    if hours_since_expiry > 24:
+        print(f"{common_name} expired more than 24 hours ago")
+        return None
+
+    if db_expiry_reminder_already_sent(certificate):
+        print(f"Expired notification already sent for {common_name}")
+        return None
+
+    cert_details = build_cert_expiry_details(certificate, common_name, 0)
+    sns_notify_cert_expired(cert_details, sns_topic_arn)
+
+    return 0
+
+
 def lambda_handler(event, context):  # pylint:disable=unused-argument
     project = os.environ["PROJECT"]
     env_name = os.environ["ENVIRONMENT_NAME"]
@@ -174,6 +206,9 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
 
         common_name = gitops_cert["common_name"]
         days_remaining = process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now)
+
+        if days_remaining is None:
+            days_remaining = process_certificate_expired(certificate, common_name, sns_topic_arn, now)
 
         if days_remaining is not None:
             db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
