@@ -10,10 +10,30 @@ You can also add your own infrastructure to that provided by the module, and del
 
 | Event                        | GitOps | Lambda Invocation  |
 |------------------------------|:------:|:------------------:|
+| Certificate Expired          |   ✅    |         -          |
 | Certificate Expiry Warning   |   ✅    |         -          |
 | Certificate Issued           |   ✅    |         -          |
 | Certificate Request Rejected |   ✅    |         ✅          |
 | Certificate Revoked          |   ✅    |         ✅          |
+
+##  Certificate Expired
+
+A Certificate Expired SNS notification is published when all certificates with the same subject have expired, the latest one having expired in the last 24 hours.
+
+Certificate Expired notification - example JSON:
+```json
+{
+  "CertificateInfo": {
+    "CommonName": "pipeline-test-expiry-reminder",
+    "SerialNumber": "430630438465918376136249210634111108993623737029",
+    "Issued": "2026-03-01 20:28:22",
+    "Expires": "2026-03-02 20:33:22"
+  },
+  "Base64Certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM2VENDQW8rZ0F3SUJBZ0lVUzI0aS8wV2p0NGhvdXVSMVJhRGV2b1l6UXNVd0NnWUlLb1pJemowRUF3SXcKYWpFWk1CY0dBMVVFQXd3UVEyeHZkV1FnU1hOemRXbHVaeUJEUVRFTE1Ba0dBMVVFQmhNQ1IwSXhEekFOQmdOVgpCQWNNQmt4dmJtUnZiakVSTUE4R0ExVUVDZ3dJUTJ4dmRXUWdRMEV4SERBYUJnTlZCQXNNRTFObFkzVnlhWFI1CklFOXdaWEpoZEdsdmJuTXdIaGNOTWpVeE1UTXdNVFUwTVRRNVdoY05Nall4TVRNd01UVTBOalE1V2pDQmdERVgKTUJVR0ExVUVBd3dPUTJ4dmRXUWdSVzVuYVc1bFpYSXhDekFKQmdOVkJBWVRBa2RDTVE4d0RRWURWUVFIREFaTQpiMjVrYjI0eEZ6QVZCZ05WQkFvTURsTmxjblpsY214bGMzTWdTVzVqTVJ3d0dnWURWUVFMREJOVFpXTjFjbWwwCmVTQlBjR1Z5WVhScGIyNXpNUkF3RGdZRFZRUUlEQWRGYm1kc1lXNWtNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkkKemowREFRY0RRZ0FFUGNTK0ZPbnN2WFduWnQxWmNLQnRXdHlla0dVUGhlbWVYMkhmQ0RlclNGZGhNRFQxSEVmeApPQWtnckNiUFhORitxTC9zT1hMd3FTR3FrZzFicFF0dVVLT0IrekNCK0RBT0JnTlZIUThCQWY4RUJBTUNCYUF3CkV3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3SXdFd1lEVlIwZ0JBd3dDakFJQmdabmdRd0JBZ0V3SFFZRFZSME8KQkJZRUZFdm50YkJnOGMxcSs4elZyaTR4VXVPMkZONjlNRWdHQTFVZEh3UkJNRDh3UGFBN29EbUdOMmgwZEhBNgpMeTlqWlhKMGN5NWpiRzkxWkMxallTNWpiMjB2YzJWeWRtVnliR1Z6Y3kxcGMzTjFhVzVuTFdOaExXUmxkaTVqCmNtd3dVd1lJS3dZQkJRVUhBUUVFUnpCRk1FTUdDQ3NHQVFVRkJ6QUNoamRvZEhSd09pOHZZMlZ5ZEhNdVkyeHYKZFdRdFkyRXVZMjl0TDNObGNuWmxjbXhsYzNNdGFYTnpkV2x1WnkxallTMWtaWFl1WTNKME1Bb0dDQ3FHU000OQpCQU1DQTBnQU1FVUNJUURsR0tjVVNjSkRLek54MDlyQjZBM3cvRnNDVlc0NmpwOE56VWtXVU9RNnFnSWdDV05WCkVMaDBHQzVtQ3NHNWdOMkw5UEVHbllTRi8xVEh1Vkd5QmRaS3ZEZz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+  "Subject": "CN=pipeline-test-expiry-reminder",
+  "DaysRemaining": 0
+}
+```
 
 ##  Certificate Expiry Warning
 
@@ -41,6 +61,7 @@ Certificate Expiry warning - example JSON:
   "DaysRemaining": 1
 }
 ```
+Issuing a new certificate, with subject distinguished name matching the old one, will clear expiry reminders for that certificate common name. 
 
 ##  Certificate Issued notification
 
