@@ -303,6 +303,18 @@ variable "schedule_expression" {
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
+variable "slack" {
+  type        = bool
+  description = "Send notifications to Slack"
+  default     = true
+}
+
+variable "slack_token" {
+  type        = string
+  description = "Slack App OAuth token"
+  default     = ""
+}
+
 variable "sns_email_subscriptions" {
   type        = list(string)
   description = "List of email addresses to subscribe to SNS topic"

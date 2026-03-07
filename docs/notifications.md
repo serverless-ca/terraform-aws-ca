@@ -1,6 +1,10 @@
 # Notifications
 
-The Serverless CA module provides SNS notifications for different events. You can directly subscribe to the CA Notifications SNS Topic to receive email notifications.
+The Serverless CA module provides SNS notifications for different events. 
+
+By default, notifications are sent by [Slack](slack.md).
+
+You can optionally subscribe directly to the CA Notifications SNS Topic to receive email notifications.
 
 You can also add your own infrastructure to that provided by the module, and deliver customised messaging to your CA administrators and users, for example:
 
