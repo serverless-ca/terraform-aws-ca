@@ -19,9 +19,4 @@ module "certificate_authority" {
   additional_dynamodb_tags      = local.additional_dynamodb_tags
   additional_s3_tags            = local.additional_s3_tags
   custom_sns_topic_display_name = "My Company CA Notifications Production"
-
-  providers = {
-    aws           = aws
-    aws.us-east-1 = aws.us-east-1 # certificates for CloudFront must be in this region
-  }
 }

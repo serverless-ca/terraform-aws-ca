@@ -374,10 +374,6 @@ module "cloudfront_certificate" {
 
   domain_name = var.hosted_zone_domain
   zone_id     = var.hosted_zone_id
-
-  providers = {
-    aws = aws.us-east-1 # certificates for CloudFront must be in this region
-  }
 }
 
 module "ca_cloudfront" {

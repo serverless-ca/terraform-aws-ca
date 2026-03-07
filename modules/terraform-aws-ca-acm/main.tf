@@ -2,6 +2,7 @@ resource "aws_acm_certificate" "certificate" {
   domain_name               = var.domain_name
   validation_method         = var.validation_method
   subject_alternative_names = [var.domain_name]
+  region                    = var.region
 
   options {
     certificate_transparency_logging_preference = var.certificate_transparency
@@ -32,4 +33,5 @@ resource "aws_route53_record" "validation" {
 resource "aws_acm_certificate_validation" "validation" {
   certificate_arn         = aws_acm_certificate.certificate.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+  region                  = var.region
 }
