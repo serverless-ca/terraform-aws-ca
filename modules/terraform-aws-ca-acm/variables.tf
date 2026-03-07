@@ -15,3 +15,8 @@ variable "validation_method" {
   description = "Certificate validation method"
   default     = "DNS"
 }
+
+variable "region" {
+  description = "AWS region to create the certificate in. Certificates for CloudFront must be in us-east-1"
+  default     = "us-east-1"
+}
