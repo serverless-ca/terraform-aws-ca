@@ -10,6 +10,7 @@ resource "aws_iam_role_policy" "lambda" {
   name = "${var.project}-${var.function_name}-${var.env}"
   role = aws_iam_role.lambda.id
   policy = templatefile("${path.module}/templates/${var.policy}_policy.json.tpl", {
+    env                    = var.env,
     kms_arn_issuing_ca     = var.kms_arn_issuing_ca,
     kms_arn_root_ca        = var.kms_arn_root_ca,
     kms_arn_tls_keygen     = var.kms_arn_tls_keygen,
@@ -18,6 +19,8 @@ resource "aws_iam_role_policy" "lambda" {
     ddb_table_arn          = var.ddb_table_arn,
     external_s3_bucket_arn = var.external_s3_bucket_arn,
     internal_s3_bucket_arn = var.internal_s3_bucket_arn
+    project                = var.project,
+    secret_arn             = var.secret_arn,
     sns_topic_arn          = var.sns_topic_arn
   })
 }

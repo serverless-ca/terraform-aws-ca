@@ -39,6 +39,7 @@ variable "kms_arn_resource" {
 
 variable "ddb_table_arn" {
   description = "DynamoDB table ARN"
+  default     = ""
 }
 
 variable "external_s3_bucket_arn" {
@@ -54,6 +55,11 @@ variable "internal_s3_bucket_arn" {
 variable "aws_principals" {
   description = "List of ARNs for AWS principals allowed to assume role"
   default     = []
+}
+
+variable "secret_arn" {
+  description = "ARN of secret in AWS Secrets Manager"
+  default     = ""
 }
 
 variable "sns_topic_arn" {

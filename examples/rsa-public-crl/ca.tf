@@ -14,6 +14,7 @@ module "certificate_authority" {
   public_crl          = true
   cert_info_files     = ["tls", "revoked", "revoked-root-ca"]
   kms_key_alias       = "custom-kms-encryption-key"
+  slack_channels      = ["devsecops"]
   slack_token         = var.slack_token
   xray_enabled        = false
 

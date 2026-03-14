@@ -303,16 +303,40 @@ variable "schedule_expression" {
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
-variable "slack" {
-  type        = bool
-  description = "Send notifications to Slack"
-  default     = true
+variable "slack_bad_emoji" {
+  description = "Slack emoji for bad events"
+  default     = ":octagonal_sign:"
+  type        = string
+}
+
+variable "slack_channels" {
+  description = "List of Slack Channels"
+  default     = []
+  type        = list(string)
+}
+
+variable "slack_good_emoji" {
+  description = "Slack emoji for good events"
+  default     = ":white_check_mark:"
+  type        = string
 }
 
 variable "slack_token" {
   type        = string
   description = "Slack App OAuth token"
   default     = ""
+}
+
+variable "slack_username" {
+  description = "Slack username appearing in the from field in the Slack message"
+  default     = "Serverless CA"
+  type        = string
+}
+
+variable "slack_warning_emoji" {
+  description = "Slack emoji for warning events"
+  default     = ":warning:"
+  type        = string
 }
 
 variable "sns_email_subscriptions" {

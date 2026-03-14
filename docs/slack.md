@@ -4,14 +4,15 @@ The serverless CA delivers [notifications](notifications.md) to Slack.
 
 Slack notifications are delivered using a Lambda function included as part of the Serverless CA module, with the Slack app OAuth token stored as an AWS Secret.
 
-## How to disable Slack
+To enable Slack notifications, you need to:
 
-To disable Slack notifications, and prevent creation of the Slack Lambda function and AWS Secret, set Terraform variable:
-```
-slack = false
-```
+1. create Slack app
+2. provide list of Slack channels to send notifications to
+3. provide the Slack OAuth token, either via CI/CD or manually using the console
 
-## Create Slack app
+Each step is detailed below.
+
+## 1. Create Slack app
 
 * Log in to your Slack workspace
 * Open [https://api.slack.com/apps](https://api.slack.com/apps)
@@ -58,23 +59,28 @@ slack = false
 
 * save changes
 
-## Slack OAuth token
+## 2. Slack channels
+
+Enter the names of Slack channels you want to send notifications to, e.g.
+```
+slack_channels = ["ca-notifications"]
+```
+
+## 3. Slack OAuth token
 
 The Slack app OAuth token is stored as an AWS Secret. There are two options for adding the token value to the secret:
 
-1. Manual using AWS console (default)
-2. Uploaded via CI/CD
+* manual using AWS console (default)
+* uploaded via CI/CD
 
-### 1. Manual using AWS console
+### 3.1. Manual using AWS console
 
 * open the AWS console for the account to which the Serverless CA is installed
 * In AWS Secrets Manager, select the Serverless CA Slack OAuth Secret
 * overwrite the `dummy-value` Secret value
 * press Save
 
-See [default example](../examples/default/ca.tf)
-
-### 2. Upload via CI/CD
+### 3.2. Upload via CI/CD
 
 * create a CI/CD secret, e.g. a GitHub Actions Secret `SLACK_TOKEN` 
 * add the token value to the secret

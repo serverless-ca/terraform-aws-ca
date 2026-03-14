@@ -475,3 +475,54 @@ module "sns_ca_notifications" {
   sns_policy_template           = var.sns_policy_template
   workload_account_id           = var.workload_account_id
 }
+
+module "slack_secret" {
+  source = "./modules/terraform-aws-ca-secret"
+  count  = var.slack_channels == [] ? 0 : 1
+
+  project              = var.project
+  env                  = var.env
+  purpose              = "slack-token"
+  description          = "OAuth token for Slack app"
+  kms_key_id           = coalesce(var.kms_arn_resource, module.kms_tls_keygen.kms_arn)
+  ignore_value_changes = var.slack_token == "" ? true : false
+  value                = var.slack_token == "" ? "dummy-value" : var.slack_token
+}
+
+module "notify_slack_iam" {
+  source = "./modules/terraform-aws-ca-iam"
+  count  = var.slack_channels == [] ? 0 : 1
+
+  project          = var.project
+  env              = var.env
+  function_name    = "slack"
+  policy           = "slack"
+  kms_arn_resource = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  secret_arn       = module.slack_secret[0].secret_arn
+}
+
+module "notify_lambda" {
+  # Lambda function which subscribes to SNS and sends Slack notifications
+  source = "./modules/terraform-aws-ca-lambda"
+  count  = var.slack_channels == [] ? 0 : 1
+
+  project                         = var.project
+  env                             = var.env
+  prod_envs                       = var.prod_envs
+  function_name                   = "notify"
+  description                     = "subscribe to SNS topic and send Slack notifications"
+  logging_account_id              = var.logging_account_id
+  subscription_filter_destination = var.subscription_filter_destination
+  filter_pattern                  = var.filter_pattern
+  lambda_role_arn                 = module.notify_slack_iam[0].lambda_role_arn
+  runtime                         = var.runtime
+  slack_channels                  = var.slack_channels
+  slack_bad_emoji                 = var.slack_bad_emoji
+  slack_good_emoji                = var.slack_good_emoji
+  slack_secret_arn                = module.slack_secret[0].secret_arn
+  slack_username                  = var.slack_username
+  slack_warning_emoji             = var.slack_warning_emoji
+  sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
+  xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
+}
