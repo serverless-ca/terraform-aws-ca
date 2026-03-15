@@ -2,13 +2,11 @@
 
 The Serverless CA module provides SNS notifications for different events. 
 
-By default, notifications are sent by [Slack](slack.md).
+By default, notifications are sent by [Slack](slack.md):
+
+![Certificate Issued](assets/images/slack-issued.png)
 
 You can optionally subscribe directly to the CA Notifications SNS Topic to receive email notifications.
-
-You can also add your own infrastructure to that provided by the module, and deliver customised messaging to your CA administrators and users, for example:
-
-![Notifications](assets/images/notifications.png)
 
 ##  Notification types
 
@@ -22,7 +20,9 @@ You can also add your own infrastructure to that provided by the module, and del
 
 ##  Certificate Expired
 
-A SNS notification is published when a GitOps certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued:
+A Slack message is sent when a GitOps certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued:
+
+Certificate expired notification - email subscribed to SNS topic:
 
 ![Certificate Expired](assets/images/sns-cert-expired.png)
 
@@ -45,13 +45,17 @@ Certificate Expired notification - example JSON:
 
 ##  Certificate Expiry Warning
 
-SNS notifications are published for GitOps issued certificate expiry according to the schedule in days set by the Terraform variable:
+Slack messages are sent for GitOps issued certificate expiry according to the schedule in days set by the Terraform variable:
 ```terraform
 expiry_reminders = [30, 15, 7, 1]
 ```
 Certificate expiry warnings can be disabled by setting Terraform variable `expiry_reminders` to an empty list. This will also disable Certificate Expired notifications.
 
 Expiry checks are performed by a dedicated Expiry Lambda function, only deployed when `expiry_reminders` is not empty, and `cert_info_files` contains `tls`.
+
+![Certificate Expiry Warning](assets/images/slack-expiry.png)
+
+Certificate expiry warning - email subscribed to SNS topic:
 
 ![Certificate Expiry Warning](assets/images/sns-expiry.png)
 
@@ -73,7 +77,11 @@ Issuing a new certificate, with subject distinguished name matching the old one,
 
 ##  Certificate Issued notification
 
-When a certificate is issued via the GitOps process, a notification is published to the CA Notifications SNS Topic:
+When a certificate is issued via the GitOps process, a notification is sent by Slack:
+
+![Certificate Issued](assets/images/slack-issued.png)
+
+Certificate Issued - email subscribed to SNS topic:
 
 ![Certificate Issued](assets/images/sns-cert-issued.png)
 
@@ -93,11 +101,15 @@ Certificate Issued notification - example JSON:
 
 ##  Certificate Request Rejected notification
 
-Certificate request rejections result in a SNS Notification. Possible reasons for rejection include:
+Certificate request rejections result in Slack notifications. Possible reasons for rejection include:
 
 * CSR must include a Common Name
 * Lifetime must be at least 1 day
 * Private key has already been used for a certificate
+
+![Certificate Request Rejected](assets/images/slack-rejected.png)
+
+Certificate Request Rejected - email subscribed to SNS topic:
 
 ![Certificate Request Rejected](assets/images/sns-csr-rejected.png)
 
@@ -133,6 +145,12 @@ Certificate Revoked notification - example JSON:
   "Subject": "ST=New York,OU=DevOps,O=Override CSR Org,L=Override CSR Location,C=US,CN=pipeline-test-csr-s3-upload"
 }
 ```
+
+##  Customisation
+
+To deliver customised messaging to your CA administrators and users, create customised infrastructure subscribed to the SNS topic, for example:
+
+![Notifications](assets/images/notifications.png)
 
 ##  Cross-account subscription to SNS Topic
 

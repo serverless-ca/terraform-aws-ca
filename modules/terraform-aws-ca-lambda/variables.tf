@@ -154,6 +154,7 @@ variable "slack_warning_emoji" {
 
 variable "sns_topic_arn" {
   description = "SNS Topic ARN for Lambda function to publish to"
+  default     = ""
 }
 
 variable "subscription_filter_destination" {

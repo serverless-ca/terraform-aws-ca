@@ -1,420 +1,304 @@
-import datetime
 import json
+import logging
 import os
 
 import boto3
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-oauth_secret_arn = os.environ["OAUTH_SECRET_ARN"]
+slack_secret_arn = os.environ["SLACK_SECRET_ARN"]
 slack_channels = os.environ["SLACK_CHANNELS"]
 slack_bad_emoji = os.environ["SLACK_BAD_EMOJI"]
 slack_good_emoji = os.environ["SLACK_GOOD_EMOJI"]
 slack_username = os.environ["SLACK_USERNAME"]
 slack_warning_emoji = os.environ["SLACK_WARNING_EMOJI"]
-
-
-from dateutil.relativedelta import relativedelta
-
-
-def calc_prev_month_start(date):
-    month_in_past = date - relativedelta(months=1)
-    return month_in_past.replace(day=1, hour=0, minute=0, second=0)
+project = os.environ.get("PROJECT", "Serverless CA")
 
 
 def get_slack_token():
     """Get Slack OAuth token from AWS Secrets Manager"""
-
     client = boto3.client("secretsmanager")
-    return client.get_secret_value(SecretId=oauth_secret_arn)["SecretString"]
+    return client.get_secret_value(SecretId=slack_secret_arn)["SecretString"]
 
 
-def findings_message(json_data):
-
+def get_account_alias():
+    """Get AWS account alias for display in messages"""
     try:
-        findings = json_data["Findings"]
-
-        slack_message = {"fallback": "A new message", "fields": [{"title": "Vulnerable domains"}]}
-
-        for finding in findings:
-
-            if finding["Account"] == "Cloudflare":
-                message = f"{finding['Domain']} in Cloudflare"
-
-            else:
-                message = f"{finding['Domain']} in {finding['Account']} AWS Account"
-
-            print(message)
-            slack_message["fields"].append({"value": message, "short": False})
-
-        return slack_message
-
-    except KeyError:
-
+        iam = boto3.client("iam")
+        aliases = iam.list_account_aliases()["AccountAliases"]
+        return aliases[0] if aliases else None
+    except Exception:
+        logger.exception("Failed to get account alias")
         return None
 
 
-def takeovers_message(json_data):
-
-    try:
-        takeovers = json_data["Takeovers"]
-
-        slack_message = {"fallback": "A new message", "fields": [{"title": "Domain takeover status"}]}
-
-        for takeover in takeovers:
-
-            success_message = (
-                f"{takeover['ResourceType']} {takeover['TakeoverDomain']} "
-                f"successfully created in {takeover['TakeoverAccount']} AWS account "
-                f"to protect {takeover['VulnerableDomain']} domain in {takeover['VulnerableAccount']} account"
-            )
-
-            failure_message = (
-                f"{takeover['ResourceType']} {takeover['TakeoverDomain']} creation "
-                f"failed in {takeover['TakeoverAccount']} AWS account to protect {takeover['VulnerableDomain']} "
-                f"domain in {takeover['VulnerableAccount']} account"
-            )
-
-            if takeover["TakeoverStatus"] == "success":
-                print(success_message)
-                slack_message["fields"].append(
-                    {
-                        "value": success_message,
-                        "short": False,
-                    },
-                )
-
-            if takeover["TakeoverStatus"] == "failure":
-                print(failure_message)
-                slack_message["fields"].append(
-                    {
-                        "value": failure_message,
-                        "short": False,
-                    },
-                )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def resources_message(json_data):
-
-    try:
-        stacks = json_data["Resources"]
-
-        slack_message = {"fallback": "A new message", "fields": [{"title": "Resources preventing hostile takeover"}]}
-        resource_name = resource_type = takeover_account = vulnerable_account = vulnerable_domain = ""
-
-        for tags in stacks:
-
-            for tag in tags:
-
-                if tag["Key"] == "ResourceName":
-                    resource_name = tag["Value"]
-
-                elif tag["Key"] == "ResourceType":
-                    resource_type = tag["Value"]
-
-                elif tag["Key"] == "TakeoverAccount":
-                    takeover_account = tag["Value"]
-
-                elif tag["Key"] == "VulnerableAccount":
-                    vulnerable_account = tag["Value"]
-
-                elif tag["Key"] == "VulnerableDomain":
-                    vulnerable_domain = tag["Value"]
-
-            message = (
-                f"{resource_type} {resource_name} in {takeover_account} AWS account protecting "
-                f"{vulnerable_domain} domain in {vulnerable_account} Account"
-            )
-
-            print(message)
-
-            slack_message["fields"].append(
-                {
-                    "value": message,
-                    "short": False,
-                },
-            )
-
-        slack_message["fields"].append(
-            {
-                "value": "After fixing DNS issues, delete resources and CloudFormation stacks",
-                "short": False,
-            },
-        )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def fixed_message(json_data):
-
-    try:
-        fixes = json_data["Fixed"]
-
-        slack_message = {"fallback": "A new message", "fields": [{"title": "Vulnerable domains fixed or taken over"}]}
-
-        for fix in fixes:
-
-            if fix["Account"] == "Cloudflare":
-                message = f"{fix['Domain']} in Cloudflare"
-
-            else:
-                message = f"{fix['Domain']} in {fix['Account']} AWS Account"
-
-            print(message)
-            slack_message["fields"].append(
-                {
-                    "value": message,
-                    "short": False,
-                },
-            )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def current_message(json_data):
-
-    try:
-        vulnerabilities = json_data["Current"]
-
-        slack_message = {
-            "fallback": "A new message",
-            "fields": [{"title": "Domains currently vulnerable to takeover"}],
-        }
-
-        for vulnerability in vulnerabilities:
-
-            if vulnerability["Account"] == "Cloudflare":
-                message = (
-                    f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} "
-                    f"record in Cloudflare DNS with {vulnerability['ResourceType']} resource"
-                )
-
-            else:
-                message = (
-                    f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} record in "
-                    f"{vulnerability['Account']} AWS Account with {vulnerability['ResourceType']} resource"
-                )
-
-            print(message)
-            slack_message["fields"].append(
-                {
-                    "value": message,
-                    "short": False,
-                },
-            )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def misconfigured_message(json_data):
-
-    try:
-        misconfigurations = json_data["Misconfigured"]
-
-        slack_message = {
-            "fallback": "A new message",
-            "fields": [{"title": "Hosted zones with misconfigured DNS delegation"}],
-        }
-
-        for misconfiguration in misconfigurations:
-
-            message = f"Misconfiguration in {misconfiguration['Account']} AWS Account: " f"{misconfiguration['Issue']}"
-
-            print(message)
-            slack_message["fields"].append(
-                {
-                    "value": message,
-                    "short": False,
-                },
-            )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def new_message(json_data):
-
-    try:
-        vulnerabilities = json_data["New"]
-
-        slack_message = {
-            "fallback": "A new message",
-            "fields": [{"title": "New vulnerable domains"}],
-        }
-
-        for vulnerability in vulnerabilities:
-
-            try:
-                if vulnerability["Bugcrowd"] and vulnerability["Bugcrowd"] != "N/A":
-                    bugbounty_notification = ":bugcrowd: Bugcrowd issue created"
-
-                elif not vulnerability["Bugcrowd"]:
-                    bugbounty_notification = ":bugcrowd: Bugcrowd issue creation failed"
-
-                elif vulnerability["HackerOne"] and vulnerability["HackerOne"] != "N/A":
-                    bugbounty_notification = ":hackerone: HackerOne issue created"
-
-                elif not vulnerability["HackerOne"]:
-                    bugbounty_notification = ":hackerone: HackerOne issue creation failed"
-
-                if vulnerability["Account"] == "Cloudflare":
-                    message = (
-                        f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} "
-                        f"record in Cloudflare DNS with {vulnerability['ResourceType']} resource "
-                        f"{bugbounty_notification}"
-                    )
-
-                else:
-                    message = (
-                        f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} record in "
-                        f"{vulnerability['Account']} AWS Account with {vulnerability['ResourceType']} resource "
-                        f"{bugbounty_notification}"
-                    )
-
-            except KeyError:
-                if vulnerability["Account"] == "Cloudflare":
-                    message = (
-                        f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} "
-                        f"record in Cloudflare DNS with {vulnerability['ResourceType']} resource"
-                    )
-
-                else:
-                    message = (
-                        f"{vulnerability['Domain']} {vulnerability['VulnerabilityType']} record in "
-                        f"{vulnerability['Account']} AWS Account with {vulnerability['ResourceType']} resource"
-                    )
-
-            print(message)
-            slack_message["fields"].append(
-                {
-                    "value": message,
-                    "short": False,
-                },
-            )
-
-        return slack_message
-
-    except KeyError:
-
-        return None
-
-
-def build_markdown_block(text):
+def build_section_block(text):
+    """Build a Slack Block Kit section block with mrkdwn text"""
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
 
 
-def monthly_stats_message(json_data):
-    last_month = calc_prev_month_start(datetime.datetime.now())
-    last_month_year_text = last_month.strftime("%B %Y")
-    last_year_text = last_month.strftime("%Y")
+def build_header_block(text):
+    """Build a Slack Block Kit header block"""
+    return {"type": "header", "text": {"type": "plain_text", "text": text, "emoji": True}}
 
+
+def build_divider_block():
+    return {"type": "divider"}
+
+
+def build_fields_block(fields):
+    """Build a Slack Block Kit section block with multiple fields"""
+    return {
+        "type": "section",
+        "fields": [{"type": "mrkdwn", "text": f} for f in fields],
+    }
+
+
+def format_cert_info_fields(cert_info):
+    """Format CertificateInfo dict into Slack fields"""
+    fields = []
+    if "CommonName" in cert_info:
+        fields.append(f"*Common Name:*\n{cert_info['CommonName']}")
+    if "SerialNumber" in cert_info:
+        fields.append(f"*Serial Number:*\n`{cert_info['SerialNumber']}`")
+    if "Issued" in cert_info:
+        fields.append(f"*Issued:*\n{cert_info['Issued']}")
+    if "Expires" in cert_info:
+        fields.append(f"*Expires:*\n{cert_info['Expires']}")
+    return fields
+
+
+def cert_expired_message(json_data):
+    """Certificate Expired - certificate has expired without replacement"""
     try:
-        blocks = [
-            build_markdown_block(f"Total new findings for {last_month_year_text}: *{json_data['LastMonth']}*"),
-            build_markdown_block(f"Total new findings for {last_year_text}: *{json_data['LastYear']}*"),
-            build_markdown_block(f"Total findings all time: *{json_data['Total']}*"),
-        ]
-        return {"blocks": blocks}
+        cert_info = json_data["CertificateInfo"]
+        days = json_data["DaysRemaining"]
     except KeyError:
         return None
 
+    blocks = [build_header_block(f"{slack_bad_emoji} Certificate Expired")]
+
+    if "Subject" in json_data:
+        blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
+
+    fields = format_cert_info_fields(cert_info)
+    if fields:
+        blocks.append(build_fields_block(fields))
+
+    blocks.append(build_section_block(f"*Days Remaining:* {days}"))
+
+    return blocks
+
+
+def cert_expiry_warning_message(json_data):
+    """Certificate Expiry Warning - certificate approaching expiry"""
+    try:
+        cert_info = json_data["CertificateInfo"]
+        days = json_data["DaysRemaining"]
+    except KeyError:
+        return None
+
+    if days <= 0:
+        return None
+
+    blocks = [build_header_block(f"{slack_warning_emoji} Certificate Expiry Warning")]
+
+    if "Subject" in json_data:
+        blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
+
+    fields = format_cert_info_fields(cert_info)
+    if fields:
+        blocks.append(build_fields_block(fields))
+
+    blocks.append(build_section_block(f"*Days Remaining:* {days}"))
+
+    return blocks
+
+
+def cert_issued_message(json_data):
+    try:
+        cert_info = json_data["CertificateInfo"]
+    except KeyError:
+        return None
+
+    if "DaysRemaining" in json_data:
+        return None
+
+    blocks = [build_header_block(f"{slack_good_emoji} Certificate Issued")]
+
+    if "Subject" in json_data:
+        blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
+
+    fields = format_cert_info_fields(cert_info)
+    if fields:
+        blocks.append(build_fields_block(fields))
+
+    return blocks
+
+
+def cert_request_rejected_message(json_data):
+    try:
+        csr_info = json_data["CSRInfo"]
+        reason = json_data["Reason"]
+    except KeyError:
+        return None
+
+    blocks = [build_header_block(f"{slack_bad_emoji} Certificate Request Rejected")]
+    blocks.append(build_section_block(f"*Reason:* {reason}"))
+
+    if "Subject" in json_data:
+        blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
+
+    fields = []
+    if "CommonName" in csr_info:
+        fields.append(f"*Common Name:*\n{csr_info['CommonName']}")
+    if "Lifetime" in csr_info:
+        fields.append(f"*Lifetime (days):*\n{csr_info['Lifetime']}")
+    if "Purposes" in csr_info:
+        fields.append(f"*Purposes:*\n{', '.join(csr_info['Purposes'])}")
+    if "SANs" in csr_info and csr_info["SANs"]:
+        san_values = [s["value"] if isinstance(s, dict) else str(s) for s in csr_info["SANs"]]
+        fields.append(f"*SANs:*\n{', '.join(san_values)}")
+    if fields:
+        blocks.append(build_fields_block(fields))
+
+    return blocks
+
+
+def cert_revoked_message(json_data):
+    try:
+        common_name = json_data["CommonName"]
+        serial = json_data["SerialNumber"]
+        revoked = json_data["Revoked"].split(".")[0]
+    except KeyError:
+        return None
+
+    blocks = [build_header_block(f"{slack_bad_emoji} Certificate Revoked")]
+
+    if "Subject" in json_data:
+        blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
+
+    blocks.append(
+        build_fields_block(
+            [
+                f"*Common Name:*\n{common_name}",
+                f"*Serial Number:*\n`{serial}`",
+                f"*Revoked:*\n{revoked}",
+            ]
+        )
+    )
+
+    return blocks
+
+
+def classify_and_build_message(subject, json_data):
+    """Classify the SNS message and return (text, blocks).
+
+    Classification uses the SNS subject line as the primary indicator, with
+    JSON payload structure as a fallback for disambiguation.
+    """
+    subject_lower = subject.lower() if subject else ""
+
+    # Try subject-based classification first
+    if "revoked" in subject_lower:
+        blocks = cert_revoked_message(json_data)
+        if blocks:
+            return f"{slack_bad_emoji} {subject}", blocks
+
+    if "rejected" in subject_lower:
+        blocks = cert_request_rejected_message(json_data)
+        if blocks:
+            return f"{slack_bad_emoji} {subject}", blocks
+
+    if "expired" in subject_lower:
+        blocks = cert_expired_message(json_data)
+        if blocks:
+            return f"{slack_bad_emoji} {subject}", blocks
+
+    if "expiry" in subject_lower or "expiring" in subject_lower:
+        blocks = cert_expiry_warning_message(json_data)
+        if blocks:
+            return f"{slack_warning_emoji} {subject}", blocks
+
+    if "issued" in subject_lower:
+        blocks = cert_issued_message(json_data)
+        if blocks:
+            return f"{slack_good_emoji} {subject}", blocks
+
+    # Fallback: use JSON payload structure for classification
+    if "Reason" in json_data and "CSRInfo" in json_data:
+        blocks = cert_request_rejected_message(json_data)
+        if blocks:
+            return f"{slack_bad_emoji} {subject}", blocks
+
+    if "Revoked" in json_data and "SerialNumber" in json_data:
+        blocks = cert_revoked_message(json_data)
+        if blocks:
+            return f"{slack_bad_emoji} {subject}", blocks
+
+    if "DaysRemaining" in json_data and "CertificateInfo" in json_data:
+        days = json_data.get("DaysRemaining", -1)
+        if days <= 0:
+            blocks = cert_expired_message(json_data)
+            emoji = slack_bad_emoji
+        else:
+            blocks = cert_expiry_warning_message(json_data)
+            emoji = slack_warning_emoji
+        if blocks:
+            return f"{emoji} {subject}", blocks
+
+    if "CertificateInfo" in json_data:
+        blocks = cert_issued_message(json_data)
+        if blocks:
+            return f"{slack_good_emoji} {subject}", blocks
+
+    return None, None
+
 
 def lambda_handler(event, context):  # pylint:disable=unused-argument
-    slack_message = {}
     subject = event["Records"][0]["Sns"]["Subject"]
-
-    # Base message parameters
-    text = subject
-    attachments = []
-
     message = event["Records"][0]["Sns"]["Message"]
     json_data = json.loads(message)
 
-    if findings_message(json_data) is not None:
-        slack_message = findings_message(json_data)
+    text, blocks = classify_and_build_message(subject, json_data)
 
-    elif takeovers_message(json_data) is not None:
-        slack_message = takeovers_message(json_data)
+    if blocks is None:
+        logger.warning("Unrecognised notification type, forwarding raw subject: %s", subject)
+        text = subject
+        blocks = [build_section_block(f"```{json.dumps(json_data, indent=2)[:2900]}```")]
 
-    elif resources_message(json_data) is not None:
-        slack_message = resources_message(json_data)
+    account_alias = get_account_alias()
+    context_parts = [f"*Project:* {project}"]
+    if account_alias:
+        context_parts.append(f"*Account:* {account_alias}")
+    blocks.append(build_divider_block())
+    blocks.append(
+        {
+            "type": "context",
+            "elements": [{"type": "mrkdwn", "text": " | ".join(context_parts)}],
+        }
+    )
 
-    elif current_message(json_data) is not None:
-        slack_message = current_message(json_data)
-        text = f"{slack_warning_emoji} {subject}"
-
-    elif misconfigured_message(json_data) is not None:
-        slack_message = misconfigured_message(json_data)
-        text = f"{slack_warning_emoji} {subject}"
-
-    elif new_message(json_data) is not None:
-        slack_message = new_message(json_data)
-        text = f"{slack_bad_emoji} {subject}"
-
-    elif fixed_message(json_data) is not None:
-        slack_message = fixed_message(json_data)
-        text = f"{slack_good_emoji} {subject}"
-
-    elif monthly_stats_message(json_data) is not None:
-        slack_message = monthly_stats_message(json_data)
-
-    if len(slack_message) > 0:
-        attachments.append(slack_message)
-
-    # Set up WebClient with the Slack OAuth token
     client = WebClient(token=get_slack_token())
-
-    # Send message to channels
     channel_list = slack_channels.split(",")
 
     for channel in channel_list:
+        channel = channel.strip()
         try:
-            # Use the proper slack_sdk WebClient method
-            if "blocks" in slack_message:
-                # For messages with blocks (like monthly stats)
-                response = client.chat_postMessage(
-                    channel=channel.strip(),
-                    text=text,
-                    username=slack_username,
-                    **slack_message,
-                )
-            else:
-                # For messages with attachments
-                response = client.chat_postMessage(
-                    channel=channel.strip(),
-                    text=text,
-                    username=slack_username,
-                    attachments=attachments,
-                )
-
+            response = client.chat_postMessage(
+                channel=channel,
+                text=text,
+                username=slack_username,
+                blocks=blocks,
+            )
             if response["ok"]:
-                print(f"Message sent to {channel.strip()} Slack channel")
+                logger.info("Message sent to %s", channel)
             else:
-                print(f"Failed to send message to {channel.strip()}: {response['error']}")
-
+                logger.error("Failed to send to %s: %s", channel, response.get("error"))
         except SlackApiError as e:
-            print(f"Slack API error sending message to {channel.strip()}: {e.response['error']}")
-        except Exception as e:
-            print(f"Error sending message to {channel.strip()}: {str(e)}")
+            logger.error("Slack API error for %s: %s", channel, e.response["error"])
+        except Exception:
+            logger.exception("Error sending to %s", channel)

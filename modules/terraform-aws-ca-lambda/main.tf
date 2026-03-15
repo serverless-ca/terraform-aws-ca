@@ -38,7 +38,7 @@ resource "aws_lambda_function" "lambda" {
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   function_name    = "${var.project}-${var.function_name}-${var.env}"
-  description      = "${var.project} ${var.description}"
+  description      = var.description
   role             = var.lambda_role_arn
   handler          = "${local.file_name}.lambda_handler"
   runtime          = var.runtime

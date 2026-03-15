@@ -339,6 +339,12 @@ variable "slack_warning_emoji" {
   type        = string
 }
 
+variable "secret_recovery_window_in_days" {
+  description = "Number of days that AWS Secrets Manager waits before deleting a secret"
+  type        = number
+  default     = 7
+}
+
 variable "sns_email_subscriptions" {
   type        = list(string)
   description = "List of email addresses to subscribe to SNS topic"

@@ -5,39 +5,18 @@
       "Sid": "WriteToCloudWatchLogs",
       "Effect": "Allow",
       "Action": [
-        "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
       "Resource": [
-        "arn:aws:logs:*:*:*"
+        "arn:aws:logs:${region}:${account_id}:log-group:/aws/lambda/${project}-${lambda_function_name}-${env}:*"
       ]
     },
     {
-      "Sid": "PutCloudWatchMetrics",
-      "Effect": "Allow",
-      "Action": "cloudwatch:PutMetricData",
-      "Resource": "*"
-    },
-    {
-      "Sid": "SNS",
+      "Sid": "KMSDecryptSecret",
       "Effect": "Allow",
       "Action": [
-        "sns:Publish",
-        "sns:Subscribe"
-        ],
-      "Resource": [
-        "arn:aws:sns:*:*:${project}-${env}",
-        "arn:aws:sns:*:*:${project}-dlq-${env}"
-      ]
-    },
-    {
-      "Sid": "KMSforSNS",
-      "Effect": "Allow",
-      "Action": [
-        "kms:Decrypt",
-        "kms:Encrypt",
-        "kms:GenerateDataKey"
+        "kms:Decrypt"
       ],
       "Resource": "${kms_arn_resource}"
     },

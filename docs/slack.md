@@ -2,6 +2,8 @@
 
 The serverless CA delivers [notifications](notifications.md) to Slack.
 
+![Certificate Issued](assets/images/slack-issued.png)
+
 Slack notifications are delivered using a Lambda function included as part of the Serverless CA module, with the Slack app OAuth token stored as an AWS Secret.
 
 To enable Slack notifications, you need to:

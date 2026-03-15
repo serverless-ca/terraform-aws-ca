@@ -5,12 +5,11 @@
       "Sid": "WriteToCloudWatchLogs",
       "Effect": "Allow",
       "Action": [
-        "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
       "Resource": [
-        "arn:aws:logs:*:*:*"
+        "arn:aws:logs:${region}:${account_id}:log-group:/aws/lambda/${project}-${lambda_function_name}-${env}:*"
       ]
     },
     {

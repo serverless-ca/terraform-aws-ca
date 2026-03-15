@@ -67,6 +67,11 @@ variable "sns_topic_arn" {
   default     = ""
 }
 
+variable "lambda_function_name" {
+  description = "Lambda function name for log group ARN scoping, defaults to function_name if not set"
+  default     = ""
+}
+
 variable "xray_enabled" {
   description = "Whether to add permissions to allow to send trace data to X-Ray"
   default     = false
