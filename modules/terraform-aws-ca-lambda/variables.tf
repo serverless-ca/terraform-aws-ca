@@ -138,7 +138,7 @@ variable "slack_good_emoji" {
 }
 
 variable "slack_secret_arn" {
-  description = "ARN of AWS Secrets Manager secret containing Slack OAuth token with 'oauth_token' key"
+  description = "ARN of AWS Secrets Manager secret containing Slack OAuth token string"
   default     = ""
 }
 

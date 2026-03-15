@@ -12,10 +12,13 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 * [Equivalent cost using AWS Private CA around $10,000 per year](./faq.md#how-did-you-work-out-the-cost-comparison-with-aws-private-ca)
 * 100% serverless
 * CA private keys stored in [FIPS 140-2 level 3 certified hardware](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3)
-* Wide range of [configuration options](options.md)
+* Wide range of [configuration options](options.md) including [Slack notifications](notifications.md)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
-![Alt text](assets/images/ca-architecture-options.png?raw=true "CA architecture")
+![CA architecture](assets/images/ca-architecture-options.png)
+
+![Certificate Issued](assets/images/slack-issued.png)
+
 
 ## Open Cloud Security Conference - talk and demo
 <a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/open-cloud-security.png" /></a>
