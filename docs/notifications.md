@@ -22,6 +22,8 @@ You can optionally subscribe directly to the CA Notifications SNS Topic to recei
 
 A Slack message is sent when a GitOps certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued:
 
+![Certificate Expired](assets/images/slack-expired.png)
+
 Certificate expired notification - email subscribed to SNS topic:
 
 ![Certificate Expired](assets/images/sns-cert-expired.png)
