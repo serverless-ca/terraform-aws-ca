@@ -1,6 +1,5 @@
 import os
 
-# Set required environment variables before importing notify module
 os.environ.setdefault("SLACK_SECRET_ARN", "arn:aws:secretsmanager:eu-west-1:123456789012:secret:test")
 os.environ.setdefault("SLACK_CHANNELS", "test-channel")
 os.environ.setdefault("SLACK_BAD_EMOJI", ":octagonal_sign:")
@@ -9,7 +8,8 @@ os.environ.setdefault("SLACK_USERNAME", "Serverless CA")
 os.environ.setdefault("SLACK_WARNING_EMOJI", ":warning:")
 os.environ.setdefault("PROJECT", "serverless")
 
-from lambda_code.notify.notify import (  # noqa: E402
+# Environment variables must be set before importing notify module
+from lambda_code.notify.notify import (  # pylint: disable=wrong-import-position
     build_divider_block,
     build_fields_block,
     build_header_block,
@@ -152,7 +152,7 @@ def test_format_cert_info_fields_partial_keys():
 
 
 def test_format_cert_info_fields_empty():
-    assert format_cert_info_fields({}) == []
+    assert not format_cert_info_fields({})
 
 
 # --- cert_expired_message tests ---
@@ -337,31 +337,31 @@ def test_cert_revoked_missing_keys():
 
 def test_classify_by_payload_rejected():
     handler, emoji = _classify_by_payload(CERT_REQUEST_REJECTED_PAYLOAD)
-    assert handler == cert_request_rejected_message
+    assert handler is cert_request_rejected_message
     assert emoji == ":octagonal_sign:"
 
 
 def test_classify_by_payload_revoked():
     handler, emoji = _classify_by_payload(CERT_REVOKED_PAYLOAD)
-    assert handler == cert_revoked_message
+    assert handler is cert_revoked_message
     assert emoji == ":octagonal_sign:"
 
 
 def test_classify_by_payload_expired():
     handler, emoji = _classify_by_payload(CERT_EXPIRED_PAYLOAD)
-    assert handler == cert_expired_message
+    assert handler is cert_expired_message
     assert emoji == ":octagonal_sign:"
 
 
 def test_classify_by_payload_expiry_warning():
     handler, emoji = _classify_by_payload(CERT_EXPIRY_WARNING_PAYLOAD)
-    assert handler == cert_expiry_warning_message
+    assert handler is cert_expiry_warning_message
     assert emoji == ":warning:"
 
 
 def test_classify_by_payload_issued():
     handler, emoji = _classify_by_payload(CERT_ISSUED_PAYLOAD)
-    assert handler == cert_issued_message
+    assert handler is cert_issued_message
     assert emoji == ":white_check_mark:"
 
 
@@ -400,7 +400,7 @@ def test_classify_by_subject_expiry():
 
 
 def test_classify_by_subject_expiring():
-    text, blocks = classify_and_build_message("Certificate Expiring Soon", CERT_EXPIRY_WARNING_PAYLOAD)
+    text, _blocks = classify_and_build_message("Certificate Expiring Soon", CERT_EXPIRY_WARNING_PAYLOAD)
     assert ":warning:" in text
 
 
@@ -411,12 +411,12 @@ def test_classify_by_subject_issued():
 
 
 def test_classify_by_subject_case_insensitive():
-    text, blocks = classify_and_build_message("CERTIFICATE REVOKED", CERT_REVOKED_PAYLOAD)
+    _text, blocks = classify_and_build_message("CERTIFICATE REVOKED", CERT_REVOKED_PAYLOAD)
     assert blocks is not None
 
 
 def test_classify_falls_back_to_payload():
-    text, blocks = classify_and_build_message("Some unknown subject", CERT_REVOKED_PAYLOAD)
+    _text, blocks = classify_and_build_message("Some unknown subject", CERT_REVOKED_PAYLOAD)
     assert blocks is not None
     assert "Certificate Revoked" in blocks[0]["text"]["text"]
 

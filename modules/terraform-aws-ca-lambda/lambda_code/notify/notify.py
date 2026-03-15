@@ -75,7 +75,7 @@ def cert_expired_message(json_data):
     """Certificate Expired - certificate has expired without replacement"""
     try:
         cert_info = json_data["CertificateInfo"]
-        days = json_data["DaysRemaining"]
+        json_data["DaysRemaining"]  # validate key exists
     except KeyError:
         return None
 
