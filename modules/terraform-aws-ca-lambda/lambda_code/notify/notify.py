@@ -73,11 +73,10 @@ def format_cert_info_fields(cert_info, expires_label="Expires"):
 
 def cert_expired_message(json_data):
     """Certificate Expired - certificate has expired without replacement"""
-    try:
-        cert_info = json_data["CertificateInfo"]
-        json_data["DaysRemaining"]  # validate key exists
-    except KeyError:
+    if "CertificateInfo" not in json_data or "DaysRemaining" not in json_data:
         return None
+
+    cert_info = json_data["CertificateInfo"]
 
     blocks = [build_header_block(f"{slack_bad_emoji} Certificate Expired")]
 
