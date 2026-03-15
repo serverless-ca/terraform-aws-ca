@@ -11,7 +11,9 @@
 * Wide range of [configuration options](https://serverlessca.com/options/) including [Slack notifications](https://serverlessca.com/notifications/)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
-<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/ca-architecture-options.png" /></a>
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/ca-architecture-slack.png" /></a>
+
+<a href="#"><img src="https://raw.githubusercontent.com/serverless-ca/terraform-aws-ca/main/docs/assets/images/slack-issued.png" /></a>
 
 > 📄 Detailed documentation is on our [Docs](https://serverlessca.com) site. If testing the Serverless CA for the first time, use the [Getting Started](https://serverlessca.com/getting-started/) guide.
 
