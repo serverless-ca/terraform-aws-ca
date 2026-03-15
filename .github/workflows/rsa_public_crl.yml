@@ -12,6 +12,7 @@ on:
 
 env:
   TF_VAR_hosted_zone_domain: ${{ secrets.HOSTED_ZONE_DOMAIN }}
+  TF_VAR_slack_token: ${{ secrets.SLACK_TOKEN }}
 
 permissions:
   contents: read
