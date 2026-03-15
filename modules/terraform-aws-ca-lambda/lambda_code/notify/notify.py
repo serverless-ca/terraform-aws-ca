@@ -194,6 +194,7 @@ def cert_revoked_message(json_data):
     return blocks
 
 
+# pylint:disable=too-many-branches
 def classify_and_build_message(subject, json_data):
     """Classify the SNS message and return (text, blocks).
 
