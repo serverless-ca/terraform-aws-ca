@@ -194,7 +194,35 @@ def cert_revoked_message(json_data):
     return blocks
 
 
-# pylint:disable=too-many-branches
+SUBJECT_CLASSIFIERS = [
+    ("revoked", cert_revoked_message, slack_bad_emoji),
+    ("rejected", cert_request_rejected_message, slack_bad_emoji),
+    ("expired", cert_expired_message, slack_bad_emoji),
+    ("expiry", cert_expiry_warning_message, slack_warning_emoji),
+    ("expiring", cert_expiry_warning_message, slack_warning_emoji),
+    ("issued", cert_issued_message, slack_good_emoji),
+]
+
+
+def _classify_by_payload(json_data):
+    """Classify using JSON payload structure when subject doesn't match."""
+    if "Reason" in json_data and "CSRInfo" in json_data:
+        return cert_request_rejected_message, slack_bad_emoji
+
+    if "Revoked" in json_data and "SerialNumber" in json_data:
+        return cert_revoked_message, slack_bad_emoji
+
+    if "DaysRemaining" in json_data and "CertificateInfo" in json_data:
+        if json_data.get("DaysRemaining", -1) <= 0:
+            return cert_expired_message, slack_bad_emoji
+        return cert_expiry_warning_message, slack_warning_emoji
+
+    if "CertificateInfo" in json_data:
+        return cert_issued_message, slack_good_emoji
+
+    return None, None
+
+
 def classify_and_build_message(subject, json_data):
     """Classify the SNS message and return (text, blocks).
 
@@ -203,58 +231,17 @@ def classify_and_build_message(subject, json_data):
     """
     subject_lower = subject.lower() if subject else ""
 
-    # Try subject-based classification first
-    if "revoked" in subject_lower:
-        blocks = cert_revoked_message(json_data)
-        if blocks:
-            return f"{slack_bad_emoji} {subject}", blocks
+    for keyword, handler, emoji in SUBJECT_CLASSIFIERS:
+        if keyword in subject_lower:
+            blocks = handler(json_data)
+            if blocks:
+                return f"{emoji} {subject}", blocks
 
-    if "rejected" in subject_lower:
-        blocks = cert_request_rejected_message(json_data)
-        if blocks:
-            return f"{slack_bad_emoji} {subject}", blocks
-
-    if "expired" in subject_lower:
-        blocks = cert_expired_message(json_data)
-        if blocks:
-            return f"{slack_bad_emoji} {subject}", blocks
-
-    if "expiry" in subject_lower or "expiring" in subject_lower:
-        blocks = cert_expiry_warning_message(json_data)
-        if blocks:
-            return f"{slack_warning_emoji} {subject}", blocks
-
-    if "issued" in subject_lower:
-        blocks = cert_issued_message(json_data)
-        if blocks:
-            return f"{slack_good_emoji} {subject}", blocks
-
-    # Fallback: use JSON payload structure for classification
-    if "Reason" in json_data and "CSRInfo" in json_data:
-        blocks = cert_request_rejected_message(json_data)
-        if blocks:
-            return f"{slack_bad_emoji} {subject}", blocks
-
-    if "Revoked" in json_data and "SerialNumber" in json_data:
-        blocks = cert_revoked_message(json_data)
-        if blocks:
-            return f"{slack_bad_emoji} {subject}", blocks
-
-    if "DaysRemaining" in json_data and "CertificateInfo" in json_data:
-        days = json_data.get("DaysRemaining", -1)
-        if days <= 0:
-            blocks = cert_expired_message(json_data)
-            emoji = slack_bad_emoji
-        else:
-            blocks = cert_expiry_warning_message(json_data)
-            emoji = slack_warning_emoji
+    handler, emoji = _classify_by_payload(json_data)
+    if handler:
+        blocks = handler(json_data)
         if blocks:
             return f"{emoji} {subject}", blocks
-
-    if "CertificateInfo" in json_data:
-        blocks = cert_issued_message(json_data)
-        if blocks:
-            return f"{slack_good_emoji} {subject}", blocks
 
     return None, None
 
