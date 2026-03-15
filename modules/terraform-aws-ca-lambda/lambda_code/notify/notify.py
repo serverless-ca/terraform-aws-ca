@@ -57,7 +57,7 @@ def build_fields_block(fields):
     }
 
 
-def format_cert_info_fields(cert_info):
+def format_cert_info_fields(cert_info, expires_label="Expires"):
     """Format CertificateInfo dict into Slack fields"""
     fields = []
     if "CommonName" in cert_info:
@@ -67,7 +67,7 @@ def format_cert_info_fields(cert_info):
     if "Issued" in cert_info:
         fields.append(f"*Issued:*\n{cert_info['Issued']}")
     if "Expires" in cert_info:
-        fields.append(f"*Expires:*\n{cert_info['Expires']}")
+        fields.append(f"*{expires_label}:*\n{cert_info['Expires']}")
     return fields
 
 
@@ -84,11 +84,9 @@ def cert_expired_message(json_data):
     if "Subject" in json_data:
         blocks.append(build_section_block(f"*Subject:* `{json_data['Subject']}`"))
 
-    fields = format_cert_info_fields(cert_info)
+    fields = format_cert_info_fields(cert_info, expires_label="Expired")
     if fields:
         blocks.append(build_fields_block(fields))
-
-    blocks.append(build_section_block(f"*Days Remaining:* {days}"))
 
     return blocks
 
@@ -270,7 +268,12 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         }
     )
 
-    client = WebClient(token=get_slack_token())
+    token = get_slack_token()
+    if not token or not token.startswith("xoxb-"):
+        logger.error("Slack OAuth token is missing or invalid - update the secret value in AWS Secrets Manager")
+        return
+
+    client = WebClient(token=token)
     channel_list = slack_channels.split(",")
 
     for channel in channel_list:
