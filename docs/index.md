@@ -15,7 +15,7 @@ description: Serverless CA in AWS with FIPS 140-2 level 3 CA key storage and cos
 * Wide range of [configuration options](options.md) including [Slack notifications](notifications.md)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 
-![CA architecture](assets/images/ca-architecture-options.png)
+![CA architecture](assets/images/ca-architecture-slack.png)
 
 ![Certificate Issued](assets/images/slack-issued.png)
 
