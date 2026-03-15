@@ -57,6 +57,7 @@ nav:
   - Notifications: notifications.md
   - Revocation: revocation.md
   - Security: security.md
+  - Slack: slack.md
   - How-to guides:
     - API Gateway: how-to-guides/api.md 
     - Application load balancer: how-to-guides/alb.md

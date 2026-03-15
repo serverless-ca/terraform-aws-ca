@@ -219,7 +219,7 @@ module "create_rsa_root_ca_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "create-root-ca"
-  description                     = "create Root Certificate Authority with KMS private key"
+  description                     = "Create Root Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -244,7 +244,7 @@ module "create_rsa_issuing_ca_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "create-issuing-ca"
-  description                     = "create Issuing Certificate Authority with KMS private key"
+  description                     = "Create Issuing Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -269,7 +269,7 @@ module "rsa_root_ca_crl_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "root-ca-crl"
-  description                     = "publish Root CA certificate revocation list signed by KMS private key"
+  description                     = "Publish Root CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -296,7 +296,7 @@ module "rsa_issuing_ca_crl_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "issuing-ca-crl"
-  description                     = "publish Issuing CA certificate revocation list signed by KMS private key"
+  description                     = "Publish Issuing CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -323,7 +323,7 @@ module "rsa_tls_cert_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "tls-cert"
-  description                     = "issue TLS certificates signed by KMS private key"
+  description                     = "Issue TLS certificates signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -351,7 +351,7 @@ module "expiry_lambda" {
   env                             = var.env
   prod_envs                       = var.prod_envs
   function_name                   = "expiry"
-  description                     = "check for expiring GitOps certificates and send notifications to SNS topic"
+  description                     = "Check for expiring GitOps certificates and send notifications to SNS topic"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
@@ -469,9 +469,65 @@ module "sns_ca_notifications" {
   custom_sns_topic_name         = var.custom_sns_topic_name
   kms_key_arn                   = coalesce(var.kms_arn_resource, module.kms_tls_keygen.kms_arn)
   email_subscriptions           = var.sns_email_subscriptions
-  lambda_subscriptions          = var.sns_lambda_subscriptions
-  sqs_subscriptions             = var.sns_sqs_subscriptions
-  sns_policy                    = var.sns_policy
-  sns_policy_template           = var.sns_policy_template
-  workload_account_id           = var.workload_account_id
+  lambda_subscriptions = merge(
+    var.sns_lambda_subscriptions,
+    length(var.slack_channels) > 0 ? { notify = module.notify_lambda[0].lambda_arn } : {}
+  )
+  sqs_subscriptions   = var.sns_sqs_subscriptions
+  sns_policy          = var.sns_policy
+  sns_policy_template = var.sns_policy_template
+  workload_account_id = var.workload_account_id
+}
+
+module "slack_secret" {
+  source = "./modules/terraform-aws-ca-secret"
+  count  = length(var.slack_channels) > 0 ? 1 : 0
+
+  project                 = var.project
+  env                     = var.env
+  purpose                 = "slack-token"
+  description             = "OAuth token for Slack app"
+  kms_key_id              = coalesce(var.kms_arn_resource, module.kms_tls_keygen.kms_arn)
+  ignore_value_changes    = var.slack_token == "" ? true : false
+  value                   = var.slack_token == "" ? "dummy-value" : var.slack_token
+  recovery_window_in_days = var.secret_recovery_window_in_days
+}
+
+module "notify_slack_iam" {
+  source = "./modules/terraform-aws-ca-iam"
+  count  = length(var.slack_channels) > 0 ? 1 : 0
+
+  project              = var.project
+  env                  = var.env
+  function_name        = "slack"
+  lambda_function_name = "notify"
+  policy               = "slack"
+  kms_arn_resource     = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  secret_arn           = module.slack_secret[0].secret_arn
+}
+
+module "notify_lambda" {
+  # Lambda function which subscribes to SNS and sends Slack notifications
+  source = "./modules/terraform-aws-ca-lambda"
+  count  = length(var.slack_channels) > 0 ? 1 : 0
+
+  project                         = var.project
+  env                             = var.env
+  prod_envs                       = var.prod_envs
+  function_name                   = "notify"
+  description                     = "Subscribe to SNS topic and send Slack notifications"
+  logging_account_id              = var.logging_account_id
+  subscription_filter_destination = var.subscription_filter_destination
+  filter_pattern                  = var.filter_pattern
+  lambda_role_arn                 = module.notify_slack_iam[0].lambda_role_arn
+  runtime                         = var.runtime
+  allowed_invocation_principals   = ["sns.amazonaws.com"]
+  slack_channels                  = var.slack_channels
+  slack_bad_emoji                 = var.slack_bad_emoji
+  slack_good_emoji                = var.slack_good_emoji
+  slack_secret_arn                = module.slack_secret[0].secret_arn
+  slack_username                  = var.slack_username
+  slack_warning_emoji             = var.slack_warning_emoji
+  xray_enabled                    = var.xray_enabled
+  tags                            = merge(var.tags, var.additional_lambda_tags)
 }

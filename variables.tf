@@ -303,6 +303,49 @@ variable "schedule_expression" {
   default     = "cron(15 8 * * ? *)" # 8.15 a.m. daily
 }
 
+variable "slack_bad_emoji" {
+  description = "Slack emoji for bad events"
+  default     = ":octagonal_sign:"
+  type        = string
+}
+
+variable "slack_channels" {
+  description = "List of Slack Channels"
+  default     = []
+  type        = list(string)
+}
+
+variable "slack_good_emoji" {
+  description = "Slack emoji for good events"
+  default     = ":white_check_mark:"
+  type        = string
+}
+
+variable "slack_token" {
+  type        = string
+  description = "Slack App OAuth token"
+  default     = ""
+  sensitive   = true
+}
+
+variable "slack_username" {
+  description = "Slack username appearing in the from field in the Slack message"
+  default     = "Serverless CA"
+  type        = string
+}
+
+variable "slack_warning_emoji" {
+  description = "Slack emoji for warning events"
+  default     = ":warning:"
+  type        = string
+}
+
+variable "secret_recovery_window_in_days" {
+  description = "Number of days that AWS Secrets Manager waits before deleting a secret"
+  type        = number
+  default     = 7
+}
+
 variable "sns_email_subscriptions" {
   type        = list(string)
   description = "List of email addresses to subscribe to SNS topic"

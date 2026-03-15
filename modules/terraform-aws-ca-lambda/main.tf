@@ -38,7 +38,7 @@ resource "aws_lambda_function" "lambda" {
   filename         = data.archive_file.lambda_zip.output_path
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   function_name    = "${var.project}-${var.function_name}-${var.env}"
-  description      = "${var.project} ${var.description}"
+  description      = var.description
   role             = var.lambda_role_arn
   handler          = "${local.file_name}.lambda_handler"
   runtime          = var.runtime
@@ -48,24 +48,7 @@ resource "aws_lambda_function" "lambda" {
   tags             = var.tags
 
   environment {
-    variables = {
-      DOMAIN              = var.domain
-      ENVIRONMENT_NAME    = var.env
-      PROD_ENVIRONMENTS   = jsonencode(var.prod_envs)
-      EXPIRY_REMINDERS    = jsonencode(var.expiry_reminders)
-      EXTERNAL_S3_BUCKET  = var.external_s3_bucket
-      INTERNAL_S3_BUCKET  = var.internal_s3_bucket
-      ISSUING_CA_INFO     = jsonencode({ for k, v in var.issuing_ca_info : k => v if v != null })
-      ISSUING_CRL_DAYS    = tostring(var.issuing_crl_days)
-      ISSUING_CRL_SECONDS = tostring(var.issuing_crl_seconds)
-      MAX_CERT_LIFETIME   = tostring(var.max_cert_lifetime)
-      PROJECT             = var.project
-      PUBLIC_CRL          = local.public_crl
-      ROOT_CA_INFO        = jsonencode({ for k, v in var.root_ca_info : k => v if v != null })
-      ROOT_CRL_DAYS       = tostring(var.root_crl_days)
-      ROOT_CRL_SECONDS    = tostring(var.root_crl_seconds)
-      SNS_TOPIC_ARN       = var.sns_topic_arn
-    }
+    variables = var.function_name == "notify" ? local.slack_variables : local.ca_variables
   }
 
   tracing_config {

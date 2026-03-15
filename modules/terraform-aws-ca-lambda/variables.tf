@@ -14,23 +14,21 @@ variable "description" {
 
 variable "domain" {
   description = "Hosted zone domain, e.g. dev.ca.example.com"
+  default     = ""
 }
 
 variable "env" {
   description = "Environment name, e.g. dev"
 }
 
-variable "prod_envs" {
-  description = "List of production environment names. Used to define resource name suffix"
-  default     = ["prd", "prod"]
-}
-
 variable "expiry_reminders" {
   description = "List of days before certificate expiration to send reminders"
+  default     = []
 }
 
 variable "external_s3_bucket" {
   description = "External S3 Bucket Name"
+  default     = ""
 }
 
 variable "filter_pattern" {
@@ -43,6 +41,7 @@ variable "function_name" {
 
 variable "internal_s3_bucket" {
   description = "Internal S3 Bucket Name"
+  default     = ""
 }
 
 variable "issuing_ca_info" {
@@ -84,6 +83,11 @@ variable "platform" {
   default     = "manylinux2014_x86_64"
 }
 
+variable "prod_envs" {
+  description = "List of production environment names. Used to define resource name suffix"
+  default     = ["prd", "prod"]
+}
+
 variable "project" {
   description = "abbreviation for the project, forms first part of resource names"
   default     = "secure-email"
@@ -118,8 +122,39 @@ variable "runtime" {
   description = "Lambda language runtime"
 }
 
+variable "slack_bad_emoji" {
+  description = "Emoji to use for Slack bad event notifications"
+  default     = ""
+}
+
+variable "slack_channels" {
+  description = "List of Slack channels to send notifications to"
+  default     = []
+}
+
+variable "slack_good_emoji" {
+  description = "Emoji to use for Slack good event notifications"
+  default     = ""
+}
+
+variable "slack_secret_arn" {
+  description = "ARN of AWS Secrets Manager secret containing Slack OAuth token string"
+  default     = ""
+}
+
+variable "slack_username" {
+  description = "Username to use for Slack notifications"
+  default     = ""
+}
+
+variable "slack_warning_emoji" {
+  description = "Emoji to use for Slack warning notifications"
+  default     = ""
+}
+
 variable "sns_topic_arn" {
   description = "SNS Topic ARN for Lambda function to publish to"
+  default     = ""
 }
 
 variable "subscription_filter_destination" {

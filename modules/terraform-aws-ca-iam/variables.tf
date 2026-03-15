@@ -39,6 +39,7 @@ variable "kms_arn_resource" {
 
 variable "ddb_table_arn" {
   description = "DynamoDB table ARN"
+  default     = ""
 }
 
 variable "external_s3_bucket_arn" {
@@ -56,8 +57,18 @@ variable "aws_principals" {
   default     = []
 }
 
+variable "secret_arn" {
+  description = "ARN of secret in AWS Secrets Manager"
+  default     = ""
+}
+
 variable "sns_topic_arn" {
   description = "SNS Topic ARN"
+  default     = ""
+}
+
+variable "lambda_function_name" {
+  description = "Lambda function name for log group ARN scoping, defaults to function_name if not set"
   default     = ""
 }
 

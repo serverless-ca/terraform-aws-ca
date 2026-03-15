@@ -111,6 +111,10 @@ The Serverless CA publishes details of selected events to a SNS Topic included a
 
 You can receive email notifications by subscribing directly to the SNS Topic.
 
+Slack messages can be enabled by creating a Slack app, and configuring Terraform with channel details and OAuth token, as detailed in [Slack](slack.md).
+
+![Certificate Issued](assets/images/slack-issued.png)
+
 Alternatively, subscribe to the SNS Topic using a separate Lambda function, to customise communications to your CA administrators and users.
 
 ### Can I get reminders when a certificate is about to expire?
