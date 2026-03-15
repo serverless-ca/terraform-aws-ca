@@ -25,6 +25,7 @@ variable "ignore_value_changes" {
 variable "value" {
   description = "Secret value"
   default     = "dummy-value"
+  sensitive   = true
 }
 
 variable "tags" {

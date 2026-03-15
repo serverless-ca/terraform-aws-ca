@@ -325,6 +325,7 @@ variable "slack_token" {
   type        = string
   description = "Slack App OAuth token"
   default     = ""
+  sensitive   = true
 }
 
 variable "slack_username" {
