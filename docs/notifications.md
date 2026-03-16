@@ -4,7 +4,7 @@ The Serverless CA module provides SNS notifications for different events, with o
 
 ![Certificate Issued](assets/images/slack-issued.png)
 
-You can optionally subscribe directly to the CA Notifications SNS Topic to receive email notifications.
+You can subscribe directly to the CA Notifications SNS Topic to receive email notifications.
 
 ##  Notification types
 
