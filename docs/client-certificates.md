@@ -34,6 +34,22 @@ chmod 600 ~/certs/client-cert-key.pem
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions 
 * They can then be mounted into the application container
 
+## Distinguished Name Settings
+
+Distinguished name details can be set using JSON keys when calling the Lambda function, e.g. 
+```json
+{
+  "common_name": "test-client-cert",
+  "country": "GB",
+  "locality": "London",
+  "organization": "Example Company",
+  "organizational_unit": "DevOps",
+  "lifetime": 90,
+  "csr_file": "client-cert-request.csr"
+}
+```
+A full list of supported inputs is provided in the [Lambda submodule documentation](https://github.com/serverless-ca/terraform-aws-ca/blob/main/modules/terraform-aws-ca-lambda/README.MD).
+
 ## Extended Key Usages
 
 There are two methods of specifying Extended Key Usage extensions:

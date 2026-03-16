@@ -27,7 +27,7 @@ structlog.configure(
 
 log = structlog.get_logger()
 
-COMMON_NAME = "pipeline-test-expiry-reminder"
+COMMON_NAME = "pipeline-expiry-test.example.com"
 CSR_FILE = f"{COMMON_NAME}.csr"
 
 
@@ -120,6 +120,10 @@ def _append_to_tls_json(bucket_name, kms_arn):
     updated_tls_json.append(
         {
             "common_name": COMMON_NAME,
+            "country": "GB",
+            "locality": "London",
+            "organization": "Example Company",
+            "organizational_unit": "DevOps",
             "lifetime": 1,
             "csr_file": CSR_FILE,
         }
@@ -164,6 +168,10 @@ def test_expiry_reminder_sent_and_not_duplicated():
         tls_function_name = get_lambda_name("-tls")
         json_data = {
             "common_name": COMMON_NAME,
+            "country": "GB",
+            "locality": "London",
+            "organization": "Example Company",
+            "organizational_unit": "DevOps",
             "lifetime": 1,
             "csr_file": CSR_FILE,
             "force_issue": True,
