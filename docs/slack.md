@@ -79,7 +79,7 @@ The Slack app OAuth token is stored as an AWS Secret. There are two options for 
 
 ### 3.1. Manual using AWS console
 
-* open the AWS console for the account to which the Serverless CA is installed
+* open the AWS console for the Serverless CA account
 * In AWS Secrets Manager, select the Serverless CA Slack OAuth Secret
 * overwrite the `dummy-value` Secret value
 * press Save
@@ -87,7 +87,7 @@ The Slack app OAuth token is stored as an AWS Secret. There are two options for 
 ### 3.2. Upload via CI/CD
 
 * create a CI/CD secret, e.g. a GitHub Actions Secret `SLACK_TOKEN` 
-* add the token value to the secret
+* add the token value to the GitHub Actions secret
 * pass through to the Terraform module using the `slack_token` variable
 
 See [RSA Public CRL example](../examples/rsa-public-crl/ca.tf)
