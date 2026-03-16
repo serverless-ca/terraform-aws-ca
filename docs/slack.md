@@ -67,8 +67,6 @@ Enter the names of Slack channels you want to send notifications to, e.g.
 ```
 slack_channels = ["ca-notifications"]
 ```
-* apply Terraform
-* the Notify Lambda function and AWS Secret for Slack will be created
 
 ## 3. Slack OAuth token
 
@@ -79,6 +77,8 @@ The Slack app OAuth token is stored as an AWS Secret. There are two options for 
 
 ### 3.1. Manual using AWS console
 
+* after adding the Slack channel names, apply Terraform
+* the Notify Lambda function and AWS Secret for Slack will be created
 * open the AWS console for the Serverless CA account
 * In AWS Secrets Manager, select the Serverless CA Slack OAuth Secret
 * overwrite the `dummy-value` Secret value
@@ -89,5 +89,7 @@ The Slack app OAuth token is stored as an AWS Secret. There are two options for 
 * create a CI/CD secret, e.g. a GitHub Actions Secret `SLACK_TOKEN` 
 * add the token value to the GitHub Actions secret
 * pass through to the Terraform module using the `slack_token` variable
+* run the pipeline to apply Terraform
+* the Notify Lambda function and AWS Secret for Slack will be created
 
-See [RSA Public CRL example](../examples/rsa-public-crl/ca.tf)
+See [Cloud CA](https://github.com/serverless-ca/cloud-ca) example repository and GitHub Actions pipeline.
