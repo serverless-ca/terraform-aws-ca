@@ -1,8 +1,6 @@
 # Notifications
 
-The Serverless CA module provides SNS notifications for different events. 
-
-By default, notifications are sent by [Slack](slack.md):
+The Serverless CA module provides SNS notifications for different events, with optional [Slack](slack.md) integration:
 
 ![Certificate Issued](assets/images/slack-issued.png)
 
@@ -135,6 +133,10 @@ Certificate Request Rejected notification - example JSON:
 ##  Certificate Revoked notification
 
 A SNS notification is published when a certificate is revoked:
+
+![Certificate Revoked](assets/images/slack-revoked.png)
+
+Certificate Revoked - email subscribed to SNS topic:
 
 ![Certificate Revoked](assets/images/sns-cert-revoked.png)
 

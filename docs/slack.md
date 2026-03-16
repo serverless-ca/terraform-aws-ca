@@ -67,6 +67,8 @@ Enter the names of Slack channels you want to send notifications to, e.g.
 ```
 slack_channels = ["ca-notifications"]
 ```
+* apply Terraform
+* the Notify Lambda function and AWS Secret for Slack will be created
 
 ## 3. Slack OAuth token
 
