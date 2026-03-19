@@ -34,6 +34,8 @@ chmod 600 ~/certs/client-cert-key.pem
 * Certificate, CA bundle and private key should be written to e.g. `/certs` with locked-down folder permissions 
 * They can then be mounted into the application container
 
+See [Lambda Invocation](lambda-invocation.md) for examples of how to request a certificate by invoking the TLS Cert Lambda function.
+
 ## Distinguished Name Settings
 
 Distinguished name details can be set using JSON keys when calling the Lambda function, e.g. 
@@ -45,10 +47,28 @@ Distinguished name details can be set using JSON keys when calling the Lambda fu
   "organization": "Example Company",
   "organizational_unit": "DevOps",
   "lifetime": 90,
+  "sans": ["example.com"],
+  "base64_csr_data": "DELMAkGA1UEBhMCVUsxDzA......==",
+}
+```
+
+Equivalent settings to use in `tls.json` for GitOps certificates:
+```json
+{
+  "common_name": "test-client-cert",
+  "country": "GB",
+  "locality": "London",
+  "organization": "Example Company",
+  "organizational_unit": "DevOps",
+  "lifetime": 90,
+  "sans": ["example.com"],
   "csr_file": "client-cert-request.csr"
 }
 ```
-A full list of supported inputs is provided in the [Lambda submodule documentation](https://github.com/serverless-ca/terraform-aws-ca/blob/main/modules/terraform-aws-ca-lambda/README.MD).
+
+The `csr_file` value must be the name of the file in the `certs\{env}\csrs` directory, see [Cloud CA repo](https://github.com/serverless-ca/cloud-ca) as an example.
+
+A list of supported inputs is provided in the [Lambda submodule documentation](https://github.com/serverless-ca/terraform-aws-ca/blob/main/modules/terraform-aws-ca-lambda/README.MD).
 
 ## Extended Key Usages
 

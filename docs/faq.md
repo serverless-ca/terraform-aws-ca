@@ -106,6 +106,9 @@ The default setting for CRL lifetime of 1 day should be appropriate for most use
 ### How do I renew a certificate?
 Create a new Certificate Signing Request (CSR) using a new private key. Resubmit as detailed in [Client Certificates](client-certificates.md#renewing-certificates).
 
+### How can I request a certificate without using the GitOps process?
+Invoke the TLS Lambda function directly as detailed in [Lambda Invocation](lambda-invocation.md).
+
 ### Can the CA send emails or Slack messages when a new certificate is issued?
 The Serverless CA publishes details of selected events to a SNS Topic included as part of this Terraform module, see [Notifications](notifications.md). 
 

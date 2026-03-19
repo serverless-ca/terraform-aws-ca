@@ -54,6 +54,7 @@ nav:
   - Configuration options: options.md
   - Development: development.md
   - FAQs: faq.md
+  - Lambda Invocation: lambda-invocation.md
   - Notifications: notifications.md
   - Revocation: revocation.md
   - Security: security.md
