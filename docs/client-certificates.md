@@ -70,6 +70,8 @@ The `csr_file` value must be the name of the file in the `certs\{env}\csrs` dire
 
 A list of supported inputs is provided in the [Lambda submodule documentation](https://github.com/serverless-ca/terraform-aws-ca/blob/main/modules/terraform-aws-ca-lambda/README.MD).
 
+Additional supported values are detailed in [Advanced certificate settings](certificate-settings.md).
+
 ## Extended Key Usages
 
 There are two methods of specifying Extended Key Usage extensions:
