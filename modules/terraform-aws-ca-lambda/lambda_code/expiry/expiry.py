@@ -2,6 +2,7 @@ from cryptography.hazmat.primitives import serialization
 from utils.aws.sns import publish_to_sns
 from utils.certs.db import (
     db_list_certificates,
+    db_list_notify_expiry_certificates,
     db_expiry_reminder_already_sent,
     db_record_expiry_reminder,
 )
@@ -192,10 +193,20 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
     sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
     expiry_reminders = json.loads(os.environ["EXPIRY_REMINDERS"])
 
+    now = datetime.now()
+
+    # collect certificates to process, keyed by (CommonName, SerialNumber) to deduplicate
+    certs_to_process = {}
+
+    # certificates with NotifyExpiry enabled in DynamoDB
+    for certificate in db_list_notify_expiry_certificates(project, env_name):
+        common_name = certificate["CommonName"]["S"]
+        serial_number = certificate["SerialNumber"]["S"]
+        certs_to_process[(common_name, serial_number)] = certificate
+
+    # GitOps certificates from tls.json - added after scan so they take precedence
     response = s3_download(external_s3_bucket_name, internal_s3_bucket_name, "tls.json")
     gitops_certificates = json.loads(response["Body"].read().decode("utf-8"))
-
-    now = datetime.now()
 
     for gitops_cert in gitops_certificates:
         certificate = process_gitops_certificate(
@@ -205,10 +216,15 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
             continue
 
         common_name = gitops_cert["common_name"]
+        serial_number = certificate["SerialNumber"]["S"]
+        certs_to_process[(common_name, serial_number)] = certificate
+
+    # process all collected certificates for expiry and expired notifications
+    for (common_name, serial_number), certificate in certs_to_process.items():
         days_remaining = process_certificate_expiry(certificate, common_name, expiry_reminders, sns_topic_arn, now)
 
         if days_remaining is None:
             days_remaining = process_certificate_expired(certificate, common_name, sns_topic_arn, now)
 
         if days_remaining is not None:
-            db_record_expiry_reminder(project, env_name, common_name, certificate["SerialNumber"]["S"], days_remaining)
+            db_record_expiry_reminder(project, env_name, common_name, serial_number, days_remaining)

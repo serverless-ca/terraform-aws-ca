@@ -49,6 +49,8 @@ class Request:
     force_issue: Optional[bool] = False
     cert_bundle: Optional[bool] = False
     ca_chain_only: Optional[bool] = False
+    notify_expiry: Optional[bool] = None
+    notify_issued: Optional[bool] = None
 
 
 @dataclass_json(letter_case=LetterCase.PASCAL)
@@ -356,7 +358,17 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl
     )
 
-    db_tls_cert_issued(project, env_name, cert_info, base64_certificate)
+    # determine certificate subject and whether issued via GitOps
+    cert_subject = load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string()
+    is_gitops = cert_issued_via_gitops(internal_s3_bucket_name, cert_subject)
+
+    # determine notify_expiry: GitOps defaults to True, direct invocation defaults to False
+    if request.notify_expiry is not None:
+        notify_expiry = request.notify_expiry
+    else:
+        notify_expiry = is_gitops
+
+    db_tls_cert_issued(project, env_name, cert_info, base64_certificate, notify_expiry=notify_expiry)
 
     if request.cert_bundle:
         cert_bundle = create_cert_bundle_from_certificate(
@@ -367,13 +379,19 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     response = CertificateResponse(
         certificate_info=cert_info,
         base64_certificate=base64_certificate.decode("utf-8"),
-        subject=load_pem_x509_certificate(base64.b64decode(base64_certificate)).subject.rfc4514_string(),
+        subject=cert_subject,
         base64_root_ca_certificate=ca_chain_response.base64_root_ca_certificate.decode("utf-8"),
         base64_issuing_ca_certificate=ca_chain_response.base64_issuing_ca_certificate.decode("utf-8"),
         base64_ca_chain=ca_chain_response.base64_ca_chain,
     )
 
-    if cert_issued_via_gitops(internal_s3_bucket_name, response.subject):
+    # determine notify_issued: GitOps defaults to True, direct invocation defaults to False
+    if request.notify_issued is not None:
+        should_notify_issued = request.notify_issued
+    else:
+        should_notify_issued = is_gitops
+
+    if should_notify_issued:
         sns_notify_cert_issued(response.to_dict(), sns_topic_arn)
 
     return response.to_dict()

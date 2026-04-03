@@ -108,9 +108,8 @@ def db_ca_cert_issued(project, env_name, cert_info, certificate, encrypted_priva
     )
 
 
-def db_tls_cert_issued(project, env_name, cert_info, certificate):
+def db_tls_cert_issued(project, env_name, cert_info, certificate, notify_expiry=False):
     """creates a new item in DynamoDB when a TLS certificate is issued"""
-    # if a passphrase is used, private key must be encrypted
 
     common_name = cert_info["CommonName"]
     issued = cert_info["Issued"]
@@ -122,16 +121,16 @@ def db_tls_cert_issued(project, env_name, cert_info, certificate):
     client = boto3.client("dynamodb")
     print(f"adding {common_name} certificate details to DynamoDB table {table_name}")
 
-    client.put_item(
-        TableName=table_name,
-        Item={
-            "SerialNumber": {"S": serial_number},
-            "CommonName": {"S": common_name},
-            "Issued": {"S": issued},
-            "Expires": {"S": expires},
-            "Certificate": {"B": certificate},
-        },
-    )
+    item = {
+        "SerialNumber": {"S": serial_number},
+        "CommonName": {"S": common_name},
+        "Issued": {"S": issued},
+        "Expires": {"S": expires},
+        "Certificate": {"B": certificate},
+        "NotifyExpiry": {"BOOL": notify_expiry},
+    }
+
+    client.put_item(TableName=table_name, Item=item)
 
 
 def db_update_crl_number(project, env_name, common_name, serial_number):
@@ -218,6 +217,32 @@ def db_list_revoked_certificates(project, env_name):
     scan_kwargs = {
         "TableName": table_name,
         "FilterExpression": "attribute_exists(Revoked)",
+    }
+    while True:
+        response = client.scan(**scan_kwargs)
+        items.extend(response.get("Items", []))
+        if "LastEvaluatedKey" in response:
+            scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+        else:
+            break
+    return items
+
+
+def db_list_notify_expiry_certificates(project, env_name):
+    """
+    Scans DynamoDB table for certificates with NotifyExpiry set to true.
+    Returns list of certificates using paginated scan.
+    """
+    client = boto3.client("dynamodb")
+
+    table_name = db_get_table_name(project, env_name)
+
+    print(f"scanning DynamoDB table {table_name} for certificates with NotifyExpiry enabled")
+    items = []
+    scan_kwargs = {
+        "TableName": table_name,
+        "FilterExpression": "NotifyExpiry = :notify",
+        "ExpressionAttributeValues": {":notify": {"BOOL": True}},
     }
     while True:
         response = client.scan(**scan_kwargs)

@@ -29,6 +29,19 @@
 | `force_issue`         | `Optional[bool]`      | `False`           | Force issue of certificate when private key has already been used                    |
 | `cert_bundle`         | `Optional[bool]`      | `False`           | Include Root and Issuing CA in the returned certificate                              |
 | `base64_csr_data`     | `Optional[str]`       | `None`            | Base64 encoded CSR that will be used to generate the certificate                     |
+| `notify_expiry`       | `Optional[bool]`      | `None`            | Enable expiry and expired SNS notifications for this certificate                     |
+| `notify_issued`       | `Optional[bool]`      | `None`            | Send a Certificate Issued SNS notification for this certificate                      |
+
+**Notification defaults:**
+
+When `notify_expiry` or `notify_issued` are omitted (`None`), the behaviour depends on how the certificate is issued:
+
+| Field            | GitOps default | Direct Lambda invocation default |
+|------------------|:--------------:|:--------------------------------:|
+| `notify_expiry`  | `true`         | `false`                          |
+| `notify_issued`  | `true`         | `false`                          |
+
+Setting an explicit `true` or `false` value overrides the default in both cases.
 
 
 #### Output
