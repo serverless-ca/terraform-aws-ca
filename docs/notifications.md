@@ -8,17 +8,20 @@ You can subscribe directly to the CA Notifications SNS Topic to receive email no
 
 ##  Notification types
 
-| Event                        | GitOps | Lambda Invocation  |
-|------------------------------|:------:|:------------------:|
-| Certificate Expired          |   ✅    |         -          |
-| Certificate Expiry Warning   |   ✅    |         -          |
-| Certificate Issued           |   ✅    |         -          |
-| Certificate Request Rejected |   ✅    |         ✅          |
-| Certificate Revoked          |   ✅    |         ✅          |
+| Event                        | GitOps | Lambda Invocation              |
+|------------------------------|:------:|:------------------------------:|
+| Certificate Expired          |   ✅    | Optional via `notify_expiry`   |
+| Certificate Expiry Warning   |   ✅    | Optional via `notify_expiry`   |
+| Certificate Issued           |   ✅    | Optional via `notify_issued`   |
+| Certificate Request Rejected |   ✅    |         ✅                      |
+| Certificate Revoked          |   ✅    |         ✅                      |
 
 ##  Certificate Expired
 
-A Slack message is sent when a GitOps certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued:
+A notification is sent when a certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued. This applies to:
+
+* All GitOps certificates, unless `notify_expiry` is set to `false`
+* Direct Lambda invocation certificates with `notify_expiry` set to `true` at the time of certificate request
 
 ![Certificate Expired](assets/images/slack-expired.png)
 
@@ -45,10 +48,15 @@ Certificate Expired notification - example JSON:
 
 ##  Certificate Expiry Warning
 
-Slack messages are sent for GitOps issued certificate expiry according to the schedule in days set by the Terraform variable:
+Notifications are sent for certificate expiry according to the schedule in days set by the Terraform variable:
 ```terraform
 expiry_reminders = [30, 15, 7, 1]
 ```
+This applies to:
+
+* All GitOps certificates, unless `notify_expiry` is set to `false`
+* Direct Lambda invocation certificates with `notify_expiry` set to `true` at the time of certificate request
+
 Certificate expiry warnings can be disabled by setting Terraform variable `expiry_reminders` to an empty list. This will also disable Certificate Expired notifications.
 
 Expiry checks are performed by a dedicated Expiry Lambda function, only deployed when `expiry_reminders` is not empty, and `cert_info_files` contains `tls`.
@@ -77,7 +85,10 @@ Issuing a new certificate, with subject distinguished name matching the old one,
 
 ##  Certificate Issued notification
 
-When a certificate is issued via the GitOps process, a notification is sent by Slack:
+A Certificate Issued notification is sent when:
+
+* A certificate is issued via the GitOps process (default behaviour, can be suppressed with `"notify_issued": false`)
+* A certificate is issued via direct Lambda invocation with `"notify_issued": true`
 
 ![Certificate Issued](assets/images/slack-issued.png)
 
@@ -148,6 +159,38 @@ Certificate Revoked notification - example JSON:
   "Revoked": "2026-02-03 21:34:04.753865",
   "Subject": "ST=New York,OU=DevOps,O=Override CSR Org,L=Override CSR Location,C=US,CN=pipeline-test-csr-s3-upload"
 }
+```
+
+## Overriding default notification settings
+
+* Certificate Request Rejected and Certificate Revoked notifications are always published to SNS and cannot be suppressed
+* Default notification settings for Certificate Expiry Warning, Certificate Expired and Certificate Issued can be overridden
+
+| Field            | Type   | Default (GitOps) | Default (Direct) | Description                                                     |
+|------------------|--------|:-----------------:|:-----------------:|-----------------------------------------------------------------|
+| `notify_expiry`  | `bool` | `true`            | `false`           | Enable Certificate Expired and Expiry Warning SNS notifications |
+| `notify_issued`  | `bool` | `true`            | `false`           | Enable Certificate Issued SNS notification                      |
+
+Setting an explicit `true` or `false` value overrides the default in both cases. For example, a GitOps certificate request with `"notify_issued": false` will suppress the Certificate Issued notification.
+
+The `notify_expiry` value is stored as a `NotifyExpiry` attribute in the DynamoDB certificates table. The Expiry Lambda uses this attribute alongside the GitOps `tls.json` to determine which certificates to monitor.
+
+### Overriding default notification settings - example
+
+For example, if you wish to opt in to notifications for certificates issued via direct Lambda invocation, include the optional `notify_expiry` and/or `notify_issued` JSON keys in the certificate request:
+
+```python
+lambda_handler({
+  "common_name": "smtp.test.fake.example-org.net",
+  "country": "GB",
+  "lifetime": 365,
+  "locality": "Birmingham",
+  "organization": "exampleorg",
+  "organizational_unit": "Security Operations",
+  "notify_expiry": True,
+  "notify_issued": True,
+  "base64_csr_data": "DELMAkGA1UEBhMCVUsxDzA......==",
+},{})
 ```
 
 ##  Customisation
