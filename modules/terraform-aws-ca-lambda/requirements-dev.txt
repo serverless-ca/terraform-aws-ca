@@ -1,10 +1,10 @@
-bandit == 1.9.3
+bandit == 1.9.4
 black == 26.3.1
-boto3 == 1.42.68
-cryptography == 46.0.5
+boto3 == 1.42.82
+cryptography == 46.0.6
 dataclasses-json == 0.6.7
-prospector == 1.17.3
+prospector == 1.18.0
 pytest == 9.0.2
-requests == 2.32.5
+requests == 2.33.1
 structlog == 25.5.0
 validators == 0.35.0

@@ -28,14 +28,14 @@ jobs:
       checks: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
       - name: Terraform setup
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
-          terraform_version: 1.12.1
+          terraform_version: 1.12.2
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
@@ -64,8 +64,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install GitLeaks
         run: |
-          wget https://github.com/gitleaks/gitleaks/releases/download/v8.16.1/gitleaks_8.16.1_linux_x64.tar.gz && \
-          tar -xf gitleaks_8.16.1_linux_x64.tar.gz
+          wget https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz && \
+          tar -xf gitleaks_8.30.1_linux_x64.tar.gz
           sudo mv gitleaks /usr/local/bin/gitleaks && \
           sudo chmod +x /usr/local/bin/gitleaks
       - name: Run GitLeaks Scan
@@ -90,14 +90,14 @@ jobs:
       checks: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
       - name: Terraform setup
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
-          terraform_version: 1.12.1
+          terraform_version: 1.12.2
 
       - name: checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -128,7 +128,7 @@ jobs:
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
       - name: cache built python modules
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
         with:
           key: modules_terraform-aws-ca-lambda_build_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}_${{ hashFiles('./modules/terraform-aws-ca-lambda/utils/**') }}_${{ github.job }}_py${{ steps.setup_python.outputs.python-version }}
           path: ./modules/terraform-aws-ca-lambda/build
@@ -152,7 +152,7 @@ jobs:
       checks: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
@@ -193,7 +193,7 @@ jobs:
       checks: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
@@ -234,7 +234,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit
 
