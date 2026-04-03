@@ -40,24 +40,23 @@ def _gitops_enabled():
 
 def _expiry_lambda_exists():
     """Check if the expiry Lambda function has been deployed"""
-    lambda_client = boto3.client("lambda")
-    lambdas = lambda_client.list_functions()["Functions"]
-    return any("-expiry-" in la["FunctionName"] for la in lambdas)
+    try:
+        get_lambda_name("-expiry")
+        return True
+    except IndexError:
+        return False
 
 
 def _get_dynamodb_table_name():
     """Discover the CA DynamoDB table name from the expiry Lambda environment variables"""
     lambda_client = boto3.client("lambda")
-    lambdas = lambda_client.list_functions()["Functions"]
-    expiry_lambda = [la for la in lambdas if "-expiry-" in la["FunctionName"]][0]
-
-    config = lambda_client.get_function_configuration(FunctionName=expiry_lambda["FunctionName"])
+    expiry_function_name = get_lambda_name("-expiry")
+    config = lambda_client.get_function_configuration(FunctionName=expiry_function_name)
     env_vars = config["Environment"]["Variables"]
 
     project = env_vars["PROJECT"]
     env_name = env_vars["ENVIRONMENT_NAME"]
 
-    # Replicate the table name construction from utils/certs/db.py
     capitalised_project = project.replace("-", " ").title().replace(" ", "")
     capitalised_env_name = env_name.title()
     return f"{capitalised_project}CA{capitalised_env_name}"

@@ -25,12 +25,10 @@ log = structlog.get_logger()
 
 
 def _get_dynamodb_table_name():
-    """Discover the CA DynamoDB table name from a TLS Lambda's environment variables"""
+    """Discover the CA DynamoDB table name from the TLS Lambda's environment variables"""
     lambda_client = boto3.client("lambda")
-    lambdas = lambda_client.list_functions()["Functions"]
-    tls_lambda = [la for la in lambdas if "-tls-" in la["FunctionName"]][0]
-
-    config = lambda_client.get_function_configuration(FunctionName=tls_lambda["FunctionName"])
+    tls_function_name = get_lambda_name("-tls")
+    config = lambda_client.get_function_configuration(FunctionName=tls_function_name)
     env_vars = config["Environment"]["Variables"]
 
     project = env_vars["PROJECT"]
@@ -43,9 +41,11 @@ def _get_dynamodb_table_name():
 
 def _expiry_lambda_exists():
     """Check if the expiry Lambda function has been deployed"""
-    lambda_client = boto3.client("lambda")
-    lambdas = lambda_client.list_functions()["Functions"]
-    return any("-expiry-" in la["FunctionName"] for la in lambdas)
+    try:
+        get_lambda_name("-expiry")
+        return True
+    except IndexError:
+        return False
 
 
 def _query_dynamodb_certificate(table_name, common_name, serial_number):
@@ -66,12 +66,20 @@ def _query_dynamodb_certificate(table_name, common_name, serial_number):
 def _find_latest_certificate(table_name, common_name):
     """Find the certificate with the latest expiry for a common name"""
     client = boto3.client("dynamodb")
-    response = client.query(
-        TableName=table_name,
-        KeyConditionExpression="CommonName = :cn",
-        ExpressionAttributeValues={":cn": {"S": common_name}},
-    )
-    items = response.get("Items", [])
+    items = []
+    query_kwargs = {
+        "TableName": table_name,
+        "KeyConditionExpression": "CommonName = :cn",
+        "ExpressionAttributeValues": {":cn": {"S": common_name}},
+    }
+
+    while True:
+        response = client.query(**query_kwargs)
+        items.extend(response.get("Items", []))
+        if "LastEvaluatedKey" not in response:
+            break
+        query_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+
     if not items:
         return None
 

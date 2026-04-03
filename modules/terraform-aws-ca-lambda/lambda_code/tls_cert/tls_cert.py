@@ -24,13 +24,13 @@ from utils.certs.s3 import cert_issued_via_gitops, s3_download
 from cryptography.x509 import load_pem_x509_certificate, load_pem_x509_csr
 from cryptography.hazmat.primitives import serialization
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json, LetterCase
+from dataclasses_json import dataclass_json, LetterCase, Undefined
 from typing import Optional, Union
 
 # TODO: Request and Response classes use different naming convention
 
 
-@dataclass_json
+@dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
 class Request:
     common_name: Optional[str] = None
