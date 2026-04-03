@@ -1,5 +1,5 @@
-from lambda_code.expiry.expiry import process_certificate_expiry, process_certificate_expired
-from unittest.mock import patch
+from lambda_code.expiry.expiry import process_certificate_expiry, process_certificate_expired, _collect_certificates
+from unittest.mock import patch, MagicMock
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
@@ -124,8 +124,6 @@ def test_non_gitops_cert_no_reminder_when_not_in_schedule(
 @patch("lambda_code.expiry.expiry.db_list_notify_expiry_certificates")
 def test_gitops_cert_with_notify_expiry_false_excluded(mock_db_scan, mock_s3, mock_load_csr, mock_get_cert):
     """GitOps cert with NotifyExpiry=false should be excluded from expiry processing"""
-    from lambda_code.expiry.expiry import _collect_certificates
-    from unittest.mock import MagicMock
 
     # no certs from DynamoDB scan
     mock_db_scan.return_value = []
@@ -157,8 +155,6 @@ def test_gitops_cert_with_notify_expiry_false_excluded(mock_db_scan, mock_s3, mo
 @patch("lambda_code.expiry.expiry.db_list_notify_expiry_certificates")
 def test_gitops_cert_without_notify_expiry_attr_included(mock_db_scan, mock_s3, mock_load_csr, mock_get_cert):
     """GitOps cert without NotifyExpiry attribute (legacy) should still be processed"""
-    from lambda_code.expiry.expiry import _collect_certificates
-    from unittest.mock import MagicMock
 
     mock_db_scan.return_value = []
 
