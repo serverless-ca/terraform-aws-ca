@@ -163,7 +163,7 @@ Certificate Revoked notification - example JSON:
 
 ## Overriding default notification settings
 
-* Certificate Request Rejected and Certificate Revocked notifications are always published to SNS and cannot be suppressed
+* Certificate Request Rejected and Certificate Revoked notifications are always published to SNS and cannot be suppressed
 * Default notification settings for Certificate Expiry Warning, Certificate Expired and Certificate Issued can be overridden
 
 | Field            | Type   | Default (GitOps) | Default (Direct) | Description                                                     |
