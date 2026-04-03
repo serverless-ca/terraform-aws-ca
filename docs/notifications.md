@@ -187,8 +187,8 @@ lambda_handler({
   "locality": "Birmingham",
   "organization": "exampleorg",
   "organizational_unit": "Security Operations",
-  "notify_expiry": true,
-  "notify_issued": true,
+  "notify_expiry": True,
+  "notify_issued": True,
   "base64_csr_data": "DELMAkGA1UEBhMCVUsxDzA......==",
 },{})
 ```
