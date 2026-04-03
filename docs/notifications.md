@@ -20,7 +20,7 @@ You can subscribe directly to the CA Notifications SNS Topic to receive email no
 
 A notification is sent when a certificate expires, if a replacement certificate with a matching subject Distinguished Name hasn't been issued. This applies to:
 
-* GitOps certificates (always monitored for expiry)
+* All GitOps certificates, unless `notify_expiry` is set to `false`
 * Direct Lambda invocation certificates with `notify_expiry` set to `true` at the time of certificate request
 
 ![Certificate Expired](assets/images/slack-expired.png)
@@ -52,7 +52,10 @@ Notifications are sent for certificate expiry according to the schedule in days 
 ```terraform
 expiry_reminders = [30, 15, 7, 1]
 ```
-This applies to GitOps issued certificates and any certificates with `notify_expiry` set to `true` at the time of request.
+This applies to:
+
+* All GitOps certificates, unless `notify_expiry` is set to `false`
+* Direct Lambda invocation certificates with `notify_expiry` set to `true` at the time of certificate request
 
 Certificate expiry warnings can be disabled by setting Terraform variable `expiry_reminders` to an empty list. This will also disable Certificate Expired notifications.
 
