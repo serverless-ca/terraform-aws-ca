@@ -185,17 +185,8 @@ def process_certificate_expired(certificate, common_name, sns_topic_arn, now):
     return 0
 
 
-def lambda_handler(event, context):  # pylint:disable=unused-argument
-    project = os.environ["PROJECT"]
-    env_name = os.environ["ENVIRONMENT_NAME"]
-    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
-    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
-    sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
-    expiry_reminders = json.loads(os.environ["EXPIRY_REMINDERS"])
-
-    now = datetime.now()
-
-    # collect certificates to process, keyed by (CommonName, SerialNumber) to deduplicate
+def _collect_certificates(project, env_name, external_s3_bucket_name, internal_s3_bucket_name):
+    """Collect certificates to process, keyed by (CommonName, SerialNumber) to deduplicate."""
     certs_to_process = {}
 
     # certificates with NotifyExpiry enabled in DynamoDB
@@ -215,9 +206,29 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
         if certificate is None:
             continue
 
+        # respect explicit NotifyExpiry=false even for GitOps certificates
+        notify_expiry = certificate.get("NotifyExpiry", {}).get("BOOL")
+        if notify_expiry is False:
+            continue
+
         common_name = gitops_cert["common_name"]
         serial_number = certificate["SerialNumber"]["S"]
         certs_to_process[(common_name, serial_number)] = certificate
+
+    return certs_to_process
+
+
+def lambda_handler(event, context):  # pylint:disable=unused-argument
+    project = os.environ["PROJECT"]
+    env_name = os.environ["ENVIRONMENT_NAME"]
+    external_s3_bucket_name = os.environ["EXTERNAL_S3_BUCKET"]
+    internal_s3_bucket_name = os.environ["INTERNAL_S3_BUCKET"]
+    sns_topic_arn = os.environ["SNS_TOPIC_ARN"]
+    expiry_reminders = json.loads(os.environ["EXPIRY_REMINDERS"])
+
+    now = datetime.now()
+
+    certs_to_process = _collect_certificates(project, env_name, external_s3_bucket_name, internal_s3_bucket_name)
 
     # process all collected certificates for expiry and expired notifications
     for (common_name, serial_number), certificate in certs_to_process.items():
