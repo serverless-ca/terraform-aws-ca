@@ -288,7 +288,7 @@ def sns_notify_csr_rejected(csr_info, csr, reason, sns_topic_arn):
             "SANs": csr_info.sans,
         },
         "Base64CSR": base64_csr,
-        "Subject": csr.subject.rfc4514_string(),
+        "Subject": csr_info.subject.x509_name().rfc4514_string(),
         "Reason": reason,
     }
     keys_to_publish = ["CSRInfo", "Base64CSR", "Subject", "Reason"]
