@@ -1,6 +1,13 @@
+from unittest.mock import patch
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import hashes
+from cryptography import x509 as crypto_x509
+from cryptography.x509.oid import NameOID
+
 from lambda_code.tls_cert.tls_cert import (
     create_csr_info,
     create_csr_subject,
+    sns_notify_csr_rejected,
     CaChainResponse,
     CertificateResponse,
     Request,
@@ -205,3 +212,73 @@ def test_ca_chain_response_serialise_as_dict():
         "Base64RootCaCertificate": "base64data",
         "Base64CaChain": "base64data",
     }
+
+
+def _generate_csr(common_name, organization=None):
+    """Helper to generate a CSR with a given subject"""
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    subject_attrs = [crypto_x509.NameAttribute(NameOID.COMMON_NAME, common_name)]
+    if organization:
+        subject_attrs.append(crypto_x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization))
+    csr = (
+        crypto_x509.CertificateSigningRequestBuilder()
+        .subject_name(crypto_x509.Name(subject_attrs))
+        .sign(private_key, hashes.SHA256())
+    )
+    return csr
+
+
+@patch("lambda_code.tls_cert.tls_cert.publish_to_sns")
+def test_sns_notify_csr_rejected_uses_csr_info_subject(mock_publish):
+    """Test that rejection notification Subject comes from csr_info, not from raw CSR"""
+    mock_publish.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+
+    # CSR with a different subject than csr_info
+    csr = _generate_csr("csr-embedded.example.com", organization="CSR Org")
+
+    # csr_info with the intended (overridden) subject
+    event = {
+        "common_name": "intended-override.example.com",
+        "organization": "Override Org",
+        "lifetime": 30,
+    }
+    csr_info = create_csr_info(event)
+
+    sns_notify_csr_rejected(csr_info, csr, "Private key has already been used for a certificate", "arn:aws:sns:test")
+
+    call_args = mock_publish.call_args
+    rejection_data = call_args[0][0]
+
+    # Subject must come from csr_info, not the raw CSR
+    assert "CN=intended-override.example.com" in rejection_data["Subject"]
+    assert "O=Override Org" in rejection_data["Subject"]
+    assert "csr-embedded.example.com" not in rejection_data["Subject"]
+    assert "CSR Org" not in rejection_data["Subject"]
+
+    # CSRInfo fields should also reflect csr_info
+    assert rejection_data["CSRInfo"]["CommonName"] == "intended-override.example.com"
+
+
+@patch("lambda_code.tls_cert.tls_cert.publish_to_sns")
+def test_sns_notify_csr_rejected_subject_matches_csr_info_rfc4514(mock_publish):
+    """Test that rejection Subject matches the RFC 4514 format from csr_info subject"""
+    mock_publish.return_value = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+
+    csr = _generate_csr("different.example.com")
+
+    event = {
+        "common_name": "test.example.com",
+        "organization": "Test Org",
+        "country": "GB",
+        "locality": "London",
+        "lifetime": 90,
+    }
+    csr_info = create_csr_info(event)
+    expected_subject = csr_info.subject.x509_name().rfc4514_string()
+
+    sns_notify_csr_rejected(csr_info, csr, "Private key has already been used for a certificate", "arn:aws:sns:test")
+
+    call_args = mock_publish.call_args
+    rejection_data = call_args[0][0]
+
+    assert rejection_data["Subject"] == expected_subject
