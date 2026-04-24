@@ -14,6 +14,8 @@ resource "aws_dynamodb_table" "ca" {
     type = "S"
   }
 
+  deletion_protection_enabled = var.enable_deletion_protection
+
   point_in_time_recovery {
     enabled = true
   }
