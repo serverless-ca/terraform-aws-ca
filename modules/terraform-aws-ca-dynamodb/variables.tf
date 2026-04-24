@@ -8,6 +8,12 @@ variable "env" {
   description = "Environment name, e.g. dev"
 }
 
+variable "enable_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection for the DynamoDB table"
+  default     = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

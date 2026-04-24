@@ -4,6 +4,12 @@ variable "access_logs" {
   default     = false
 }
 
+variable "enable_dynamodb_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection for the DynamoDB table"
+  default     = false
+}
+
 variable "additional_dynamodb_tags" {
   type        = map(string)
   description = "Tags added to DynamoDB tables, merged with default tags"
