@@ -21,4 +21,5 @@ module "certificate_authority" {
   additional_dynamodb_tags      = local.additional_dynamodb_tags
   additional_s3_tags            = local.additional_s3_tags
   custom_sns_topic_display_name = "My Company CA Notifications Production"
+  dynamodb_deletion_protection  = true
 }

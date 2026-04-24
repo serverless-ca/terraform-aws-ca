@@ -69,6 +69,7 @@
 | <a name="input_custom_sns_topic_display_name"></a> [custom\_sns\_topic\_display\_name](#input\_custom\_sns\_topic\_display\_name) | Customised SNS topic display name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_custom_sns_topic_name"></a> [custom\_sns\_topic\_name](#input\_custom\_sns\_topic\_name) | Customised SNS topic name, leave empty to use standard naming convention | `string` | `""` | no |
 | <a name="input_default_aws_kms_key_for_s3"></a> [default\_aws\_kms\_key\_for\_s3](#input\_default\_aws\_kms\_key\_for\_s3) | Use default AWS KMS key instead of customer managed key for S3 bucket encryption. Applicable only if "sse\_algorithm" is "aws:kms" | `bool` | `false` | no |
+| <a name="input_dynamodb_deletion_protection"></a> [dynamodb\_deletion\_protection](#input\_dynamodb\_deletion\_protection) | Enable deletion protection for the DynamoDB table | `bool` | `false` | no |
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
 | <a name="input_expiry_reminders"></a> [expiry\_reminders](#input\_expiry\_reminders) | List of days before certificate expiry to send reminder notifications, set to empty list to disable expiry reminders | `list(number)` | <pre>[<br/>  30,<br/>  15,<br/>  7,<br/>  1<br/>]</pre> | no |
 | <a name="input_filter_pattern"></a> [filter\_pattern](#input\_filter\_pattern) | Filter pattern for CloudWatch logs subscription filter | `string` | `""` | no |

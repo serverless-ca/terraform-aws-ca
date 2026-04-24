@@ -64,6 +64,12 @@ variable "custom_sns_topic_name" {
   default     = ""
 }
 
+variable "dynamodb_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection for the DynamoDB table"
+  default     = false
+}
+
 variable "env" {
   type        = string
   description = "Environment name, e.g. dev"

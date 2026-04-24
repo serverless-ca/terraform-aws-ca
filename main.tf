@@ -38,10 +38,11 @@ module "dynamodb" {
   # Stores certificate details and private keys of TLS certs without CSR
   source = "./modules/terraform-aws-ca-dynamodb"
 
-  project          = var.project
-  env              = var.env
-  kms_arn_resource = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
-  tags             = merge(var.tags, var.additional_dynamodb_tags)
+  project                    = var.project
+  env                        = var.env
+  kms_arn_resource           = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
+  enable_deletion_protection = var.dynamodb_deletion_protection
+  tags                       = merge(var.tags, var.additional_dynamodb_tags)
 }
 
 module "external_s3" {
