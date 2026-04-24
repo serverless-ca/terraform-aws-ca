@@ -91,7 +91,7 @@
 | <a name="input_root_ca_key_spec"></a> [root\_ca\_key\_spec](#input\_root\_ca\_key\_spec) | Root CA key specification | `string` | `"ECC_NIST_P384"` | no |
 | <a name="input_root_crl_days"></a> [root\_crl\_days](#input\_root\_crl\_days) | Number of days before Root CA CRL expires, in addition to seconds. Must be greater than or equal to Step Function interval | `number` | `1` | no |
 | <a name="input_root_crl_seconds"></a> [root\_crl\_seconds](#input\_root\_crl\_seconds) | Number of seconds before Root CA CRL expires, in addition to days. Used for overlap in case of clock skew | `number` | `600` | no |
-| <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime | `string` | `"python3.14"` | no |
+| <a name="input_runtime"></a> [runtime](#input\_runtime) | Lambda language runtime. Defaults to the `python-version` in repo and can be overridden. | `string` | `""` | no |
 | <a name="input_s3_aws_principals"></a> [s3\_aws\_principals](#input\_s3\_aws\_principals) | List of AWS Principals to allow access to external S3 bucket | `list(string)` | `[]` | no |
 | <a name="input_schedule_expression"></a> [schedule\_expression](#input\_schedule\_expression) | Step function schedule in cron format, must be daily or more frequent for expiry reminders to work correctly, interval should be same as issuing\_crl\_days | `string` | `"cron(15 8 * * ? *)"` | no |
 | <a name="input_secret_recovery_window_in_days"></a> [secret\_recovery\_window\_in\_days](#input\_secret\_recovery\_window\_in\_days) | Number of days that AWS Secrets Manager waits before deleting a secret | `number` | `7` | no |
