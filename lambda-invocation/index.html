@@ -1,0 +1,1116 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Terraform module for serverless Certificate Authority on AWS">
+      
+      
+        <meta name="author" content="Paul Schwarzenberger">
+      
+      
+        <link rel="canonical" href="https://serverlessca.com/lambda-invocation/">
+      
+      
+        <link rel="prev" href="../faq/">
+      
+      
+        <link rel="next" href="../notifications/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Lambda Invocation - Serverless CA on AWS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Lambda Invocation - Serverless CA on AWS" />
+<meta property="og:description" content="Terraform module for serverless Certificate Authority on AWS" />
+<meta property="og:image" content="https://serverlessca.com/assets/images/social/lambda-invocation.png" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://serverlessca.com/lambda-invocation/" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Lambda Invocation - Serverless CA on AWS" />
+<meta property="twitter:description" content="Terraform module for serverless Certificate Authority on AWS" />
+<meta property="twitter:image" content="https://serverlessca.com/assets/images/social/lambda-invocation.png" />
+</head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lambda-invocation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Serverless CA on AWS" class="md-header__button md-logo" aria-label="Serverless CA on AWS" data-md-component="logo">
+      
+  <img src="../assets/images/cert-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Serverless CA on AWS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lambda Invocation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/serverless-ca/terraform-aws-ca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    serverless-ca/terraform-aws-ca
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Serverless CA on AWS" class="md-nav__button md-logo" aria-label="Serverless CA on AWS" data-md-component="logo">
+      
+  <img src="../assets/images/cert-logo.svg" alt="logo">
+
+    </a>
+    Serverless CA on AWS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/serverless-ca/terraform-aws-ca" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    serverless-ca/terraform-aws-ca
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../certificate-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced certificate settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../locations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CA Certificate locations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../client-certificates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Client certificates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration options
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lambda Invocation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lambda Invocation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example-lambda-invocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Lambda invocation:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lambda-invocation-successful-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lambda Invocation - successful response
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lambda-invocation-unsuccessful-response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lambda Invocation - unsuccessful response
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lambda-invocation-further-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lambda invocation - further information
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../revocation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Revocation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../slack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_15" >
+        
+          
+          <label class="md-nav__link" for="__nav_15" id="__nav_15_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How-to guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How-to guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Gateway
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/alb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Application load balancer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/cloudfront/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CloudFront
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/cloudfront-origin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CloudFront origin mTLS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/iam/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IAM Roles Anywhere
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-guides/crl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Revoking certificates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Terraform reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="lambda-invocation">Lambda Invocation</h1>
+<p>Example Lambda invocations, successful and unsuccessful responses, are provided below:</p>
+<h2 id="example-lambda-invocation">Example Lambda invocation:</h2>
+<pre><code>aws lambda invoke --function-name serverless-tls-cert-prod --cli-binary-format raw-in-base64-out --payload '{&quot;common_name&quot;:&quot;test-client-cert&quot;, &quot;country&quot;:&quot;GB&quot;, &quot;locality&quot;:&quot;London&quot;, &quot;organization&quot;:&quot;Example Company&quot;, &quot;organizational_unit&quot;:&quot;DevOps&quot;, &quot;lifetime&quot;:90, &quot;sans&quot;:[&quot;example.com&quot;], &quot;base64_csr_data&quot;:&quot;LS0tLS1CRUdJTiBDRVJUSUZJQ0FURSBSRVFVRVNULS0tLS0KTUlJQlJqQ0I3UUlCQURDQmlqRXJNQ2tHQTFVRUF3d2ljR2x3Wld4cGJtVXRkR1Z6ZEMxellXNHRhVzUyWVd4cApaQzFsZUdOc2RXUmxaREVMTUFrR0ExVUVCaE1DVlZNeEVUQVBCZ05WQkFjTUNFNWxkeUJaYjNKck1SY3dGUVlEClZRUUtEQTVUWlhKMlpYSnNaWE56SUVsdVl6RVBNQTBHQTFVRUN3d0dSR1YyVDNCek1SRXdEd1lEVlFRSURBaE8KWlhjZ1dXOXlhekJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEEwSUFCRmtEemtvZ0hSclRRdk9xekgySQpVSnlTNVVCekF6ZlJIWGRyNXBBblJaZUd0SUdTYUxTVkNjMTVqU0FKbnZVczdSUzVZQzlLOERhcnF1ZTRlNjhGCjB3K2dBREFLQmdncWhrak9QUVFEQWdOSUFEQkZBaUE2Y0t0VEZjOURFUmNIcWFLRkwreWxrTlpzMFZiM0d5ckQKS1BEenF5YWx0Z0loQVB3WWR6VlBJWVF1aEEwMjJYMGU3eHdReFhGbmgwNXNqZUNkZXNrNW1RakcKLS0tLS1FTkQgQ0VSVElGSUNBVEUgUkVRVUVTVC0tLS0tCg==&quot;}' lambda-response.json
+</code></pre>
+<h2 id="lambda-invocation-successful-response">Lambda Invocation - successful response</h2>
+<pre><code>{&quot;CertificateInfo&quot;: {&quot;CommonName&quot;: &quot;test-client-cert&quot;, &quot;SerialNumber&quot;: &quot;245479580729805944664768000279491299793077473212&quot;, &quot;Issued&quot;: &quot;2026-03-19 20:53:18&quot;, &quot;Expires&quot;: &quot;2026-06-17 20:58:18&quot;}, &quot;Base64Certificate&quot;: &quot;LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVyakNDQXBhZ0F3SUJBZ0lVS3Yrdll2bXJ0clQ3cGNZVFQrRTRCVHFYRDd3d0RRWUpLb1pJaHZjTkFRRUwKQlFBd2NURWVNQndHQTFVRUF3d1ZUWGtnUTI5dGNHRnVlU0JKYzNOMWFXNW5JRU5CTVFzd0NRWURWUVFHRXdKSApRakVQTUEwR0ExVUVCd3dHVEc5dVpHOXVNUk13RVFZRFZRUUtEQXBOZVNCRGIyMXdZVzU1TVJ3d0dnWURWUVFMCkRCTlRaV04xY21sMGVTQlBjR1Z5WVhScGIyNXpNQjRYRFRJMk1ETXhPVEl3TlRNeE9Gb1hEVEkyTURZeE56SXcKTlRneE9Gb3dkekVaTUJjR0ExVUVBd3dRZEdWemRDMWpiR2xsYm5RdFkyVnlkREVMTUFrR0ExVUVCaE1DUjBJeApEekFOQmdOVkJBY01Ca3h2Ym1SdmJqRVlNQllHQTFVRUNnd1BSWGhoYlhCc1pTQkRiMjF3WVc1NU1ROHdEUVlEClZRUUxEQVpFWlhaUGNITXhFVEFQQmdOVkJBZ01DRTVsZHlCWmIzSnJNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkkKemowREFRY0RRZ0FFV1FQT1NpQWRHdE5DODZyTWZZaFFuSkxsUUhNRE45RWRkMnZta0NkRmw0YTBnWkpvdEpVSgp6WG1OSUFtZTlTenRGTGxnTDByd05xdXE1N2g3cndYVEQ2T0NBUUV3Z2Y0d0RnWURWUjBQQVFIL0JBUURBZ1dnCk1CTUdBMVVkSlFRTU1Bb0dDQ3NHQVFVRkJ3TUNNQk1HQTFVZElBUU1NQW93Q0FZR1o0RU1BUUlCTUIwR0ExVWQKRGdRV0JCUlg2WGpHMC9Kc2w1djdlS3d2Rm5pRC95Z29IREFXQmdOVkhSRUVEekFOZ2d0bGVHRnRjR3hsTG1OdgpiVEEvQmdOVkhSOEVPREEyTURTZ01xQXdoaTVvZEhSd09pOHZZMkV1WTJWc2FXUnZjaTVwYnk5elpYSjJaWEpzClpYTnpMV2x6YzNWcGJtY3RZMkV1WTNKc01Fb0dDQ3NHQVFVRkJ3RUJCRDR3UERBNkJnZ3JCZ0VGQlFjd0FvWXUKYUhSMGNEb3ZMMk5oTG1ObGJHbGtiM0l1YVc4dmMyVnlkbVZ5YkdWemN5MXBjM04xYVc1bkxXTmhMbU55ZERBTgpCZ2txaGtpRzl3MEJBUXNGQUFPQ0FnRUFIVlhweXNqanRvd0ZKTkZLK3dHOWNMNnZSOURhREZTb1grOWFoQldFCm5GU2YyT0NQNHc1cnZoNm5tVEdldmZ1MlJYZi8vbkR5TUt2UWRnR2VTdHVPb2R4WEcwUTVReWNIdzBueVFFamkKaHhtc0xLOVFiUUR4VldBYm14T2hnUGE2amZlRS9WeWU3ZHpUcXluWkJMRElaeHc3WlE1UE8vSWs2YkxESWVDOQpnZG5BUm8xcHZ1M1Y5Zm85K0w5dyt4NkxWWWxhOVQ3bW01bWU0cC9YejJiZGxhRDBGbDA4MWdHdGJpUXR5K2lWClZhNHNpVkRWVGtSL1FXa0IrL3ZQZkphaGV1dUxMUnZjbTlIdm00NU94VldrTDRsSERmNFVMU3ovNWZEMENKL0cKNnkyVFBOM3k3V2FJcUE5Tk5qdERKaExKeGFxYStqUXRzTUNVNVd1NmxvM1gxWHBnWEVITCtlWkFnTXJpRGNoUAp6RTdTaWNaN1dPVjYydU5EOFNmVUswalFMK05sZk55bmZGeCtyNnRuekdONjRKREI0MHlTS3V1TWJld1NDSlZ0Ck1iWXBHeHNFYWNSL3ZnK0ZFb1c5V2ExNWU0eElaejNCVmdyWVduNnBBZ25QNzRmTjBaUkpxWmFRamdLNktsYWkKT1kxamp5OE0xYVVDSVVJSW5sWGtaOHlKT1ZhY0xRdExHd1lhdzVTMmw0SlNjYXJ6eWYzN1dNbS8vMWdLSFlMeApHaGdzS3dyYUJkZmVjNk1Hc3lWYUVDZGZpaVZsK3diSzNRQmFDMmN1ZnpSVlIxT2srSWZIbnJHTDN3Qll0bitaCjd2cVR1bnRGVFNtYWZ5ZktVdWZGRTE3Zm12Z0w2bzg5S3lBR0crNkdaQ01JalNYZkpyRVJLRDMvYWhiWkdjQlYKSkhvPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==&quot;, &quot;Subject&quot;: &quot;ST=New York,OU=DevOps,O=Example Company,L=London,C=GB,CN=test-client-cert&quot;, &quot;Base64IssuingCaCertificate&quot;: &quot;LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUdYRENDQkVTZ0F3SUJBZ0lVVVBBRlh0ZFhHSTIycytqb2JBd2oreVVXSXZFd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2JqRWJNQmtHQTFVRUF3d1NUWGtnUTI5dGNHRnVlU0JTYjI5MElFTkJNUXN3Q1FZRFZRUUdFd0pIUWpFUApNQTBHQTFVRUJ3d0dURzl1Wkc5dU1STXdFUVlEVlFRS0RBcE5lU0JEYjIxd1lXNTVNUnd3R2dZRFZRUUxEQk5UClpXTjFjbWwwZVNCUGNHVnlZWFJwYjI1ek1CNFhEVEkyTURNeE5qRTJNalkxTmxvWERUTTJNRE14TXpFMk1qWTEKTmxvd2NURWVNQndHQTFVRUF3d1ZUWGtnUTI5dGNHRnVlU0JKYzNOMWFXNW5JRU5CTVFzd0NRWURWUVFHRXdKSApRakVQTUEwR0ExVUVCd3dHVEc5dVpHOXVNUk13RVFZRFZRUUtEQXBOZVNCRGIyMXdZVzU1TVJ3d0dnWURWUVFMCkRCTlRaV04xY21sMGVTQlBjR1Z5WVhScGIyNXpNSUlDSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUMKQ2dLQ0FnRUEwQ3dBRW1FdVJmNy8reUQ5Vnk4WXdBalVnTkxjUFRUUDJHcFNvUWhIeWlPdEdYbHQ4Nm52UEZmOQoyVTM4UzVwSWNGMm5JaHVkOEp0L05sWndweGpPSjNzdU9nL2g0L0FEeHRlL2lZdUQyVWFnUHlxM3F2Tjhqd0E1CnlJNytNeEVlZ0RoRmtLcTd0aFVhYTlPdlY5Tm9Va01JNk0wNXg4WUpwMUlVVVQ5b2tBbWgxSEROTWV2MDZ2R0oKUzhCbjdKanl5TEVhS3Z6ZUoyaWtURUVUZWpldFZqWDd1b1FHREpTOFhkY3F5elc3QjM5VDFEVGVMa1gzQkdYQwpOc0FJZ05KREk1SGR5WHYrcFlCeWU4YkIxdlBLMEV3YVFHSTl4N2VEaHlpMTRCUUdxTXZJa0ZQaHQrT1RKVC9hCkVpbmRDT3g0VkxOY2Q1UE43dXZEemZ6QkI3ZnZ5Sk5CeHZSWFVtYW9KekdZNTFmQnNXeVdYOURUajN6ejhQMDkKdXQ0YXJORERuMjQzVnRydnB1ZVNWSEN4MFVOVGtNMmJpQTZ5VHBGZjM1ZDhxMlF1ZlJDR3NZakJWZ2hjeExDdgp1bVdHb3AwUjhrcmJoM2dNUDRIa2NtcEFETTloWUpXSkFxWHQ1TWI3K3hZWEs2NGFKNTdHWWltWFJ0anM4aGhJCitkYURPeFR6TDY4ZEg5WXhza2xqTHdxZHlOYW5Kd2gwRzRSZEFCT3B2Um9TZzNWbTBrdEYvakVEdk1xbjlWTFcKUkN5dS9mQy9lUE8vbE9raWNoeXRUam9UeEdONXl3U2EwTnJFQStoaWd2NEtZYWFIS2NEK2pNRGVkTUNBanZ1VApNQXNwSlZFYitWMUJyV1lvME1FSWlmRXZYRXhYdUFZdmMzaEF2WC9LN0Frd004RmJYY3NDQXdFQUFhT0I3akNCCjZ6QWRCZ05WSFE0RUZnUVVMOXhRMlJBUFp5Ty9IKytYcXVNdmVIOEpXY013SHdZRFZSMGpCQmd3Rm9BVW9FR0IKdStRMFFsMlNFNnYxay83S292Z3FyNEl3RGdZRFZSMFBBUUgvQkFRREFnR0dNQklHQTFVZEV3RUIvd1FJTUFZQgpBZjhDQVFBd1BBWURWUjBmQkRVd016QXhvQytnTFlZcmFIUjBjRG92TDJOaExtTmxiR2xrYjNJdWFXOHZjMlZ5CmRtVnliR1Z6Y3kxeWIyOTBMV05oTG1OeWJEQkhCZ2dyQmdFRkJRY0JBUVE3TURrd053WUlLd1lCQlFVSE1BS0cKSzJoMGRIQTZMeTlqWVM1alpXeHBaRzl5TG1sdkwzTmxjblpsY214bGMzTXRjbTl2ZEMxallTNWpjblF3RFFZSgpLb1pJaHZjTkFRRUxCUUFEZ2dJQkFCSm1pcExDWGd4TFd0Zm9HVEtacFMyZjZGY0lwMFlURDR4b1JSSEg1RFFiCkgrMTdnYzdJRDZRQUVzZXN0ZzMwaUNIc3FkZlQvUlVOd3NZcEdMcmYvSWZTcnlzeEhBS0tMV2RrM1hWd25INHQKVWJRUVJGMUNPd3ZHNVRFVGpLVVJXdlZWeERCVmJQdnQwTXNoaDBLb0VmRVE1S1RNMS9Yaks3UmJKdFVlQndLWgozUTZmSGFyTG5vdmk2SFBqOE1OcElKbHdCWGZuV0Z3V0FzRDZkalpmN0NndnBBMDd3QTBmMXFUK0t4WDRmZzRFCkVQY3ltMm80bHk5QU45NmJsVTF0Q3dBWmc4NGx2d3NjL3dma08zdXFHaVZnVy9TWG1pQzJsZzdmaERZSldEbHgKQ1ZqbGN2aGlNUWRXZHl5akU4aU42R1IzbHlpSmtmZkNlYzJCVlBIaE9EWHRoMzB5M3FDUmYyUE80RC96QWpmQwo2c2dMczlweDV4NXJJM1pzV3N5TmpGNFhGS1BvcjEyRGdWYUs2VVlxZExtbFh4U1hKWlN0SDRjM0tkdmFmSXdDCit2MFVJQWlITVlYS1BFUFZPcTVDOWVmZG8zVFdEaWI2cXdFb1k5V1I5ZnhTRFpkZTArd1d6RGU2R0JXY0Q2OHUKVm9EbUNWcEhLYmZRNFBxV3AvZ3MxdVNrckdlZ2pac1A2RDFYNUxHSnpuYUlQdlhQYVEzZUNlbTlLQWl1MWtMNwpYTVdWLzU4ajVpVlBOWExBRlpBZ09kd0JTK1NocXFpRzJ1RlVmMEd6Z3JrMFlhZllFUjdUdk5oZ1k5Qlc1SldICmQ4TFIwZ1R0YkJrMmVheU9qeXRyZEhpOHJvZTZYTmVwa2grb1ZCNVFzdGV5eThyUW5SZFkxZ051bHlaMWNyZ3oKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=&quot;, &quot;Base64RootCaCertificate&quot;: &quot;LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUYwRENDQTdpZ0F3SUJBZ0lVZFBnZmt6M2FBZ0cxWFpGWTF3TldzMjRFK0JNd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2JqRWJNQmtHQTFVRUF3d1NUWGtnUTI5dGNHRnVlU0JTYjI5MElFTkJNUXN3Q1FZRFZRUUdFd0pIUWpFUApNQTBHQTFVRUJ3d0dURzl1Wkc5dU1STXdFUVlEVlFRS0RBcE5lU0JEYjIxd1lXNTVNUnd3R2dZRFZRUUxEQk5UClpXTjFjbWwwZVNCUGNHVnlZWFJwYjI1ek1CNFhEVEkyTURNeE5qRTJNalkwTWxvWERUUTJNRE14TVRFMk1qWTAKTWxvd2JqRWJNQmtHQTFVRUF3d1NUWGtnUTI5dGNHRnVlU0JTYjI5MElFTkJNUXN3Q1FZRFZRUUdFd0pIUWpFUApNQTBHQTFVRUJ3d0dURzl1Wkc5dU1STXdFUVlEVlFRS0RBcE5lU0JEYjIxd1lXNTVNUnd3R2dZRFZRUUxEQk5UClpXTjFjbWwwZVNCUGNHVnlZWFJwYjI1ek1JSUNJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBZzhBTUlJQ0NnS0MKQWdFQXRobFFNSGlPWnJ5ZmNTV1lzY0owZ2V4NjFVN2podzFRYjR0ZUEya2J6bHk3bTNUWFlBRWNkRjh4bEVpNwoza2dLNWJQUHhESzBGcHFPSFIxOWdUcXJjRGRsMWZNeE4rOHhMQ2lvWDQzM1Q0MTVqR0NHQnljNllaSU9UdjlxCm5wQkdYM3JCaFhUWHlkUmg1QkIxb0E5U2lhdFdEeGdSNFVBNkVqRHNqVXNRYVFuTVprWnB4Ukh0VkxwWU03VXEKQmhiTjg0bWp1K2FYS1U1bzNTajkrZ3ZiNkU1VElyRHVaSHVNMnVQa1g1eE5TVEtkbFhWeFRIbDVrSlFEaUpmdgowQnlrcnJHQ0lvMGVnU0tISDNKMXRyOU8yT3RQUU53MVlvRDIyU1J5NXA3cGRNdlNLQWdad2hXSXpjY2kvUHowCklWTUFhc1hOM1BxZG55aTBiaXBpLzdJQ1RiR0JqRHdRSUJvUWI1WXpUTCtkUWdHMU5KdmxJLy8vL0hhSU9keXEKSVYvOHBrYjh0aHhFQy9xQUNSTXR1SHljR2NrSUhLYjhWRktMZjJtdDc4dHVqL0NjZ2tWTEx1SEpRdkl1UkU5MApvQ2pUVnRiNnI1SjZZNFRqSngzNTdPMEg4SGtpc1J6WHM1STk3WGFqbGlVRmVaazhHeFdMeDZ2QUV3a2NSQTVsClR2YlFjM0VvWk9ySlF4SmJuYXlmRG9pQ0M1RFNocUhEd0ZiWHZTVDdpTmJhcU5qRFI5dFZlb0tFUWh2SGIyOVkKV2QyZUxpRm90eVBrVHZzVDJKQU53d2VVTjZuNWRuK0JFM1pJajNhM2hxcHhOMjltclkzWW1XNHZhdHB1UUkrTgozZU4zazdCcHZiU1RldVBsMi9ZTUFPTGhEUzJmeXlEb3JjUnBFbWEzdW1BVWR4OENBd0VBQWFObU1HUXdEZ1lEClZSMFBBUUgvQkFRREFnR0dNQklHQTFVZEV3RUIvd1FJTUFZQkFmOENBUUV3SFFZRFZSME9CQllFRktCQmdidmsKTkVKZGtoT3I5WlAreXFMNEtxK0NNQjhHQTFVZEl3UVlNQmFBRktCQmdidmtORUpka2hPcjlaUCt5cUw0S3ErQwpNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUNBUUE1WURCL0I3c2Jkd2F2RWNwL1Axd3FTOFM0eTZndnBxUDdDZE1ECnRhbCtVRDQrV2czUXNqcVhma0xpSWxTb3NEc3RSVEVHS1QyZmdOSnlZVVZDbW5YNUNTUHY3ZGFqQTNSaDZKL2UKNWl2cUlOdUlGY2E4VnF1ZGJHOTFhbmsxdDY5dWpaUnNsMjNKYmd4c2ZFZU1aTUthaFl0N0pFcFRTUWVNeWNYUApkYU5EaXIyY3c5MWVNUUp2cmR4VU5RN0xONFA4YUVzd3FVQUFmNEpuZzlPMkYwSGhPSy84NnlHMVQyZ3c4UkdtCmErWnVUVUl4bURLcGh0dzdxWDFad2lob253QWxsMmdVYWErZHloTlF2TW1vSnoyT1VqUGRPbWtFUzJPTHA0QTkKSWlzL0ZXSnZ0eU9QdmhKM2NwTXRXOGVCa003Mkt1SnNESktPV2h6ZmJmMFlMQm53TmV0S0xyTi82L0lwN2dyeQpEeWxLVnY3VTJjTUw4b0FMUnVSMERNK3p6UDRHbFhnTy9KVnRpYndlVyt4WW15WWZGQmRRVlp3dEJ6RloxVGExCjVOdXhNbXNTaEdRMGE3ejJ4NlprdlpLVXFpWjZNM2NQLzlwN2h6MWZDaWtoYUlUdWdsays2Ky9rL0dDSkJLd08KUG5JT2lnbFFzOFQ2VkRBaSt3Q1VQMmNRemNNVHU1YnQwdEpBMWxnWHQ4Y2ZwK25uZ2NJNXpHUG5uMHdTdkZXZwpsbUEwMFBqT2ViSlZuSENvYS9PNDRPcFcrTG9XSXRlZ0dzZUFXdHA2NnkwVEdVbktnZGtkRnFaWnQ0bytiVDJkCjdPTkV5TWFuNzJqMndvYm8wWXUwb0svMGJWZ0QzYUZ0ZW54NDJPcXZiS1RhV0NLdGtkTHd1M05EYTlUU2krVTAKSXdCMG5nPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=&quot;, &quot;Base64CaChain&quot;: &quot;LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUdYRENDQkVTZ0F3SUJBZ0lVVVBBRlh0ZFhHSTIycytqb2JBd2oreVVXSXZFd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2JqRWJNQmtHQTFVRUF3d1NUWGtnUTI5dGNHRnVlU0JTYjI5MElFTkJNUXN3Q1FZRFZRUUdFd0pIUWpFUApNQTBHQTFVRUJ3d0dURzl1Wkc5dU1STXdFUVlEVlFRS0RBcE5lU0JEYjIxd1lXNTVNUnd3R2dZRFZRUUxEQk5UClpXTjFjbWwwZVNCUGNHVnlZWFJwYjI1ek1CNFhEVEkyTURNeE5qRTJNalkxTmxvWERUTTJNRE14TXpFMk1qWTEKTmxvd2NURWVNQndHQTFVRUF3d1ZUWGtnUTI5dGNHRnVlU0JKYzNOMWFXNW5JRU5CTVFzd0NRWURWUVFHRXdKSApRakVQTUEwR0ExVUVCd3dHVEc5dVpHOXVNUk13RVFZRFZRUUtEQXBOZVNCRGIyMXdZVzU1TVJ3d0dnWURWUVFMCkRCTlRaV04xY21sMGVTQlBjR1Z5WVhScGIyNXpNSUlDSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQWc4QU1JSUMKQ2dLQ0FnRUEwQ3dBRW1FdVJmNy8reUQ5Vnk4WXdBalVnTkxjUFRUUDJHcFNvUWhIeWlPdEdYbHQ4Nm52UEZmOQoyVTM4UzVwSWNGMm5JaHVkOEp0L05sWndweGpPSjNzdU9nL2g0L0FEeHRlL2lZdUQyVWFnUHlxM3F2Tjhqd0E1CnlJNytNeEVlZ0RoRmtLcTd0aFVhYTlPdlY5Tm9Va01JNk0wNXg4WUpwMUlVVVQ5b2tBbWgxSEROTWV2MDZ2R0oKUzhCbjdKanl5TEVhS3Z6ZUoyaWtURUVUZWpldFZqWDd1b1FHREpTOFhkY3F5elc3QjM5VDFEVGVMa1gzQkdYQwpOc0FJZ05KREk1SGR5WHYrcFlCeWU4YkIxdlBLMEV3YVFHSTl4N2VEaHlpMTRCUUdxTXZJa0ZQaHQrT1RKVC9hCkVpbmRDT3g0VkxOY2Q1UE43dXZEemZ6QkI3ZnZ5Sk5CeHZSWFVtYW9KekdZNTFmQnNXeVdYOURUajN6ejhQMDkKdXQ0YXJORERuMjQzVnRydnB1ZVNWSEN4MFVOVGtNMmJpQTZ5VHBGZjM1ZDhxMlF1ZlJDR3NZakJWZ2hjeExDdgp1bVdHb3AwUjhrcmJoM2dNUDRIa2NtcEFETTloWUpXSkFxWHQ1TWI3K3hZWEs2NGFKNTdHWWltWFJ0anM4aGhJCitkYURPeFR6TDY4ZEg5WXhza2xqTHdxZHlOYW5Kd2gwRzRSZEFCT3B2Um9TZzNWbTBrdEYvakVEdk1xbjlWTFcKUkN5dS9mQy9lUE8vbE9raWNoeXRUam9UeEdONXl3U2EwTnJFQStoaWd2NEtZYWFIS2NEK2pNRGVkTUNBanZ1VApNQXNwSlZFYitWMUJyV1lvME1FSWlmRXZYRXhYdUFZdmMzaEF2WC9LN0Frd004RmJYY3NDQXdFQUFhT0I3akNCCjZ6QWRCZ05WSFE0RUZnUVVMOXhRMlJBUFp5Ty9IKytYcXVNdmVIOEpXY013SHdZRFZSMGpCQmd3Rm9BVW9FR0IKdStRMFFsMlNFNnYxay83S292Z3FyNEl3RGdZRFZSMFBBUUgvQkFRREFnR0dNQklHQTFVZEV3RUIvd1FJTUFZQgpBZjhDQVFBd1BBWURWUjBmQkRVd016QXhvQytnTFlZcmFIUjBjRG92TDJOaExtTmxiR2xrYjNJdWFXOHZjMlZ5CmRtVnliR1Z6Y3kxeWIyOTBMV05oTG1OeWJEQkhCZ2dyQmdFRkJRY0JBUVE3TURrd053WUlLd1lCQlFVSE1BS0cKSzJoMGRIQTZMeTlqWVM1alpXeHBaRzl5TG1sdkwzTmxjblpsY214bGMzTXRjbTl2ZEMxallTNWpjblF3RFFZSgpLb1pJaHZjTkFRRUxCUUFEZ2dJQkFCSm1pcExDWGd4TFd0Zm9HVEtacFMyZjZGY0lwMFlURDR4b1JSSEg1RFFiCkgrMTdnYzdJRDZRQUVzZXN0ZzMwaUNIc3FkZlQvUlVOd3NZcEdMcmYvSWZTcnlzeEhBS0tMV2RrM1hWd25INHQKVWJRUVJGMUNPd3ZHNVRFVGpLVVJXdlZWeERCVmJQdnQwTXNoaDBLb0VmRVE1S1RNMS9Yaks3UmJKdFVlQndLWgozUTZmSGFyTG5vdmk2SFBqOE1OcElKbHdCWGZuV0Z3V0FzRDZkalpmN0NndnBBMDd3QTBmMXFUK0t4WDRmZzRFCkVQY3ltMm80bHk5QU45NmJsVTF0Q3dBWmc4NGx2d3NjL3dma08zdXFHaVZnVy9TWG1pQzJsZzdmaERZSldEbHgKQ1ZqbGN2aGlNUWRXZHl5akU4aU42R1IzbHlpSmtmZkNlYzJCVlBIaE9EWHRoMzB5M3FDUmYyUE80RC96QWpmQwo2c2dMczlweDV4NXJJM1pzV3N5TmpGNFhGS1BvcjEyRGdWYUs2VVlxZExtbFh4U1hKWlN0SDRjM0tkdmFmSXdDCit2MFVJQWlITVlYS1BFUFZPcTVDOWVmZG8zVFdEaWI2cXdFb1k5V1I5ZnhTRFpkZTArd1d6RGU2R0JXY0Q2OHUKVm9EbUNWcEhLYmZRNFBxV3AvZ3MxdVNrckdlZ2pac1A2RDFYNUxHSnpuYUlQdlhQYVEzZUNlbTlLQWl1MWtMNwpYTVdWLzU4ajVpVlBOWExBRlpBZ09kd0JTK1NocXFpRzJ1RlVmMEd6Z3JrMFlhZllFUjdUdk5oZ1k5Qlc1SldICmQ4TFIwZ1R0YkJrMmVheU9qeXRyZEhpOHJvZTZYTmVwa2grb1ZCNVFzdGV5eThyUW5SZFkxZ051bHlaMWNyZ3oKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQotLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJRjBEQ0NBN2lnQXdJQkFnSVVkUGdma3ozYUFnRzFYWkZZMXdOV3MyNEUrQk13RFFZSktvWklodmNOQVFFTApCUUF3YmpFYk1Ca0dBMVVFQXd3U1RYa2dRMjl0Y0dGdWVTQlNiMjkwSUVOQk1Rc3dDUVlEVlFRR0V3SkhRakVQCk1BMEdBMVVFQnd3R1RHOXVaRzl1TVJNd0VRWURWUVFLREFwTmVTQkRiMjF3WVc1NU1Sd3dHZ1lEVlFRTERCTlQKWldOMWNtbDBlU0JQY0dWeVlYUnBiMjV6TUI0WERUSTJNRE14TmpFMk1qWTBNbG9YRFRRMk1ETXhNVEUyTWpZMApNbG93YmpFYk1Ca0dBMVVFQXd3U1RYa2dRMjl0Y0dGdWVTQlNiMjkwSUVOQk1Rc3dDUVlEVlFRR0V3SkhRakVQCk1BMEdBMVVFQnd3R1RHOXVaRzl1TVJNd0VRWURWUVFLREFwTmVTQkRiMjF3WVc1NU1Sd3dHZ1lEVlFRTERCTlQKWldOMWNtbDBlU0JQY0dWeVlYUnBiMjV6TUlJQ0lqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FnOEFNSUlDQ2dLQwpBZ0VBdGhsUU1IaU9acnlmY1NXWXNjSjBnZXg2MVU3amh3MVFiNHRlQTJrYnpseTdtM1RYWUFFY2RGOHhsRWk3CjNrZ0s1YlBQeERLMEZwcU9IUjE5Z1RxcmNEZGwxZk14Tis4eExDaW9YNDMzVDQxNWpHQ0dCeWM2WVpJT1R2OXEKbnBCR1gzckJoWFRYeWRSaDVCQjFvQTlTaWF0V0R4Z1I0VUE2RWpEc2pVc1FhUW5NWmtacHhSSHRWTHBZTTdVcQpCaGJOODRtanUrYVhLVTVvM1NqOStndmI2RTVUSXJEdVpIdU0ydVBrWDV4TlNUS2RsWFZ4VEhsNWtKUURpSmZ2CjBCeWtyckdDSW8wZWdTS0hIM0oxdHI5TzJPdFBRTncxWW9EMjJTUnk1cDdwZE12U0tBZ1p3aFdJemNjaS9QejAKSVZNQWFzWE4zUHFkbnlpMGJpcGkvN0lDVGJHQmpEd1FJQm9RYjVZelRMK2RRZ0cxTkp2bEkvLy8vSGFJT2R5cQpJVi84cGtiOHRoeEVDL3FBQ1JNdHVIeWNHY2tJSEtiOFZGS0xmMm10Nzh0dWovQ2Nna1ZMTHVISlF2SXVSRTkwCm9DalRWdGI2cjVKNlk0VGpKeDM1N08wSDhIa2lzUnpYczVJOTdYYWpsaVVGZVprOEd4V0x4NnZBRXdrY1JBNWwKVHZiUWMzRW9aT3JKUXhKYm5heWZEb2lDQzVEU2hxSER3RmJYdlNUN2lOYmFxTmpEUjl0VmVvS0VRaHZIYjI5WQpXZDJlTGlGb3R5UGtUdnNUMkpBTnd3ZVVONm41ZG4rQkUzWklqM2EzaHFweE4yOW1yWTNZbVc0dmF0cHVRSStOCjNlTjNrN0JwdmJTVGV1UGwyL1lNQU9MaERTMmZ5eURvcmNScEVtYTN1bUFVZHg4Q0F3RUFBYU5tTUdRd0RnWUQKVlIwUEFRSC9CQVFEQWdHR01CSUdBMVVkRXdFQi93UUlNQVlCQWY4Q0FRRXdIUVlEVlIwT0JCWUVGS0JCZ2J2awpORUpka2hPcjlaUCt5cUw0S3ErQ01COEdBMVVkSXdRWU1CYUFGS0JCZ2J2a05FSmRraE9yOVpQK3lxTDRLcStDCk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQ0FRQTVZREIvQjdzYmR3YXZFY3AvUDF3cVM4UzR5Nmd2cHFQN0NkTUQKdGFsK1VENCtXZzNRc2pxWGZrTGlJbFNvc0RzdFJURUdLVDJmZ05KeVlVVkNtblg1Q1NQdjdkYWpBM1JoNkovZQo1aXZxSU51SUZjYThWcXVkYkc5MWFuazF0Njl1alpSc2wyM0piZ3hzZkVlTVpNS2FoWXQ3SkVwVFNRZU15Y1hQCmRhTkRpcjJjdzkxZU1RSnZyZHhVTlE3TE40UDhhRXN3cVVBQWY0Sm5nOU8yRjBIaE9LLzg2eUcxVDJndzhSR20KYStadVRVSXhtREtwaHR3N3FYMVp3aWhvbndBbGwyZ1VhYStkeWhOUXZNbW9KejJPVWpQZE9ta0VTMk9McDRBOQpJaXMvRldKdnR5T1B2aEozY3BNdFc4ZUJrTTcyS3VKc0RKS09XaHpmYmYwWUxCbndOZXRLTHJOLzYvSXA3Z3J5CkR5bEtWdjdVMmNNTDhvQUxSdVIwRE0renpQNEdsWGdPL0pWdGlid2VXK3hZbXlZZkZCZFFWWnd0QnpGWjFUYTEKNU51eE1tc1NoR1EwYTd6Mng2Wmt2WktVcWlaNk0zY1AvOXA3aHoxZkNpa2hhSVR1Z2xrKzYrL2svR0NKQkt3TwpQbklPaWdsUXM4VDZWREFpK3dDVVAyY1F6Y01UdTVidDB0SkExbGdYdDhjZnArbm5nY0k1ekdQbm4wd1N2RldnCmxtQTAwUGpPZWJKVm5IQ29hL080NE9wVytMb1dJdGVnR3NlQVd0cDY2eTBUR1VuS2dka2RGcVpadDRvK2JUMmQKN09ORXlNYW43Mmoyd29ibzBZdTBvSy8wYlZnRDNhRnRlbng0Mk9xdmJLVGFXQ0t0a2RMd3UzTkRhOVRTaStVMApJd0Iwbmc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t&quot;}
+</code></pre>
+<h2 id="lambda-invocation-unsuccessful-response">Lambda Invocation - unsuccessful response</h2>
+<pre><code>{&quot;error&quot;: &quot;Private key has already been used for a certificate&quot;}
+</code></pre>
+<h2 id="lambda-invocation-further-information">Lambda invocation - further information</h2>
+<p>A list of supported inputs is provided in the <a href="https://github.com/serverless-ca/terraform-aws-ca/blob/main/modules/terraform-aws-ca-lambda/README.MD">Lambda submodule documentation</a>.</p>
+<p>Additional supported values are detailed in <a href="../certificate-settings/">Advanced certificate settings</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../faq/" class="md-footer__link md-footer__link--prev" aria-label="Previous: FAQs">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                FAQs
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../notifications/" class="md-footer__link md-footer__link--next" aria-label="Next: Notifications">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Notifications
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/serverless-ca/terraform-aws-ca" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/paulschwarzen" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M459.4 151.7c.3 4.5.3 9.1.3 13.6 0 138.7-105.6 298.6-298.6 298.6-59.5 0-114.7-17.2-161.1-47.1 8.4 1 16.6 1.3 25.3 1.3 49.1 0 94.2-16.6 130.3-44.8-46.1-1-84.8-31.2-98.1-72.8 6.5 1 13 1.6 19.8 1.6 9.4 0 18.8-1.3 27.6-3.6-48.1-9.7-84.1-52-84.1-103v-1.3c14 7.8 30.2 12.7 47.4 13.3-28.3-18.8-46.8-51-46.8-87.4 0-19.5 5.2-37.4 14.3-53C87.4 130.8 165 172.4 252.1 176.9c-1.6-7.8-2.6-15.9-2.6-24C249.5 95.1 296.3 48 354.4 48c30.2 0 57.5 12.7 76.7 33.1 23.7-4.5 46.5-13.3 66.6-25.3-7.8 24.4-24.4 44.8-46.1 57.8 21.1-2.3 41.6-8.1 60.4-16.2-14.3 20.8-32.2 39.3-52.6 54.3"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.progress", "navigation.tracking", "pymdownx.snippets", "navigation.footer", "toc.integrate", "navigation.top", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
