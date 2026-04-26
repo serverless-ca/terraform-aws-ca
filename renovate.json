@@ -1,0 +1,8 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>serverless-ca/renovate-config",
+    "github>serverless-ca/renovate-config:github-actions",
+    "github>serverless-ca/renovate-config:python-packages"
+  ]
+}
