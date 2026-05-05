@@ -131,7 +131,9 @@ def ca_kms_sign_ca_certificate_request(
         cert = cert.add_extension(aia, critical=False)
 
     cert = cert.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
+        crypto_select_class(kms_signing_algorithm)(  # pylint: disable=abstract-class-instantiated
+            kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)
+        ),
         crypto_hash_class(kms_signing_algorithm),
     )
 
@@ -271,7 +273,9 @@ def ca_kms_sign_tls_certificate_request(
         cert = cert.add_extension(aia, critical=False)
 
     cert = cert.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
+        crypto_select_class(kms_signing_algorithm)(  # pylint: disable=abstract-class-instantiated
+            kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)
+        ),
         crypto_hash_class(kms_signing_algorithm),
     )
 
@@ -341,6 +345,7 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
 
 def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """Creates Root CA self-signed certificate with private key in KMS"""
+    # pylint: disable=abstract-class-instantiated
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 
     return ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm)
@@ -398,6 +403,8 @@ def ca_kms_publish_crl(
         builder = builder.add_revoked_certificate(revoked_cert)
 
     return builder.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
+        crypto_select_class(kms_signing_algorithm)(  # pylint: disable=abstract-class-instantiated
+            kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)
+        ),
         crypto_hash_class(kms_signing_algorithm),
     )

@@ -26,7 +26,7 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
         raise NotImplementedError("Exchange not supported")
 
     def public_key(self) -> ec.EllipticCurvePublicKey:
-        return AWSKMSEllipticCurvePublicKey(self.keyid)
+        return AWSKMSEllipticCurvePublicKey(self.keyid)  # pylint: disable=abstract-class-instantiated
 
     def private_numbers(self) -> ec.EllipticCurvePrivateNumbers:
         raise NotImplementedError("Private Numbers not supported")
@@ -143,7 +143,7 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         pass
 
     def public_key(self) -> rsa.RSAPublicKey:
-        return AWSKMSRSAPublicKey(self.keyid)
+        return AWSKMSRSAPublicKey(self.keyid)  # pylint: disable=abstract-class-instantiated
 
     def sign(self, data: bytes, padding: rsa.AsymmetricPadding, algorithm: hashes.HashAlgorithm) -> bytes:
         algorithm.name = "sha256"
