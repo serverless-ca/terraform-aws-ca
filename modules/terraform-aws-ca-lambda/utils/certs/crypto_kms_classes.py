@@ -18,6 +18,9 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
     def __copy__(self):
         return AWSKMSEllipticCurvePrivateKey(self.keyid, self.hash_algorithm)
 
+    def __deepcopy__(self, memo):
+        return AWSKMSEllipticCurvePrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -26,7 +29,7 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
         raise NotImplementedError("Exchange not supported")
 
     def public_key(self) -> ec.EllipticCurvePublicKey:
-        return AWSKMSEllipticCurvePublicKey(self.keyid)  # pylint: disable=abstract-class-instantiated
+        return AWSKMSEllipticCurvePublicKey(self.keyid)
 
     def private_numbers(self) -> ec.EllipticCurvePrivateNumbers:
         raise NotImplementedError("Private Numbers not supported")
@@ -72,6 +75,9 @@ class AWSKMSEllipticCurvePublicKey(AWSKMSEllipticCurvePrivateKey):
         super(AWSKMSEllipticCurvePrivateKey, self).__init__()
 
     def __copy__(self):
+        return AWSKMSEllipticCurvePublicKey(self.keyid, self.hash_algorithm)
+
+    def __deepcopy__(self, memo):
         return AWSKMSEllipticCurvePublicKey(self.keyid, self.hash_algorithm)
 
     def verify(
@@ -124,6 +130,9 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
     def __copy__(self):
         return AWSKMSRSAPrivateKey(self.keyid, self.hash_algorithm)
 
+    def __deepcopy__(self, memo):
+        return AWSKMSRSAPrivateKey(self.keyid, self.hash_algorithm)
+
     @property
     def key_size(self) -> int:
         raise NotImplementedError("Key Size is not implemented")
@@ -143,7 +152,7 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         pass
 
     def public_key(self) -> rsa.RSAPublicKey:
-        return AWSKMSRSAPublicKey(self.keyid)  # pylint: disable=abstract-class-instantiated
+        return AWSKMSRSAPublicKey(self.keyid)
 
     def sign(self, data: bytes, padding: rsa.AsymmetricPadding, algorithm: hashes.HashAlgorithm) -> bytes:
         algorithm.name = "sha256"
@@ -167,6 +176,9 @@ class AWSKMSRSAPublicKey(AWSKMSRSAPrivateKey):
         super(AWSKMSRSAPrivateKey, self).__init__()
 
     def __copy__(self):
+        return AWSKMSRSAPublicKey(self.keyid, self.hash_algorithm)
+
+    def __deepcopy__(self, memo):
         return AWSKMSRSAPublicKey(self.keyid, self.hash_algorithm)
 
     def encrypt(self, plaintext: bytes, padding: AsymmetricPadding) -> bytes:

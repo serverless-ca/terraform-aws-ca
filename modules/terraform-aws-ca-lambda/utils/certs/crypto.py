@@ -191,7 +191,6 @@ def crypto_hash_class(kms_signing_algorithm):
 
 def crypto_kms_ca_cert_signing_request(common_name, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
     """CA certificate signing request created using private key in AWS KMS"""
-    # pylint: disable=abstract-class-instantiated
     private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
 
     return crypto_tls_ca_cert_signing_request(private_key, common_name)
