@@ -64,6 +64,9 @@ def list_revoked_certs_from_s3(project, env_name, external_s3_bucket_name, inter
         serial_number = revocation_detail["serial_number"]
 
         cert_item = db_get_certificate(project, env_name, common_name, serial_number)
+        if cert_item is None:
+            print(f"serial number {serial_number} for {common_name} not found in database, skipping revocation")
+            continue
         already_revoked = "Revoked" in cert_item
 
         revocation_date = db_revocation_date(project, env_name, common_name, serial_number)

@@ -153,7 +153,7 @@ def db_update_crl_number(project, env_name, common_name, serial_number):
 
 
 def db_get_certificate(project, env_name, common_name, serial_number):
-    """returns certificate with specified serial_number"""
+    """Returns the certificate item for the given serial_number, or None if not found."""
     client = boto3.client("dynamodb")
 
     table_name = db_get_table_name(project, env_name)
@@ -167,7 +167,10 @@ def db_get_certificate(project, env_name, common_name, serial_number):
     )
     items = response["Items"]
 
-    return [i for i in items if i["SerialNumber"]["S"] == serial_number][0]
+    matches = [i for i in items if i["SerialNumber"]["S"] == serial_number]
+    if not matches:
+        return None
+    return matches[0]
 
 
 def db_revocation_date(project, env_name, common_name, serial_number):
