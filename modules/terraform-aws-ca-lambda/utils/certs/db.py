@@ -153,7 +153,7 @@ def db_update_crl_number(project, env_name, common_name, serial_number):
 
 
 def db_get_certificate(project, env_name, common_name, serial_number):
-    """returns certificate with specified serial_number"""
+    """Returns the certificate item for the given serial_number, or None if not found."""
     client = boto3.client("dynamodb")
 
     table_name = db_get_table_name(project, env_name)
@@ -169,7 +169,6 @@ def db_get_certificate(project, env_name, common_name, serial_number):
 
     matches = [i for i in items if i["SerialNumber"]["S"] == serial_number]
     if not matches:
-        print(f"certificate with serial number {serial_number} not found in database for {common_name}")
         return None
     return matches[0]
 

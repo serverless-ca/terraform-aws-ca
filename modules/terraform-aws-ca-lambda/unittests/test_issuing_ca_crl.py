@@ -5,6 +5,7 @@ Covers the fix that ensures revoked.json entries with a serial number absent
 from the CA database are skipped gracefully rather than crashing the Lambda.
 """
 
+import datetime
 import io
 import json
 from unittest.mock import MagicMock, patch
@@ -44,22 +45,36 @@ def test_list_revoked_certs_from_s3_skips_entry_with_unknown_serial_number(mock_
     assert not newly_revoked_details
 
 
+@patch("lambda_code.issuing_ca_crl.issuing_ca_crl.crypto_revoked_certificate")
+@patch("lambda_code.issuing_ca_crl.issuing_ca_crl.db_revocation_date")
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.db_get_certificate")
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.s3_download")
-def test_list_revoked_certs_from_s3_skips_unknown_serial_among_valid_entries(mock_s3_download, mock_db_get_cert):
-    """Unknown serial entries are skipped without affecting the rest of the revoked list."""
+def test_list_revoked_certs_from_s3_skips_unknown_serial_among_valid_entries(
+    mock_s3_download, mock_db_get_cert, mock_db_revocation_date, mock_crypto_revoked_cert
+):
+    """Unknown serial entries are skipped; valid entries are still included in the revoked list."""
     revoked_json = [
+        {"common_name": "valid.example.com", "serial_number": "111111111111"},
         {"common_name": "unknown.example.com", "serial_number": "000000000000"},
     ]
 
     mock_s3_download.side_effect = lambda *a, **kw: _make_s3_response(revoked_json)
-    mock_db_get_cert.return_value = None
+
+    # First call returns a valid (already-revoked) cert; second call returns None.
+    valid_cert_item = {
+        "CommonName": {"S": "valid.example.com"},
+        "SerialNumber": {"S": "111111111111"},
+        "Revoked": {"S": "2026-01-01 00:00:00"},
+    }
+    mock_db_get_cert.side_effect = [valid_cert_item, None]
+    mock_db_revocation_date.return_value = datetime.datetime(2026, 1, 1)
+    mock_crypto_revoked_cert.return_value = MagicMock()
 
     revoked_certs, newly_revoked_details = list_revoked_certs_from_s3(
         "test-project", "dev", "external-bucket", "internal-bucket"
     )
 
-    assert not revoked_certs
+    assert len(revoked_certs) == 1
     assert not newly_revoked_details
 
 
