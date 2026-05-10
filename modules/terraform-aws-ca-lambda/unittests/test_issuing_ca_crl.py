@@ -1,17 +1,8 @@
 """
-Unit tests for issuing_ca_crl.py
+Unit tests for issuing_ca_crl.py — regression tests for issue #590.
 
-Regression tests for issue #590:
-  "Issuing CA CRL Lambda fails if revoked certificate serial number not in CA database"
-
-When revoked.json contains a valid common name but a serial number that does not
-exist in the CA database, the Lambda currently crashes with:
-  IndexError: list index out of range
-  (in utils/certs/db.py, db_get_certificate)
-
-Desired behaviour:
-  - Ignore the revocation entry and log a message
-  - Continue and issue the CRL successfully
+Covers the fix that ensures revoked.json entries with a serial number absent
+from the CA database are skipped gracefully rather than crashing the Lambda.
 """
 
 import io
@@ -35,13 +26,7 @@ def _make_s3_response(data):
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.db_get_certificate")
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.s3_download")
 def test_list_revoked_certs_from_s3_skips_entry_with_unknown_serial_number(mock_s3_download, mock_db_get_cert):
-    """
-    When revoked.json references a serial number absent from the CA database,
-    list_revoked_certs_from_s3 must skip the entry rather than propagating the
-    IndexError raised by db_get_certificate.
-
-    Expected: returns ([], []) without raising an exception.
-    """
+    """Entries in revoked.json whose serial number is absent from the DB are skipped."""
     revoked_json = [{"common_name": "test.example.com", "serial_number": "999999999999"}]
 
     # Provide a fresh BytesIO body on every call so both the truthiness check
@@ -62,12 +47,7 @@ def test_list_revoked_certs_from_s3_skips_entry_with_unknown_serial_number(mock_
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.db_get_certificate")
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.s3_download")
 def test_list_revoked_certs_from_s3_skips_unknown_serial_among_valid_entries(mock_s3_download, mock_db_get_cert):
-    """
-    When revoked.json has a mix of a valid entry and an entry whose serial number
-    is absent from the database, only the unknown entry should be skipped; the
-    function must not raise and the unknown entry must not appear in the returned
-    revoked list.
-    """
+    """Unknown serial entries are skipped without affecting the rest of the revoked list."""
     revoked_json = [
         {"common_name": "unknown.example.com", "serial_number": "000000000000"},
     ]
@@ -90,11 +70,7 @@ def test_list_revoked_certs_from_s3_skips_unknown_serial_among_valid_entries(moc
 
 @patch("utils.certs.db.boto3")
 def test_db_get_certificate_returns_none_when_serial_not_found(mock_boto3):
-    """
-    db_get_certificate should return None when the requested serial number is
-    not present in the DynamoDB items for the given common name, rather than
-    raising an IndexError.
-    """
+    """Returns None when the common name exists in DynamoDB but the serial number does not."""
     mock_client = MagicMock()
     mock_boto3.client.return_value = mock_client
     mock_client.query.return_value = {
@@ -111,10 +87,7 @@ def test_db_get_certificate_returns_none_when_serial_not_found(mock_boto3):
 
 @patch("utils.certs.db.boto3")
 def test_db_get_certificate_returns_none_when_no_items_for_common_name(mock_boto3):
-    """
-    db_get_certificate should return None when DynamoDB holds no items at all
-    for the given common name.
-    """
+    """Returns None when DynamoDB holds no items at all for the given common name."""
     mock_client = MagicMock()
     mock_boto3.client.return_value = mock_client
     mock_client.query.return_value = {"Items": []}
