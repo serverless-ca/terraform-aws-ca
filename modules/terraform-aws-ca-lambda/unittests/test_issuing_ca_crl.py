@@ -55,8 +55,8 @@ def test_list_revoked_certs_from_s3_skips_entry_with_unknown_serial_number(mock_
         "test-project", "dev", "external-bucket", "internal-bucket"
     )
 
-    assert revoked_certs == []
-    assert newly_revoked_details == []
+    assert not revoked_certs
+    assert not newly_revoked_details
 
 
 @patch("lambda_code.issuing_ca_crl.issuing_ca_crl.db_get_certificate")
@@ -79,8 +79,8 @@ def test_list_revoked_certs_from_s3_skips_unknown_serial_among_valid_entries(moc
         "test-project", "dev", "external-bucket", "internal-bucket"
     )
 
-    assert revoked_certs == []
-    assert newly_revoked_details == []
+    assert not revoked_certs
+    assert not newly_revoked_details
 
 
 # ---------------------------------------------------------------------------
