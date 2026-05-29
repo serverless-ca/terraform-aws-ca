@@ -112,7 +112,7 @@ module "create_root_ca_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "create-root-ca"
+  function_name          = local.create_root_ca_lambda_name
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
@@ -129,7 +129,7 @@ module "create_issuing_ca_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "create-issuing-ca"
+  function_name          = local.create_rsa_issuing_ca_lambda_name
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
@@ -147,7 +147,7 @@ module "root_crl_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "root-crl"
+  function_name          = local.rsa_root_ca_crl_lambda_name
   kms_arn_root_ca        = module.kms_rsa_root_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
@@ -164,7 +164,7 @@ module "issuing_crl_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "issuing-crl"
+  function_name          = local.rsa_issuing_ca_crl_lambda_name
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
@@ -182,7 +182,7 @@ module "tls_keygen_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "tls-cert"
+  function_name          = local.rsa_tls_cert_lambda_name
   kms_arn_issuing_ca     = module.kms_rsa_issuing_ca.kms_arn
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
@@ -201,7 +201,7 @@ module "expiry_iam" {
 
   project                = var.project
   env                    = var.env
-  function_name          = "expiry"
+  function_name          = local.expiry_lambda_name
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   ddb_table_arn          = module.dynamodb.ddb_table_arn
@@ -219,7 +219,7 @@ module "create_rsa_root_ca_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "create-root-ca"
+  function_name                   = local.create_root_ca_lambda_name
   description                     = "Create Root Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -244,7 +244,7 @@ module "create_rsa_issuing_ca_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "create-issuing-ca"
+  function_name                   = local.create_rsa_issuing_ca_lambda_name
   description                     = "Create Issuing Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -269,7 +269,7 @@ module "rsa_root_ca_crl_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "root-ca-crl"
+  function_name                   = local.rsa_root_ca_crl_lambda_name
   description                     = "Publish Root CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -296,7 +296,7 @@ module "rsa_issuing_ca_crl_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "issuing-ca-crl"
+  function_name                   = local.rsa_issuing_ca_crl_lambda_name
   description                     = "Publish Issuing CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -323,7 +323,7 @@ module "rsa_tls_cert_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "tls-cert"
+  function_name                   = local.rsa_tls_cert_lambda_name
   description                     = "Issue TLS certificates signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -351,7 +351,7 @@ module "expiry_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "expiry"
+  function_name                   = local.expiry_lambda_name
   description                     = "Check for expiring GitOps certificates and send notifications to SNS topic"
   expiry_reminders                = var.expiry_reminders
   external_s3_bucket              = module.external_s3.s3_bucket_name
@@ -501,7 +501,7 @@ module "notify_slack_iam" {
   project              = var.project
   env                  = var.env
   function_name        = "slack"
-  lambda_function_name = "notify"
+  lambda_function_name = local.notify_lambda_name
   policy               = "slack"
   kms_arn_resource     = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   secret_arn           = module.slack_secret[0].secret_arn
@@ -515,7 +515,7 @@ module "notify_lambda" {
   project                         = var.project
   env                             = var.env
   prod_envs                       = var.prod_envs
-  function_name                   = "notify"
+  function_name                   = local.notify_lambda_name
   description                     = "Subscribe to SNS topic and send Slack notifications"
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
