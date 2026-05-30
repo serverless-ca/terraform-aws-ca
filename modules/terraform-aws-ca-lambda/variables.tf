@@ -8,6 +8,12 @@ variable "enable_subscription_filters" {
   default     = false
 }
 
+variable "custom_extension_allowlist" {
+  description = "List of X.509 extension OIDs callers may include via the 'extensions' request field. Empty by default, which disables the feature."
+  type        = list(string)
+  default     = []
+}
+
 variable "description" {
   description = "description of Lambda function purpose"
 }

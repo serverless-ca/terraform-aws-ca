@@ -337,6 +337,7 @@ module "rsa_tls_cert_lambda" {
   runtime                         = local.runtime
   public_crl                      = var.public_crl
   max_cert_lifetime               = var.max_cert_lifetime
+  custom_extension_allowlist      = var.custom_extension_allowlist
   allowed_invocation_principals   = var.aws_principals
   sns_topic_arn                   = module.sns_ca_notifications.sns_topic_arn
   xray_enabled                    = var.xray_enabled

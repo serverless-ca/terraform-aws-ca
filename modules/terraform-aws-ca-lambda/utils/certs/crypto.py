@@ -41,6 +41,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
 
     # convert to x509 cryptography format
     x509_sans = convert_sans_to_x509(sans)
+    x509_extensions = convert_extensions_to_x509(csr_info.extensions)
 
     return {
         "CommonName": common_name,
@@ -48,6 +49,7 @@ def crypto_cert_request_info(csr_cert, csr_info):
         "CsrCert": csr_cert,
         "EmailAddress": csr_info.subject.email_address,
         "ExtendedKeyUsages": extended_key_usages,
+        "Extensions": x509_extensions,
         "Lifetime": csr_info.lifetime,
         "Locality": csr_info.subject.locality,
         "Organization": csr_info.subject.organization,
@@ -56,6 +58,29 @@ def crypto_cert_request_info(csr_cert, csr_info):
         "State": csr_info.subject.state,
         "x509Sans": x509_sans,
     }
+
+
+def convert_extensions_to_x509(extensions: list[dict]) -> list:
+    """
+    Convert validated custom extension dicts to (UnrecognizedExtension, critical) tuples.
+
+    Args:
+        extensions: List of dicts with 'oid', 'value_b64' and optional 'critical' keys.
+            These must already have been authorised and validated (see
+            utils.certs.types.validate_custom_extensions).
+
+    Returns:
+        List of (x509.UnrecognizedExtension, critical) tuples ready to add to a certificate.
+    """
+    x509_extensions = []
+
+    for extension in extensions:
+        oid = x509.ObjectIdentifier(extension["oid"])
+        der_bytes = base64.b64decode(extension["value_b64"])
+        critical = bool(extension.get("critical", False))
+        x509_extensions.append((x509.UnrecognizedExtension(oid, der_bytes), critical))
+
+    return x509_extensions
 
 
 def convert_sans_to_x509(sans: list[dict[str, str]]) -> list:

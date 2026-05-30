@@ -24,6 +24,7 @@
 | `lifetime`            | `Optional[int]`       | `30`              | The lifetime of the generated certificate. In days.                                  |
 | `purposes`            | `Optional[list[str]]` | `["client_auth"]` | The purposes to use the certificate for, e.g. `server_auth` or `client_auth`         |
 | `sans`                | `Optional[list[str]]` | `None`            | Subject Alternative Names. Invalid DNS names will be ignored.                        |
+| `extensions`          | `Optional[list[dict]]`| `None`            | Custom X.509 extensions, each `{"oid", "value_b64", "critical"}`. Gated by the `custom_extension_allowlist` variable. See [Advanced Certificate Settings](https://serverless.ca/certificate-settings) |
 | `ca_chain_only`       | `Optional[bool]`      | `False`           | Return only the root and issuing CA.                                                 |
 | `csr_file`            | `Optional[str]`       | `None`            | A path to S3 object, relative to the `INTERNAL_S3_BUCKET` environment variable       |
 | `force_issue`         | `Optional[bool]`      | `False`           | Force issue of certificate when private key has already been used                    |

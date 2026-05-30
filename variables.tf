@@ -199,6 +199,12 @@ variable "max_cert_lifetime" {
   default     = 365
 }
 
+variable "custom_extension_allowlist" {
+  type        = list(string)
+  description = "List of X.509 extension OIDs callers may include via the 'extensions' field when requesting a TLS certificate. Empty by default, which disables the feature. Extensions the CA emits itself (basicConstraints, keyUsage, subjectAltName, extendedKeyUsage, etc.) are always rejected regardless of this list."
+  default     = []
+}
+
 variable "memory_size" {
   type        = number
   description = "Standard memory allocation for Lambda functions"

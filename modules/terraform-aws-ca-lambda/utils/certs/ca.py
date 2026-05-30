@@ -185,7 +185,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
             if oid not in extended_key_usage_oids:
                 extended_key_usage_oids.append(oid)
 
-    return (
+    cert_builder = (
         x509.CertificateBuilder()
         .subject_name(x509_subject)
         .issuer_name(ca_cert.subject)
@@ -217,6 +217,15 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
     )
+
+    # Append any caller-supplied custom extensions. This is purely additive: the
+    # default extension chain above is never replaced, only added to. These have
+    # already been authorised against the operator allowlist and the hardcoded
+    # denylist in the request layer, and converted to x509 objects in crypto.py.
+    for custom_extension, critical in cert_request_info.get("Extensions") or []:
+        cert_builder = cert_builder.add_extension(custom_extension, critical=critical)
+
+    return cert_builder
 
 
 # pylint:disable=too-many-arguments,too-many-positional-arguments,too-many-locals

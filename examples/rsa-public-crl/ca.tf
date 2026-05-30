@@ -18,6 +18,11 @@ module "certificate_authority" {
   slack_token         = var.slack_token
   xray_enabled        = false
 
+  # Demonstrates the custom X.509 extensions feature: allowlist a private-enterprise OID
+  # (under a placeholder PEN) that callers may then embed via the 'extensions' request
+  # field. Also exercised by the integration tests in tests/test_issued_certs.py.
+  custom_extension_allowlist = ["1.3.6.1.4.1.55555.1.1"]
+
   additional_dynamodb_tags      = local.additional_dynamodb_tags
   additional_s3_tags            = local.additional_s3_tags
   custom_sns_topic_display_name = "My Company CA Notifications Production"
