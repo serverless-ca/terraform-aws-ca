@@ -126,6 +126,8 @@ integration requires a certificate to carry a proprietary or organisation-specif
 extension that the standard fields (`purposes`, `extended_key_usages`, `sans`) cannot
 express.
 
+![Custom Extensions](assets/images/custom-extension.png)
+
 This is an **additive** capability: custom extensions are appended to the certificate
 alongside the extensions the CA always emits (Key Usage, Extended Key Usage, Certificate
 Policies, Subject Key Identifier, and so on). It can never replace or override those.
