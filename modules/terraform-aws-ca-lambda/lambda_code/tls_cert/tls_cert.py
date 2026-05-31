@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 
 from utils.aws.sns import publish_to_sns
@@ -10,6 +11,7 @@ from utils.certs.crypto import (
 from utils.certs.types import (
     Subject,
     CsrInfo,
+    validate_custom_extensions,
 )
 from utils.certs.ca import (
     ca_name,
@@ -43,6 +45,7 @@ class Request:
     lifetime: Optional[int] = 30
     purposes: Optional[list[str]] = field(default_factory=lambda: ["client_auth"])
     extended_key_usages: Optional[list[str]] = None
+    extensions: Optional[list[dict]] = None
     sans: Optional[Union[str, list, dict]] = None
     csr_file: Optional[str] = None
     base64_csr_data: Optional[str] = None
@@ -238,15 +241,31 @@ def create_csr_info(event) -> CsrInfo:
     lifetime = int(event.get("lifetime", 30))
     purposes = event.get("purposes")
     extended_key_usages = event.get("extended_key_usages")
+    extensions = event.get("extensions") or []
     sans = event.get("sans")
 
     subject = create_csr_subject(event)
 
     csr_info = CsrInfo(
-        subject, lifetime=lifetime, purposes=purposes, extended_key_usages=extended_key_usages, sans=sans
+        subject,
+        lifetime=lifetime,
+        purposes=purposes,
+        extended_key_usages=extended_key_usages,
+        sans=sans,
+        extensions=extensions,
     )
 
     return csr_info
+
+
+def get_custom_extension_allowlist():
+    """Returns the operator-configured allowlist of custom extension OIDs.
+
+    Sourced from the CUSTOM_EXTENSION_ALLOWLIST environment variable (a JSON list),
+    wired from the Terraform variable of the same name. Defaults to an empty list,
+    meaning no custom extensions are accepted.
+    """
+    return json.loads(os.environ.get("CUSTOM_EXTENSION_ALLOWLIST") or "[]")
 
 
 def create_ca_chain_response(project: str, env_name: str, root_ca_name: str, issuing_ca_name: str):
@@ -353,6 +372,15 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     if validation_error:
         sns_notify_csr_rejected(csr_info, csr, validation_error["error"], sns_topic_arn)
         return validation_error
+
+    # authorise any caller-supplied custom extensions against the operator allowlist
+    # and hardcoded denylist; reject the whole request if any extension is not permitted
+    try:
+        validate_custom_extensions(csr_info.extensions, get_custom_extension_allowlist())
+    except ValueError as error:
+        print(f"Certificate request rejected, {error}")
+        sns_notify_csr_rejected(csr_info, csr, str(error), sns_topic_arn)
+        return {"error": str(error)}
 
     base64_certificate, cert_info = sign_csr(
         project, env_name, csr, issuing_ca_name, csr_info, domain, max_cert_lifetime, enable_public_crl

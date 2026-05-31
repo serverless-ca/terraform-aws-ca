@@ -1,6 +1,7 @@
 from assertpy import assert_that
 import base64
 import json
+import pytest
 import structlog
 from datetime import timedelta
 from certvalidator.errors import InvalidCertificateError
@@ -8,6 +9,7 @@ from certvalidator.errors import InvalidCertificateError
 from cryptography.x509 import (
     DNSName,
     IPAddress,
+    ObjectIdentifier,
     RFC822Name,
     UniformResourceIdentifier,
     DirectoryName,
@@ -793,6 +795,90 @@ def test_san_ipv6_address():
     assert_that(len(ip_sans)).is_equal_to(2)
     assert_that(ipaddress.ip_address("2001:db8::1") in ip_sans).is_true()
     assert_that(ipaddress.ip_address("::1") in ip_sans).is_true()
+
+
+# Custom Extensions Integration Tests
+#
+# These exercise the custom-extension allowlist end-to-end against a deployed stack.
+# The positive test only runs where the deployment allowlists CUSTOM_EXTENSION_OID (e.g.
+# the examples/rsa-public-crl deployment); it skips cleanly elsewhere, mirroring the
+# GitOps/expiry tests. The negative test runs against any deployment, since rejecting a
+# non-allowlisted OID is the default behaviour.
+CUSTOM_EXTENSION_OID = "1.3.6.1.4.1.55555.1.1"
+CUSTOM_EXTENSION_VALUE = b"device-class-a"
+CUSTOM_EXTENSION_VALUE_B64 = base64.b64encode(CUSTOM_EXTENSION_VALUE).decode("utf-8")
+
+
+def test_custom_extension_included_in_certificate():
+    """
+    Test certificate issued with an allowlisted custom X.509 extension carries that
+    extension verbatim (correct OID, DER value bytes and criticality).
+
+    Skips unless the deployment under test allowlists CUSTOM_EXTENSION_OID.
+    """
+    common_name = "pipeline-test-custom-extension"
+    csr_info = helper_create_csr_info(common_name)
+    csr = helper_generate_csr(csr_info)
+
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "purposes": ["client_auth"],
+        "base64_csr_data": base64_csr_data,
+        "lifetime": 1,
+        "extensions": [
+            {"oid": CUSTOM_EXTENSION_OID, "value_b64": CUSTOM_EXTENSION_VALUE_B64, "critical": False},
+        ],
+    }
+
+    response = helper_invoke_tls_cert_lambda(json_data)
+
+    # only deployments that allowlist the OID can issue it; skip cleanly otherwise
+    if "error" in response and "allowlist" in response["error"]:
+        pytest.skip(f"custom_extension_allowlist does not include {CUSTOM_EXTENSION_OID} on this deployment")
+
+    cert_data = base64.b64decode(response["Base64Certificate"]).decode("utf-8")
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+
+    extension = issued_cert.extensions.get_extension_for_oid(ObjectIdentifier(CUSTOM_EXTENSION_OID))
+
+    # value is round-tripped verbatim and criticality preserved
+    assert_that(extension.value.value).is_equal_to(CUSTOM_EXTENSION_VALUE)
+    assert_that(extension.critical).is_false()
+
+    # the feature is additive: the CA's own extensions are still present
+    issued_cert.extensions.get_extension_for_oid(ExtensionOID.KEY_USAGE)
+    issued_cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
+
+
+def test_non_allowlisted_custom_extension_rejected():
+    """
+    Test certificate request is rejected with a clear error when it includes a custom
+    extension whose OID is not on the operator allowlist.
+    """
+    common_name = "pipeline-test-custom-extension-rejected.example.com"
+    not_allowlisted_oid = "1.3.6.1.4.1.55555.9.9"
+
+    csr_info = helper_create_csr_info(common_name)
+    csr = helper_generate_csr(csr_info)
+
+    base64_csr_data = base64.b64encode(csr).decode("utf-8")
+    json_data = {
+        "common_name": common_name,
+        "purposes": ["client_auth"],
+        "base64_csr_data": base64_csr_data,
+        "lifetime": 1,
+        "extensions": [
+            {"oid": not_allowlisted_oid, "value_b64": CUSTOM_EXTENSION_VALUE_B64},
+        ],
+    }
+
+    response = helper_invoke_tls_cert_lambda(json_data)
+
+    assert_that(response).contains_key("error")
+    assert_that(response["error"]).contains("not in the configured allowlist")
+    assert_that(response["error"]).contains(not_allowlisted_oid)
 
 
 def test_san_invalid_values_excluded():

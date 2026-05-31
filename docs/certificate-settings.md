@@ -4,6 +4,7 @@ In addition to [standard certificate options](client-certificates.md) you can co
 
 * Extended Key Usages (other than client and server authentication)
 * SANS types (other than DNS names)
+* Custom X.509 extensions (arbitrary OIDs, gated by an operator allowlist)
 
 ## Extended Key Usages
 You can use the `extended_key_usages` JSON key to specify additional Extended Key Usage extensions beyond those provided by `purposes`.
@@ -116,3 +117,129 @@ All SAN values are validated based on their type:
 - **DN**: Must contain at least one valid DN attribute (e.g., CN=, O=, OU=, C=)
 
 Invalid SANs are logged and excluded from the certificate but do not cause the request to fail.
+
+## Custom X.509 Extensions
+
+The `extensions` JSON key lets callers embed arbitrary X.509 extensions in an issued
+certificate, identified by OID with a base64-encoded DER value. This is useful when an
+integration requires a certificate to carry a proprietary or organisation-specific
+extension that the standard fields (`purposes`, `extended_key_usages`, `sans`) cannot
+express.
+
+This is an **additive** capability: custom extensions are appended to the certificate
+alongside the extensions the CA always emits (Key Usage, Extended Key Usage, Certificate
+Policies, Subject Key Identifier, and so on). It can never replace or override those.
+
+### Enabling the feature
+
+Custom extensions are **disabled by default**. An operator opts in per deployment by
+listing the permitted OIDs in the `custom_extension_allowlist` Terraform variable:
+
+```hcl
+module "certificate_authority" {
+  source = "serverless-ca/ca/aws"
+
+  custom_extension_allowlist = [
+    "1.3.6.1.4.1.55555.1.1", # private OID for device-class metadata
+  ]
+}
+```
+
+A request that includes an `extensions` entry whose OID is **not** on the allowlist is
+**rejected with a clear error** (and an SNS *Certificate Request Rejected* notification),
+rather than being silently dropped. Unlike an invalid SAN or extended key usage, a custom
+extension is normally load-bearing for the integration that requested it, so a missing one
+should fail loudly rather than produce a certificate that is quietly incomplete.
+
+The extensions the CA emits itself are **always reserved** and are rejected even if added to
+the allowlist, because the CA must control them unconditionally. Custom extensions can only
+*add* new OIDs, never replace or shadow one the CA manages. Reserving Subject Alternative
+Name in particular prevents a caller from forging the certificate's identity:
+
+| OID | Extension |
+|-----|-----------|
+| `2.5.29.14` | Subject Key Identifier |
+| `2.5.29.15` | Key Usage |
+| `2.5.29.17` | Subject Alternative Name |
+| `2.5.29.19` | Basic Constraints |
+| `2.5.29.31` | CRL Distribution Points |
+| `2.5.29.32` | Certificate Policies |
+| `2.5.29.35` | Authority Key Identifier |
+| `2.5.29.37` | Extended Key Usage |
+| `1.3.6.1.5.5.7.1.1` | Authority Information Access |
+
+**Choosing what to allowlist.** Some extensions carry authorization meaning, so allowlist
+deliberately. For example, Microsoft Active Directory's SID security extension
+(`1.3.6.1.4.1.311.25.2`) binds a certificate to an AD account's SID for
+[strong certificate mapping](https://support.microsoft.com/en-us/topic/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers-ad2c23b0-15d8-4340-a468-4d4f3b188f16);
+allowing callers to set it freely would let them mint certificates that map to arbitrary
+accounts. The reserved-OID denylist above blocks the CA's own structural extensions, but
+only you know which application-level OIDs are safe to delegate in your environment.
+
+### Request format
+
+Each entry in the `extensions` list has the following fields:
+
+| Field | Type | Required | Description |
+|-------|------|:--------:|-------------|
+| `oid` | `str` | yes | Dotted-decimal object identifier, e.g. `"1.3.6.1.4.1.55555.1.1"` |
+| `value_b64` | `str` | yes | Base64-encoded **DER** bytes of the extension value. The caller is responsible for the ASN.1 encoding. |
+| `critical` | `bool` | no | Whether the extension is marked critical. Defaults to `false`. |
+
+### Example - organisation-specific device metadata (primary use case)
+
+A common reason to embed a custom extension is to carry **signed, machine-readable
+metadata** that relying parties read at connection time. Suppose you run a fleet of devices
+that authenticate to your services with client certificates (mTLS), and you classify each
+device into a "class" that drives authorization - for example, only class A devices may
+call a privileged firmware-update API. Stamping that class into the certificate at issuance,
+under a private OID, has three advantages:
+
+* **It is signed by the CA.** The device cannot forge or change its own class, unlike a
+  value it asserts out-of-band (e.g. an application-layer header).
+* **It needs no extra round-trip.** The class is already present in the certificate the
+  device presents during the TLS handshake, so the relying party reads it locally instead
+  of looking the device up in a separate class database or directory.
+* **It uses a dedicated OID.** The value is structured and purpose-built, rather than
+  overloading an identity field such as the Common Name, which is meant for naming and has
+  its own format expectations.
+
+Here the value is a simple `UTF8String` of `device-class-a`, placed under a private OID
+beneath your organisation's [Private Enterprise Number](https://www.iana.org/assignments/enterprise-numbers/)
+(PEN). The `55555` arc below is a **placeholder** - substitute your own PEN. The DER
+encoding of that `UTF8String` (`0c 0e 64 65 76 69 63 65 2d 63 6c 61 73 73 2d 61`)
+base64-encodes to `DA5kZXZpY2UtY2xhc3MtYQ==`:
+
+```json
+{
+  "common_name": "device-001.example.com",
+  "purposes": ["client_auth"],
+  "extensions": [
+    {
+      "oid": "1.3.6.1.4.1.55555.1.1",
+      "value_b64": "DA5kZXZpY2UtY2xhc3MtYQ==",
+      "critical": false
+    }
+  ]
+}
+```
+
+With `1.3.6.1.4.1.55555.1.1` on the allowlist, the issued certificate carries the extension
+verbatim. A relying party terminating the mTLS connection reads the extension off the
+client certificate and authorises (or rejects) the request based on the class - trusting
+only what the CA signed, with no separate lookup.
+
+### Advanced use case - step-ca `stepProvisioner`
+
+This feature also makes it possible to put Serverless CA behind a custom
+[step-ca](https://smallstep.com/docs/step-ca/)-compatible facade, so that step-ca's
+renewal model can be driven by a Serverless CA backend. step-ca embeds a proprietary
+`stepProvisioner` extension (OID `1.3.6.1.4.1.37476.9000.64.1`, an ASN.1 `SEQUENCE`) in
+the certificates it issues, and reads it back at renewal time to determine which
+provisioner to use. Allowlisting that OID lets the facade request certificates that carry
+it.
+
+This is a workaround pattern, not the canonical way to integrate step-ca: both the facade
+and the ASN.1 `SEQUENCE` encoding of the `stepProvisioner` value are non-trivial, and you
+own that complexity. It is documented here as a concrete example of the kind of integration
+the `extensions` field unlocks, rather than as a turnkey step-ca story.

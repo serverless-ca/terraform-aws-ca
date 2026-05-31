@@ -5,6 +5,7 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from typing import Optional, Union
 from dataclasses import dataclass, field
+import base64
 import ipaddress
 
 
@@ -103,6 +104,73 @@ def filter_and_validate_extended_key_usages(extended_key_usages: list[str]) -> l
             print(f"Invalid extended key usage {eku} excluded")
 
     return _extended_key_usages
+
+
+# X.509 extension OIDs the CA emits and controls itself. Callers may only ADD new
+# extensions via the "extensions" field - never one the CA manages - so all of these are
+# rejected even if an operator adds one to the allowlist (the denylist always wins,
+# defense in depth). Denylisting subjectAltName in particular prevents a caller from
+# forging the certificate's identity; denylisting the rest prevents a caller from
+# shadowing or colliding with an extension the CA is responsible for.
+DENYLISTED_EXTENSION_OIDS = frozenset(
+    {
+        "2.5.29.14",  # subjectKeyIdentifier
+        "2.5.29.15",  # keyUsage
+        "2.5.29.17",  # subjectAlternativeName
+        "2.5.29.19",  # basicConstraints
+        "2.5.29.31",  # cRLDistributionPoints
+        "2.5.29.32",  # certificatePolicies
+        "2.5.29.35",  # authorityKeyIdentifier
+        "2.5.29.37",  # extendedKeyUsage
+        "1.3.6.1.5.5.7.1.1",  # authorityInfoAccess
+    }
+)
+
+
+def validate_custom_extensions(extensions: list[dict], allowlist: list[str]) -> list[dict]:
+    """Authorise and validate caller-supplied custom X.509 extensions.
+
+    Each extension is a dict: {"oid": <dotted string>, "value_b64": <base64 DER>, "critical": <bool>}.
+
+    Unlike SANs and extended key usages - which silently drop invalid entries - a custom
+    extension is usually load-bearing for the requesting integration, so any rejected
+    extension fails the whole request. Raises ValueError with a clear message on the first
+    rejected extension. Returns the validated list unchanged on success.
+    """
+    seen_oids = set()
+    for extension in extensions:
+        oid = extension.get("oid")
+        if not oid:
+            raise ValueError("Custom extension is missing required field 'oid'")
+
+        # a duplicate OID would raise an uncaught error when added to the certificate at
+        # signing time, so reject it cleanly here instead
+        if oid in seen_oids:
+            raise ValueError(f"Custom extension OID {oid} is specified more than once")
+        seen_oids.add(oid)
+
+        # denylist always wins, even if the OID is also on the allowlist
+        if oid in DENYLISTED_EXTENSION_OIDS:
+            raise ValueError(f"Custom extension OID {oid} is reserved and cannot be set by callers")
+
+        if oid not in allowlist:
+            raise ValueError(f"Custom extension OID {oid} is not in the configured allowlist")
+
+        try:
+            x509.ObjectIdentifier(oid)
+        except Exception as exc:  # pylint:disable=broad-except
+            raise ValueError(f"Custom extension OID {oid} is not a valid object identifier") from exc
+
+        value_b64 = extension.get("value_b64")
+        if value_b64 is None:
+            raise ValueError(f"Custom extension OID {oid} is missing required field 'value_b64'")
+
+        try:
+            base64.b64decode(value_b64, validate=True)
+        except Exception as exc:  # pylint:disable=broad-except
+            raise ValueError(f"Custom extension OID {oid} has an invalid base64 value") from exc
+
+    return extensions
 
 
 def filter_and_validate_sans(common_name: str, sans: list[str]) -> list[str]:
@@ -295,6 +363,11 @@ class CsrInfo:
 
     extended_key_usages: list[str] = field(init=True, repr=True, default_factory=list)
     _extended_key_usages: list[str] = field(init=False, repr=False)
+
+    # Caller-supplied custom X.509 extensions: list of
+    # {"oid": <dotted string>, "value_b64": <base64 DER>, "critical": <bool>}.
+    # Validation against the allowlist/denylist happens at signing time, not here.
+    extensions: list[dict] = field(default_factory=list)
 
     def __post_init__(self):
         # Ensure setters are called for fields with default values
