@@ -33,11 +33,3 @@ def kms_get_public_key(kms_key_id):
     response = client.get_public_key(KeyId=kms_key_id)
 
     return response["PublicKey"]
-
-
-def kms_sign(kms_key_id, message, signing_algorithm="RSASSA_PSS_SHA_256"):
-    """returns digital signature"""
-    client = boto3.client(service_name="kms")
-    response = client.sign(KeyId=kms_key_id, SigningAlgorithm=signing_algorithm, Message=message)
-
-    return response["Signature"]

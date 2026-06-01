@@ -1,3 +1,4 @@
+import hashlib
 import boto3
 from cryptography.hazmat.primitives._asymmetric import AsymmetricPadding
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
@@ -61,7 +62,13 @@ class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
         except KeyError as exc:
             raise NotImplementedError(f"Unknown Signature Algorithm: {format(signature_algorithm.name)}") from exc
         client = boto3.client("kms")
-        sign_response = client.sign(KeyId=self.keyid, SigningAlgorithm=sig_alg_str, Message=data)
+        # KMS Sign limits a RAW message to 4096 bytes, so hash locally and sign
+        # the fixed-size digest (MessageType=DIGEST) to support larger payloads
+        # such as CRLs with many revoked certificates (issue #606).
+        digest = hashlib.new(self.hash_algorithm, data).digest()
+        sign_response = client.sign(
+            KeyId=self.keyid, SigningAlgorithm=sig_alg_str, Message=digest, MessageType="DIGEST"
+        )
 
         return sign_response["Signature"]
 
@@ -162,7 +169,13 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         except KeyError as exc:
             raise NotImplementedError(f"Unknown Signature Algorithm: {format(algorithm.name)}") from exc
         client = boto3.client("kms")
-        sign_response = client.sign(KeyId=self.keyid, SigningAlgorithm=sig_alg_str, Message=data)
+        # KMS Sign limits a RAW message to 4096 bytes, so hash locally and sign
+        # the fixed-size digest (MessageType=DIGEST) to support larger payloads
+        # such as CRLs with many revoked certificates (issue #606).
+        digest = hashlib.new(algorithm.name, data).digest()
+        sign_response = client.sign(
+            KeyId=self.keyid, SigningAlgorithm=sig_alg_str, Message=digest, MessageType="DIGEST"
+        )
 
         return sign_response["Signature"]
 
