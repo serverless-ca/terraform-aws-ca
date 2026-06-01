@@ -1,2 +1,2 @@
-boto3 ==1.43.9
-slack-sdk == 3.41.0
+boto3 ==1.43.14
+slack-sdk ==3.42.0
