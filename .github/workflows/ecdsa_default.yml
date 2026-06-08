@@ -112,7 +112,7 @@ jobs:
         run: pip install virtualenv
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -170,7 +170,7 @@ jobs:
           pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -212,7 +212,7 @@ jobs:
           pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -251,7 +251,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        uses: aws-actions/configure-aws-credentials@99214aa6889fcddfa57764031d71add364327e59 # v6.1.3
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
