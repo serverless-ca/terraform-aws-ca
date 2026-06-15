@@ -6,5 +6,5 @@ dataclasses-json == 0.6.7
 prospector == 1.18.0
 pytest == 9.0.2
 requests ==2.34.2
-structlog == 25.5.0
+structlog ==26.1.0
 validators == 0.35.0
