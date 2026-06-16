@@ -12,7 +12,7 @@ prospector == 1.18.0
 pytest == 9.0.2
 requests ==2.34.2
 slack-sdk ==3.42.0
-structlog == 25.5.0
+structlog ==26.1.0
 validators == 0.35.0
 
 # TODO: Used by certvalidator - remove once latest oscrypto published to pypi
