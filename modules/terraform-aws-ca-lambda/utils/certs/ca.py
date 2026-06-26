@@ -216,6 +216,7 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
             critical=False,
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(csr_cert.public_key()), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()), critical=False)
     )
 
     # Append any caller-supplied custom extensions. This is purely additive: the

@@ -230,6 +230,7 @@ def test_ca_build_cert_is_additive_not_replacing():
     cert.extensions.get_extension_for_oid(ExtensionOID.EXTENDED_KEY_USAGE)
     cert.extensions.get_extension_for_oid(ExtensionOID.CERTIFICATE_POLICIES)
     cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_KEY_IDENTIFIER)
+    cert.extensions.get_extension_for_oid(ExtensionOID.AUTHORITY_KEY_IDENTIFIER)
 
 
 def test_ca_build_cert_without_extensions_adds_nothing_extra():

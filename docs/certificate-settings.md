@@ -130,7 +130,8 @@ express.
 
 This is an **additive** capability: custom extensions are appended to the certificate
 alongside the extensions the CA always emits (Key Usage, Extended Key Usage, Certificate
-Policies, Subject Key Identifier, and so on). It can never replace or override those.
+Policies, Subject Key Identifier, Authority Key Identifier, and so on). It can never
+replace or override those.
 
 ### Enabling the feature
 
