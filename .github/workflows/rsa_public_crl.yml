@@ -104,7 +104,7 @@ jobs:
 
       - name: Set up Python
         id: setup_python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version-file: 'python-version'
           cache: 'pip'
@@ -116,7 +116,7 @@ jobs:
         run: pip install virtualenv
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
         with:
           role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -129,7 +129,7 @@ jobs:
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
       - name: cache built python modules
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           key: modules_terraform-aws-ca-lambda_build_${{ hashFiles('./modules/terraform-aws-ca-lambda/lambda_code/**') }}_${{ hashFiles('./modules/terraform-aws-ca-lambda/utils/**') }}_${{ github.job }}_py${{ steps.setup_python.outputs.python-version }}
           path: ./modules/terraform-aws-ca-lambda/build
@@ -161,7 +161,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version-file: 'python-version'
           cache: 'pip'
@@ -174,7 +174,7 @@ jobs:
           pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
         with:
           role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -203,7 +203,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version-file: 'python-version'
           cache: 'pip'
@@ -216,7 +216,7 @@ jobs:
           pip install -r scripts/requirements.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
         with:
           role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -245,7 +245,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version-file: 'python-version'
           cache: 'pip'
@@ -255,7 +255,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Configure AWS Credentials - Dev
-        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
         with:
           role-to-assume: ${{ secrets.RSA_AWS_DEPLOY_ROLE_ARN}}
           aws-region: ${{ secrets.AWS_REGION }}
