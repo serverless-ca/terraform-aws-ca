@@ -4,14 +4,14 @@ asn1crypto == 1.5.1
 assertpy == 1.1
 bandit == 1.9.4
 black ==26.5.1
-boto3 ==1.43.37
+boto3 ==1.43.40
 certvalidator == 0.11.1
 cryptography == 48.0.0
 dataclasses-json == 0.6.7
 prospector ==1.19.0
 pytest == 9.0.2
 requests ==2.34.2
-slack-sdk ==3.42.0
+slack-sdk ==3.43.0
 structlog ==26.1.0
 validators == 0.35.0
 
