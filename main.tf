@@ -391,6 +391,9 @@ module "ca_cloudfront" {
   environment                 = var.env
   zone_id                     = var.hosted_zone_id
   web_acl_id                  = var.cloudfront_web_acl_id
+
+  geo_restricted_locations = var.cloudfront_geo_restricted_locations
+  minimum_protocol_version = var.cloudfront_minimum_protocol_version
 }
 
 module "step-function-role" {
