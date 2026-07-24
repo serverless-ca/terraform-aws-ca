@@ -36,13 +36,13 @@ resource "aws_cloudfront_distribution" "website" {
   restrictions {
     geo_restriction {
       restriction_type = "blacklist"
-      locations        = ["CN", "IR", "KP", "RU"]
+      locations        = var.geo_restricted_locations
     }
   }
 
   viewer_certificate {
     acm_certificate_arn      = var.certificate_arn
-    minimum_protocol_version = "TLSv1.2_2021"
+    minimum_protocol_version = var.minimum_protocol_version
     ssl_support_method       = "sni-only"
   }
 

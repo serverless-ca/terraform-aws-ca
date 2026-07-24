@@ -41,3 +41,18 @@ variable "web_acl_id" {
   default     = null
   type        = string
 }
+
+variable "geo_restricted_locations" {
+  description = "CloudFront Distribution locations to block"
+  default = [
+    "CN",
+    "IR",
+    "KP",
+    "RU",
+  ]
+}
+
+variable "minimum_protocol_version" {
+  description = "CloudFront viewer certificate minimum protocol version"
+  default     = "TLSv1.2_2021"
+}

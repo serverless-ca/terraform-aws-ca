@@ -46,6 +46,18 @@ variable "csr_files" {
   default     = []
 }
 
+variable "cloudfront_geo_restricted_locations" {
+  type        = list(string)
+  description = "List of countries to block from CloudFront Distribution"
+  default     = null
+}
+
+variable "cloudfront_minimum_protocol_version" {
+  type        = string
+  description = "CloudFront minimum TLS protocol version"
+  default     = null
+}
+
 variable "cloudfront_web_acl_id" {
   type        = string
   description = "WAF attachment for the public CRL CloudFront distribution, expects the WAF ARN"
