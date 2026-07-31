@@ -44,7 +44,7 @@ variable "web_acl_id" {
 
 variable "geo_restricted_locations" {
   description = "CloudFront Distribution locations to block"
-  default     = [
+  default = [
     "CN",
     "IR",
     "KP",
