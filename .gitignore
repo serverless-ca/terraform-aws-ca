@@ -31,3 +31,6 @@ terraform.tfvars
 
 # Vim
 **.swp
+
+# Renovate
+renovate-logs/
