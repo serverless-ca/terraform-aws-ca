@@ -4,7 +4,7 @@ boto3==1.43.62
 cryptography==50.0.0
 dataclasses-json==0.6.7
 prospector==1.19.1
-pytest==9.0.2
+pytest==9.0.3
 requests==2.34.2
 structlog==26.1.0
 validators==0.35.0
