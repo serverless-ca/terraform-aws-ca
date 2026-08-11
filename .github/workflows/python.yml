@@ -38,7 +38,7 @@ jobs:
 
       - name: Pytest
         run: |
-          pytest -v modules/terraform-aws-ca-lambda      
+          pytest -v modules/terraform-aws-ca-lambda tests/test_certificate_validation.py
     
       - name: Black
         run: |
