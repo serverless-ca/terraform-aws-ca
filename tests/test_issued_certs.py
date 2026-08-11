@@ -4,7 +4,6 @@ import json
 import pytest
 import structlog
 from datetime import timedelta
-from certvalidator.errors import InvalidCertificateError
 
 from cryptography.x509 import (
     DNSName,
@@ -26,6 +25,7 @@ from utils.modules.certs.crypto import (
     certificate_validated,
     convert_truststore,
     convert_pem_to_der,
+    InvalidCertificateError,
 )
 
 from utils.modules.aws.kms import get_kms_details

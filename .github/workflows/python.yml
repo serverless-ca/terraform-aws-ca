@@ -38,7 +38,13 @@ jobs:
 
       - name: Pytest
         run: |
-          pytest -v modules/terraform-aws-ca-lambda      
+          pytest -v modules/terraform-aws-ca-lambda
+
+      # run separately as the lambda module's utils package shadows
+      # the top-level utils package within a single pytest process
+      - name: Pytest certificate validation
+        run: |
+          pytest -v tests/test_certificate_validation.py
     
       - name: Black
         run: |
