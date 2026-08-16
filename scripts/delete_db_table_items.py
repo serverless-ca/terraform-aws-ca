@@ -11,15 +11,26 @@ def get_dynamo_db_table():
     dynamodb_client = client("dynamodb")
 
     tables = dynamodb_client.list_tables()["TableNames"]
-    # optional CA_PROJECT filter to target one of several CA deployments in the same
-    # account, table names are PascalCase, e.g. project pqc, env prod -> PqcCAProd
+    tables = [t for t in tables if "CA" in t]
+
+    # optional CA_PROJECT / CA_ENV_NAME filters to target one of several CA deployments
+    # in the same account, table names are PascalCase, e.g. project pqc, env prod -> PqcCAProd
     project = environ.get("CA_PROJECT")
     if project:
-        table_prefix = project.replace("-", " ").title().replace(" ", "")
+        table_prefix = project.replace("-", " ").title().replace(" ", "") + "CA"
         tables = [t for t in tables if t.startswith(table_prefix)]
-    table = [t for t in tables if "CA" in t]
+    env_name = environ.get("CA_ENV_NAME")
+    if env_name:
+        tables = [t for t in tables if t.endswith(env_name.title())]
 
-    return table[0]
+    # this script deletes all items from the table, so refuse to guess between candidates
+    if len(tables) != 1:
+        raise SystemExit(
+            f"Expected exactly one CA DynamoDB table, found {tables or 'none'}: "
+            "set CA_PROJECT and/or CA_ENV_NAME to identify the target deployment"
+        )
+
+    return tables[0]
 
 
 def delete_dynamo_db_table_items(table):

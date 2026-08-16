@@ -138,7 +138,8 @@ def mock_ml_dsa_kms_client(local_key):
 @patch("utils.certs.crypto_kms_classes.boto3")
 def test_ml_dsa_sign_uses_external_mu(mock_boto3, key_spec, variant):  # pylint:disable=unused-argument
     """ML-DSA sign computes mu locally and signs via KMS EXTERNAL_MU for every key spec,
-    producing a signature identical to pure ML-DSA over the message (RAW equivalence)."""
+    producing a signature that verifies as pure ML-DSA over the original message
+    (equivalent to what KMS RAW signing produces)."""
     shim_class, local_class, _ = variant
     local_key = local_class.generate()
     mock_boto3.client.return_value = mock_ml_dsa_kms_client(local_key)
@@ -150,8 +151,8 @@ def test_ml_dsa_sign_uses_external_mu(mock_boto3, key_spec, variant):  # pylint:
     _, kwargs = mock_boto3.client.return_value.sign.call_args
     assert kwargs["KeyId"] == "test-key-id"
 
-    # external-mu signatures are identical to RAW signatures: pure ML-DSA verification
-    # over the original (larger than 4096-byte) message must succeed
+    # an external-mu signature is a valid ML-DSA signature over the original message:
+    # pure ML-DSA verification over the (larger than 4096-byte) payload must succeed
     local_key.public_key().verify(signature, LARGE_PAYLOAD)
 
 

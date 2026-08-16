@@ -50,6 +50,12 @@ moved {
   to   = module.external_s3[0]
 }
 
+data "aws_s3_bucket" "external" {
+  # existing external bucket shared with another CA deployment in this account
+  count  = var.external_s3_bucket_name == "" ? 0 : 1
+  bucket = var.external_s3_bucket_name
+}
+
 module "external_s3" {
   #checkov:skip=CKV2_AWS_61:Lifecycle configuration not needed for long-lived static content
   # S3 bucket for CRL and CA certificate publication, unless shared with another CA deployment

@@ -188,8 +188,9 @@ class AWSKMSMLDSAPrivateKeyMixin:
 
     Signing always uses KMS MessageType=EXTERNAL_MU: the 64-byte message representative
     mu is computed locally over data of any size, avoiding the 4096-byte KMS RAW message
-    limit (e.g. CRLs with many revoked certificates). Signatures produced via external
-    mu are identical to KMS RAW signatures for the same message and key.
+    limit (e.g. CRLs with many revoked certificates). A signature produced via external
+    mu is a standard ML-DSA signature over the original message, verifying exactly as a
+    KMS RAW signature would.
     """
 
     def __init__(self, keyid, hash_algorithm=None):

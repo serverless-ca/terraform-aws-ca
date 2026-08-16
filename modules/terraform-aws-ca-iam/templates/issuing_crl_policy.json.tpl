@@ -83,7 +83,7 @@
         "s3:PutObject"
       ],
       "Resource": [
-        "${external_s3_bucket_arn}/*"
+        "${external_s3_bucket_arn}/${project}-*"
       ]
     },
     {
