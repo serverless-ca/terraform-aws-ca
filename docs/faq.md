@@ -33,8 +33,9 @@ The following algorithms can be selected via Terraform [variables](https://githu
 ### Does the CA support post-quantum cryptography?
 Yes, choose the `ML_DSA_44`, `ML_DSA_65` or `ML_DSA_87` key spec ([FIPS 204](https://csrc.nist.gov/pubs/fips/204/final))
 for each CA independently, e.g. an `ML_DSA_65` root CA with an `ML_DSA_44` issuing CA -
-see the [ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa).
-Relying parties need ML-DSA support (e.g. OpenSSL 3.5+, Python `cryptography` 48+) to
+see [Post Quantum Cryptography](pqc.md) for details, example CA certificates and CRLs,
+and the [ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa)
+deployment. Relying parties need ML-DSA support (e.g. OpenSSL 3.5+, Python `cryptography` 48+) to
 validate the certificates, and ML-DSA key specs must be
 [available](https://docs.aws.amazon.com/kms/latest/developerguide/mldsa.html) in your AWS region.
 
