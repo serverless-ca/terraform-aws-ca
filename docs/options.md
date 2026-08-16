@@ -20,7 +20,15 @@ See details in [Revocation](revocation.md) and [CA Cert Locations](locations.md)
 ## CA key algorithms
 
 The following algorithms can be selected via Terraform [variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf):
-`RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521`
+`RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, ML_DSA_44, ML_DSA_65, ML_DSA_87`
+
+The `ML_DSA` key specs provide post-quantum CA hierarchies using the ML-DSA signature
+algorithm ([FIPS 204](https://csrc.nist.gov/pubs/fips/204/final), X.509 profile per
+[RFC 9881](https://www.rfc-editor.org/rfc/rfc9881)) - see the
+[ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa).
+Before use, check relying parties support ML-DSA certificates, and
+[ML-DSA key spec availability](https://docs.aws.amazon.com/kms/latest/developerguide/mldsa.html)
+in the target AWS region.
 
 *Default setting: `ECC_NIST_P384` (Root CA), `ECC_NIST_P256` (Issuing CA)*
 

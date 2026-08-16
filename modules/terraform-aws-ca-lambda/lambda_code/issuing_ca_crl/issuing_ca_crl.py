@@ -154,7 +154,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         db_update_crl_number(
             project, env_name, ca_slug, db_list_certificates(project, env_name, ca_slug)[0]["SerialNumber"]["S"]
         ),
-        kms_describe_key(kms_key_id)["SigningAlgorithms"][0],
+        kms_describe_key(kms_key_id)["KeySpec"],
     ).public_bytes(encoding=serialization.Encoding.DER)
 
     # convert CRL to PEM format

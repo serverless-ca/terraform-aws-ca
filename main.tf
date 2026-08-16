@@ -45,10 +45,22 @@ module "dynamodb" {
   tags                       = merge(var.tags, var.additional_dynamodb_tags)
 }
 
+moved {
+  from = module.external_s3
+  to   = module.external_s3[0]
+}
+
+data "aws_s3_bucket" "external" {
+  # existing external bucket shared with another CA deployment in this account
+  count  = var.external_s3_bucket_name == "" ? 0 : 1
+  bucket = var.external_s3_bucket_name
+}
+
 module "external_s3" {
   #checkov:skip=CKV2_AWS_61:Lifecycle configuration not needed for long-lived static content
-  # S3 bucket for CRL and CA certificate publication
+  # S3 bucket for CRL and CA certificate publication, unless shared with another CA deployment
   source = "./modules/terraform-aws-ca-s3"
+  count  = var.external_s3_bucket_name == "" ? 1 : 0
 
   purpose                = "${var.project}-ca-external-${var.env}"
   global_bucket          = true
@@ -118,7 +130,7 @@ module "create_root_ca_iam" {
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "root_ca"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   xray_enabled           = var.xray_enabled
 }
@@ -136,7 +148,7 @@ module "create_issuing_ca_iam" {
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "issuing_ca"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   xray_enabled           = var.xray_enabled
 }
@@ -153,7 +165,7 @@ module "root_crl_iam" {
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "root_crl"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   xray_enabled           = var.xray_enabled
 }
@@ -170,7 +182,7 @@ module "issuing_crl_iam" {
   kms_arn_tls_keygen     = module.kms_tls_keygen.kms_arn
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "issuing_crl"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
   xray_enabled           = var.xray_enabled
@@ -188,7 +200,7 @@ module "tls_keygen_iam" {
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "tls_cert"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
   xray_enabled           = var.xray_enabled
@@ -206,7 +218,7 @@ module "expiry_iam" {
   kms_arn_resource       = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "expiry"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
   sns_topic_arn          = module.sns_ca_notifications.sns_topic_arn
   xray_enabled           = var.xray_enabled
@@ -222,7 +234,7 @@ module "create_rsa_root_ca_lambda" {
   function_name                   = local.create_root_ca_function_name
   description                     = "Create Root Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -247,7 +259,7 @@ module "create_rsa_issuing_ca_lambda" {
   function_name                   = local.create_issuing_ca_function_name
   description                     = "Create Issuing Certificate Authority with KMS private key"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -272,7 +284,7 @@ module "rsa_root_ca_crl_lambda" {
   function_name                   = local.root_ca_crl_function_name
   description                     = "Publish Root CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -299,7 +311,7 @@ module "rsa_issuing_ca_crl_lambda" {
   function_name                   = local.issuing_ca_crl_function_name
   description                     = "Publish Issuing CA certificate revocation list signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -326,7 +338,7 @@ module "rsa_tls_cert_lambda" {
   function_name                   = local.tls_cert_function_name
   description                     = "Issue TLS certificates signed by KMS private key"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -355,7 +367,7 @@ module "expiry_lambda" {
   function_name                   = local.expiry_function_name
   description                     = "Check for expiring GitOps certificates and send notifications to SNS topic"
   expiry_reminders                = var.expiry_reminders
-  external_s3_bucket              = module.external_s3.s3_bucket_name
+  external_s3_bucket              = local.external_s3_bucket_name
   internal_s3_bucket              = module.internal_s3.s3_bucket_name
   logging_account_id              = var.logging_account_id
   subscription_filter_destination = var.subscription_filter_destination
@@ -372,21 +384,22 @@ module "expiry_lambda" {
 
 module "cloudfront_certificate" {
   source = "./modules/terraform-aws-ca-acm"
-  count  = var.public_crl ? 1 : 0
+  count  = var.public_crl && var.external_s3_bucket_name == "" ? 1 : 0
 
   domain_name = var.hosted_zone_domain
   zone_id     = var.hosted_zone_id
 }
 
 module "ca_cloudfront" {
-  # CloudFront distribution for CRL and CA certificate publication
+  # CloudFront distribution for CRL and CA certificate publication,
+  # not required when publishing to another CA deployment's external bucket
   source = "./modules/terraform-aws-ca-cloudfront"
-  count  = var.public_crl ? 1 : 0
+  count  = var.public_crl && var.external_s3_bucket_name == "" ? 1 : 0
 
   project                     = var.project
   base_domain                 = var.hosted_zone_domain
-  bucket_name                 = module.external_s3.s3_bucket_name
-  bucket_regional_domain_name = module.external_s3.s3_bucket_regional_domain_name
+  bucket_name                 = local.external_s3_bucket_name
+  bucket_regional_domain_name = module.external_s3[0].s3_bucket_regional_domain_name
   certificate_arn             = module.cloudfront_certificate[0].certificate_arn
   environment                 = var.env
   zone_id                     = var.hosted_zone_id
@@ -408,7 +421,7 @@ module "step-function-role" {
   ddb_table_arn          = module.dynamodb.ddb_table_arn
   policy                 = "state"
   assume_role_policy     = "state"
-  external_s3_bucket_arn = module.external_s3.s3_bucket_arn
+  external_s3_bucket_arn = local.external_s3_bucket_arn
   internal_s3_bucket_arn = module.internal_s3.s3_bucket_arn
 }
 

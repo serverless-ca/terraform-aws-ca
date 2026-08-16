@@ -1,4 +1,5 @@
 import boto3
+import os
 
 
 def get_s3_bucket(bucket_purpose="internal", session=None):
@@ -12,7 +13,22 @@ def get_s3_bucket(bucket_purpose="internal", session=None):
         s3_client = session.client("s3")
 
     s3_buckets = s3_client.list_buckets()["Buckets"]
-    return [b["Name"] for b in s3_buckets if f"-{bucket_purpose}-" in b["Name"]][0]
+    matches = [b["Name"] for b in s3_buckets if f"-{bucket_purpose}-" in b["Name"]]
+
+    # optional CA_PROJECT filter to target one of several CA deployments in the same account
+    project = os.environ.get("CA_PROJECT")
+    if project:
+        project_matches = [name for name in matches if f"-{project}-ca-" in name]
+        if project_matches:
+            return project_matches[0]
+        # the external bucket may be shared between deployments and named after another
+        # project; only accept a bucket not named after this project if it's unambiguous
+        if len(matches) != 1:
+            raise ValueError(
+                f"Expected exactly one {bucket_purpose} S3 bucket for project {project}, found {matches or 'none'}"
+            )
+
+    return matches[0]
 
 
 def list_s3_object_keys(bucket_name, session=None):

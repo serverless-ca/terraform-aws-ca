@@ -54,9 +54,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
     root_ca_kms_key_id = kms_get_kms_key_id(root_ca_name)
 
     # create certificate signing request
-    csr = load_pem_x509_csr(
-        crypto_kms_ca_cert_signing_request(ca_slug, kms_key_id, kms_describe_key(kms_key_id)["SigningAlgorithms"][0])
-    )
+    csr = load_pem_x509_csr(crypto_kms_ca_cert_signing_request(ca_slug, kms_key_id, cipher))
 
     # get Root CA cert in PEM format
     root_ca_cert_pem = base64.b64decode(db_list_certificates(project, env_name, root_ca_name)[0]["Certificate"]["B"])
@@ -74,7 +72,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument,too-many-l
         root_ca_kms_key_id,
         enable_public_crl,
         issuing_ca_info,
-        kms_describe_key(root_ca_kms_key_id)["SigningAlgorithms"][0],
+        kms_describe_key(root_ca_kms_key_id)["KeySpec"],
     )
     base64_certificate = base64.b64encode(pem_certificate)
 

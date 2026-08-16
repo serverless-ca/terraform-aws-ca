@@ -1,6 +1,7 @@
 from assertpy import assert_that
 import base64
 import json
+import os
 import structlog
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.x509 import load_der_x509_crl
@@ -26,6 +27,17 @@ structlog.configure(
 log = structlog.get_logger()
 
 common_name = "pipeline-test-certificate-revoked"
+
+
+def issuing_ca_crl_file_name(objects):
+    """Select the issuing CA CRL S3 object, filtering by CA_PROJECT if set, as the
+    external bucket may be shared between CA deployments in the same AWS account"""
+    crl_files = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")]
+    project = os.environ.get("CA_PROJECT")
+    if project:
+        crl_files = [o for o in crl_files if o.startswith(f"{project}-")]
+
+    return crl_files[0]
 
 
 def test_certificate_revoked():
@@ -70,7 +82,7 @@ def test_certificate_revoked():
 
     # Get CRL before revocation
     objects = list_s3_object_keys(external_bucket_name)
-    crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
+    crl_file_name = issuing_ca_crl_file_name(objects)
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
     log.info(
@@ -160,7 +172,7 @@ def test_crl_includes_revoked_certs_from_db():
 
     # Get current CRL after revocation from previous test, not listed in revoked.json
     objects = list_s3_object_keys(external_bucket_name)
-    crl_file_name = [o for o in objects if "issuing-ca" in o and o.endswith(".crl")][0]
+    crl_file_name = issuing_ca_crl_file_name(objects)
     crl_data = get_s3_object(external_bucket_name, crl_file_name)
     crl = load_der_x509_crl(crl_data)
     log.info(

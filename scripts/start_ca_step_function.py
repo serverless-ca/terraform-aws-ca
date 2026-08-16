@@ -1,5 +1,7 @@
-from boto3 import client
+from os import environ
 from time import sleep
+
+from boto3 import client
 
 
 def get_ca_step_function_details():
@@ -10,6 +12,10 @@ def get_ca_step_function_details():
     stepfunctions_client = client("stepfunctions")
 
     step_functions = stepfunctions_client.list_state_machines()["stateMachines"]
+    # optional CA_PROJECT filter to target one of several CA deployments in the same account
+    project = environ.get("CA_PROJECT")
+    if project:
+        step_functions = [s for s in step_functions if s["name"].startswith(f"{project}-")]
     step_function = [s for s in step_functions if "-ca-" in s["name"]]
 
     return step_function[0]["stateMachineArn"], step_function[0]["name"]

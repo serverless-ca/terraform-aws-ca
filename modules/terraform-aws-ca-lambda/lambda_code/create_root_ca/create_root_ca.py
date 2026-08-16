@@ -34,9 +34,7 @@ def lambda_handler(event, context):  # pylint:disable=unused-argument
 
     print(f"using {cipher} key pair in KMS for {ca_slug}")
 
-    pem_certificate = ca_create_kms_root_ca(
-        public_key, kms_key_id, root_ca_info, kms_describe_key(kms_key_id)["SigningAlgorithms"][0]
-    )
+    pem_certificate = ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, cipher)
     base64_certificate = base64.b64encode(pem_certificate)
 
     # get details to upload to DynamoDB

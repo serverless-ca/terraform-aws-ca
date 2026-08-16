@@ -68,7 +68,7 @@ def ca_kms_sign_ca_certificate_request(
     kms_key_id,
     enable_public_crl,
     issuing_ca_info,
-    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
+    kms_key_spec="RSA_2048",
 ):
     """Sign CA certificate signing request using private key in AWS KMS"""
 
@@ -131,8 +131,8 @@ def ca_kms_sign_ca_certificate_request(
         cert = cert.add_extension(aia, critical=False)
 
     cert = cert.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
-        crypto_hash_class(kms_signing_algorithm),
+        crypto_select_class(kms_key_spec)(kms_key_id, crypto_hash_algorithm(kms_key_spec)),
+        crypto_hash_class(kms_key_spec),
     )
 
     print(f"certificate serial number {cert.serial_number} issued for {cert.subject}")
@@ -239,7 +239,7 @@ def ca_kms_sign_tls_certificate_request(
     ca_cert,
     kms_key_id,
     enable_public_crl,
-    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
+    kms_key_spec="RSA_2048",
 ):
     csr_cert = cert_request_info["CsrCert"]
     x509_dns_names = cert_request_info["x509Sans"]
@@ -281,8 +281,8 @@ def ca_kms_sign_tls_certificate_request(
         cert = cert.add_extension(aia, critical=False)
 
     cert = cert.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
-        crypto_hash_class(kms_signing_algorithm),
+        crypto_select_class(kms_key_spec)(kms_key_id, crypto_hash_algorithm(kms_key_spec)),
+        crypto_hash_class(kms_key_spec),
     )
 
     print(f"certificate serial number {cert.serial_number} issued for {cert.subject}")
@@ -302,7 +302,7 @@ def ca_bundle_name(project, env_name):
     return f"{project}-ca-bundle-{env_name}"
 
 
-def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_root_ca(public_key, private_key, root_ca_info, kms_key_spec="RSA_2048"):
     """Creates Root CA self-signed certificate with defined private key"""
 
     # get Root CA info
@@ -341,7 +341,7 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
         )
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(public_key), critical=False)
         .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key), critical=False)
-        .sign(private_key, crypto_hash_class(kms_signing_algorithm))
+        .sign(private_key, crypto_hash_class(kms_key_spec))
     )
 
     print(f"certificate serial number {cert.serial_number} issued for {cert.subject}")
@@ -349,11 +349,11 @@ def ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorit
     return cert.public_bytes(serialization.Encoding.PEM)
 
 
-def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def ca_create_kms_root_ca(public_key, kms_key_id, root_ca_info, kms_key_spec="RSA_2048"):
     """Creates Root CA self-signed certificate with private key in KMS"""
-    private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
+    private_key = crypto_select_class(kms_key_spec)(kms_key_id, crypto_hash_algorithm(kms_key_spec))
 
-    return ca_create_root_ca(public_key, private_key, root_ca_info, kms_signing_algorithm)
+    return ca_create_root_ca(public_key, private_key, root_ca_info, kms_key_spec)
 
 
 def ca_get_ca_info(issuing_ca_info, root_ca_info):
@@ -387,7 +387,7 @@ def ca_kms_publish_crl(
     time_delta,
     revoked_certs,
     crl_number,
-    kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256",
+    kms_key_spec="RSA_2048",
 ):
     """Publishes certificate revocation list signed by private key in KMS"""
     kms_key_id = ca_key_info["KmsKeyId"]
@@ -408,6 +408,6 @@ def ca_kms_publish_crl(
         builder = builder.add_revoked_certificate(revoked_cert)
 
     return builder.sign(
-        crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm)),
-        crypto_hash_class(kms_signing_algorithm),
+        crypto_select_class(kms_key_spec)(kms_key_id, crypto_hash_algorithm(kms_key_spec)),
+        crypto_hash_class(kms_key_spec),
     )

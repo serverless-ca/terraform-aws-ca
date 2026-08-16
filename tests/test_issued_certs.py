@@ -19,12 +19,16 @@ from cryptography.hazmat.backends import default_backend
 import ipaddress
 
 
+from cryptography.exceptions import UnsupportedAlgorithm
+from cryptography.hazmat.primitives.asymmetric import mldsa
+
 from utils.modules.certs.crypto import (
     crypto_tls_cert_signing_request,
     create_csr_info,
     certificate_validated,
     convert_truststore,
     convert_pem_to_der,
+    generate_key,
     InvalidCertificateError,
 )
 
@@ -795,6 +799,52 @@ def test_san_ipv6_address():
     assert_that(len(ip_sans)).is_equal_to(2)
     assert_that(ipaddress.ip_address("2001:db8::1") in ip_sans).is_true()
     assert_that(ipaddress.ip_address("::1") in ip_sans).is_true()
+
+
+def test_ml_dsa_client_cert_issued():
+    """
+    Test post-quantum client certificate issued from a CSR with an ML-DSA-44 subject key
+    (FIPS 204), via the CSR flow as KMS GenerateDataKeyPair doesn't support ML-DSA.
+    Runs against every deployment: under an ML-DSA issuing CA (e.g. examples/ml-dsa) the
+    resulting certificate is fully post-quantum; under a classical issuing CA it's a
+    mixed chain, which is equally valid X.509.
+    """
+    try:
+        private_key = generate_key("ml-dsa-44")
+    except UnsupportedAlgorithm:
+        pytest.skip("ML-DSA not supported by cryptography backend")
+
+    common_name = "pipeline-test-ml-dsa-client"
+    purposes = ["client_auth"]
+
+    csr_info = create_csr_info(common_name)
+    csr = crypto_tls_cert_signing_request(private_key, csr_info)
+
+    json_data = {
+        "common_name": common_name,
+        "purposes": purposes,
+        "base64_csr_data": base64.b64encode(csr).decode("utf-8"),
+        "passphrase": False,
+        "lifetime": 1,
+        "force_issue": True,
+        "cert_bundle": True,
+    }
+
+    cert_data, ca_chain = helper_fetch_certificate(json_data, common_name)
+
+    # issued certificate carries the ML-DSA-44 subject public key
+    issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
+    log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
+    assert_that(issued_cert.public_key()).is_instance_of(mldsa.MLDSA44PublicKey)
+
+    # validate certificate chain, purpose and revocation status
+    trust_roots = convert_truststore(cert_data)
+    assert_that(certificate_validated(cert_data, trust_roots, purposes)).is_true()
+
+    # check server auth purpose not present
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        cert_data, trust_roots, ["server_auth"]
+    ).is_equal_to("The X.509 certificate provided is not valid for the purpose of server auth")
 
 
 # Custom Extensions Integration Tests

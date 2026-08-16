@@ -98,7 +98,7 @@ def sign_tls_certificate(project, env_name, csr, ca_name, csr_info, domain, max_
         ca_cert,
         issuing_ca_kms_key_id,
         enable_public_crl,
-        kms_describe_key(issuing_ca_kms_key_id)["SigningAlgorithms"][0],
+        kms_describe_key(issuing_ca_kms_key_id)["KeySpec"],
     )
 
 
@@ -109,6 +109,12 @@ def select_csr_crypto(ca_slug):
     issuing_ca_key_spec = kms_describe_key(issuing_ca_kms_key_id)["KeySpec"]
 
     if "ECC_NIST" in issuing_ca_key_spec:
+        return "ECC_NIST_P256", "ECDSA_SHA_256"
+
+    if "ML_DSA" in issuing_ca_key_spec:
+        # KMS GenerateDataKeyPair doesn't support ML-DSA key pair specs, so subject key
+        # pairs remain classical (EC) under a post-quantum chain; fully post-quantum
+        # end-entity certificates are available via the CSR flow
         return "ECC_NIST_P256", "ECDSA_SHA_256"
 
     return "RSA_2048", "RSASSA_PKCS1_V1_5_SHA_256"

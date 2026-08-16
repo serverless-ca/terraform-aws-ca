@@ -1,5 +1,12 @@
 import boto3
 import json
+import os
+
+
+def ca_project():
+    """Optional project name filter, set the CA_PROJECT environment variable to target one
+    of several CA deployments (e.g. serverless, pqc) sharing the same AWS account"""
+    return os.environ.get("CA_PROJECT")
 
 
 def get_lambda_name(lambda_purpose, env_name=None, session=None):
@@ -12,6 +19,8 @@ def get_lambda_name(lambda_purpose, env_name=None, session=None):
         lambda_client = session.client("lambda")
 
     lambdas = lambda_client.list_functions()["Functions"]
+    if ca_project():
+        lambdas = [la for la in lambdas if la["FunctionName"].startswith(f"{ca_project()}-")]
     if env_name is None:
         lambdas = [la for la in lambdas if lambda_purpose in la["FunctionName"]]
     else:

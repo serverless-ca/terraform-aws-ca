@@ -28,7 +28,34 @@ No, OSCP is not currently supported
 
 ### What algorithms can be used for the CAs?
 The following algorithms can be selected via Terraform [variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf):
-`RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521`
+`RSA_2048, RSA_3072, RSA_4096, ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, ML_DSA_44, ML_DSA_65, ML_DSA_87`
+
+### Does the CA support post-quantum cryptography?
+Yes, choose the `ML_DSA_44`, `ML_DSA_65` or `ML_DSA_87` key spec ([FIPS 204](https://csrc.nist.gov/pubs/fips/204/final))
+for each CA independently, e.g. an `ML_DSA_65` root CA with an `ML_DSA_44` issuing CA -
+see the [ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa).
+Relying parties need ML-DSA support (e.g. OpenSSL 3.5+, Python `cryptography` 48+) to
+validate the certificates, and ML-DSA key specs must be
+[available](https://docs.aws.amazon.com/kms/latest/developerguide/mldsa.html) in your AWS region.
+
+### Can two serverless CA stacks be installed to a single AWS account and use the same Route53 Hosted zone?
+Yes, give each stack a distinct `project` name (e.g. `serverless` and `pqc`), or a
+distinct environment name via `env` (e.g. `dev` and `prod`), so all resource names,
+CA names and published file names differ. For public CRLs, set
+`external_s3_bucket_name` on the second stack to the first stack's external S3 bucket:
+its CRLs and CA certificates are then published as distinctly named files (e.g.
+`http://ca.example.com/pqc-issuing-ca.crl`) served by the first stack's existing
+CloudFront distribution at the same domain, with no additional CloudFront distribution,
+TLS certificate, DNS record or hosted zone. Note that differing `project` or `env`
+names don't separate Terraform state: keep each stack's state separate using a
+different state key or Terraform workspace. An example is the
+[ml-dsa post-quantum CA](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
+which shares an AWS account and hosted zone with the
+[rsa-public-crl](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/rsa-public-crl)
+deployment. When running the [integration tests](https://github.com/serverless-ca/terraform-aws-ca/tree/main/tests)
+or [CI scripts](https://github.com/serverless-ca/terraform-aws-ca/tree/main/scripts) against an
+account with more than one stack, set the `CA_PROJECT` environment variable (e.g. `pqc`)
+to target the right deployment.
 
 ### How are the CA private keys protected?
 The CA private keys are generated and stored in AWS KMS, and cannot be exported.

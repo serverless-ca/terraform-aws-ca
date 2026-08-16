@@ -39,6 +39,9 @@ variable "customer_master_key_spec" {
       "ECC_NIST_P384",
       "ECC_NIST_P521",
       "ECC_SECG_P256K1",
+      "ML_DSA_44",
+      "ML_DSA_65",
+      "ML_DSA_87",
     ], var.customer_master_key_spec)
     error_message = "Invalid customer_master_key_spec"
   }

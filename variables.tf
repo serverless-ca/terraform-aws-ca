@@ -105,6 +105,12 @@ variable "filter_pattern" {
   default     = ""
 }
 
+variable "external_s3_bucket_name" {
+  type        = string
+  description = "Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record"
+  default     = ""
+}
+
 variable "hosted_zone_domain" {
   type        = string
   description = "Hosted zone domain, e.g. dev.ca.example.com"
@@ -157,6 +163,9 @@ variable "issuing_ca_key_spec" {
       "ECC_NIST_P256",
       "ECC_NIST_P384",
       "ECC_NIST_P521",
+      "ML_DSA_44",
+      "ML_DSA_65",
+      "ML_DSA_87",
     ], var.issuing_ca_key_spec)
     error_message = "Invalid issuing_ca_key_spec"
   }
@@ -286,6 +295,9 @@ variable "root_ca_key_spec" {
       "ECC_NIST_P256",
       "ECC_NIST_P384",
       "ECC_NIST_P521",
+      "ML_DSA_44",
+      "ML_DSA_65",
+      "ML_DSA_87",
     ], var.root_ca_key_spec)
     error_message = "Invalid root_ca_key_spec"
   }

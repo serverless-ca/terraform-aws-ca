@@ -6,10 +6,16 @@ import ipaddress
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import mldsa
 from .crypto_kms_classes import (
     AWSKMSEllipticCurvePrivateKey,
+    AWSKMSMLDSA44PrivateKey,
+    AWSKMSMLDSA65PrivateKey,
+    AWSKMSMLDSA87PrivateKey,
     AWSKMSRSAPrivateKey,
 )
+
+_ML_DSA_PRIVATE_KEY_TYPES = (mldsa.MLDSA44PrivateKey, mldsa.MLDSA65PrivateKey, mldsa.MLDSA87PrivateKey)
 
 
 def crypto_cert_info(cert, common_name):
@@ -180,43 +186,69 @@ def crypto_encode_private_key(key, passphrase=None):
     )
 
 
-def crypto_select_class(kms_signing_algorithm):
-    """Selects class for private key based on KMS signing algorithm"""
-    if kms_signing_algorithm == "RSASSA_PKCS1_V1_5_SHA_256":
-        return AWSKMSRSAPrivateKey
-    if kms_signing_algorithm in ["ECDSA_SHA_256", "ECDSA_SHA_384", "ECDSA_SHA_512"]:
-        return AWSKMSEllipticCurvePrivateKey
+# The KMS key spec (from kms:DescribeKey) drives class and hash selection, not the KMS
+# signing algorithm string: all three ML-DSA key specs share the single signing algorithm
+# ML_DSA_SHAKE_256, so the signing algorithm alone cannot identify the parameter set
+_KMS_KEY_SPEC_CLASSES = {
+    "RSA_2048": AWSKMSRSAPrivateKey,
+    "RSA_3072": AWSKMSRSAPrivateKey,
+    "RSA_4096": AWSKMSRSAPrivateKey,
+    "ECC_NIST_P256": AWSKMSEllipticCurvePrivateKey,
+    "ECC_NIST_P384": AWSKMSEllipticCurvePrivateKey,
+    "ECC_NIST_P521": AWSKMSEllipticCurvePrivateKey,
+    "ML_DSA_44": AWSKMSMLDSA44PrivateKey,
+    "ML_DSA_65": AWSKMSMLDSA65PrivateKey,
+    "ML_DSA_87": AWSKMSMLDSA87PrivateKey,
+}
 
-    raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
+# ML-DSA signs the full message without a pre-hash, so its hash entries are None
+_KMS_KEY_SPEC_HASH_NAMES = {
+    "RSA_2048": "sha256",
+    "RSA_3072": "sha256",
+    "RSA_4096": "sha256",
+    "ECC_NIST_P256": "sha256",
+    "ECC_NIST_P384": "sha384",
+    "ECC_NIST_P521": "sha512",
+    "ML_DSA_44": None,
+    "ML_DSA_65": None,
+    "ML_DSA_87": None,
+}
+
+_KMS_KEY_SPEC_HASH_CLASSES = {
+    "sha256": hashes.SHA256,
+    "sha384": hashes.SHA384,
+    "sha512": hashes.SHA512,
+}
 
 
-def crypto_hash_algorithm(kms_signing_algorithm):
-    """Returns hash algorithm in format expected by Python Cryptography library"""
-    if kms_signing_algorithm in ["RSASSA_PKCS1_V1_5_SHA_256", "ECDSA_SHA_256"]:
-        return "sha256"
-    if kms_signing_algorithm == "ECDSA_SHA_384":
-        return "sha384"
-    if kms_signing_algorithm == "ECDSA_SHA_512":
-        return "sha512"
-
-    raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
+def crypto_select_class(kms_key_spec):
+    """Selects class for private key based on KMS key spec"""
+    try:
+        return _KMS_KEY_SPEC_CLASSES[kms_key_spec]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported key spec {kms_key_spec}") from exc
 
 
-def crypto_hash_class(kms_signing_algorithm):
-    """Returns arguments used to sign certificate"""
-    if kms_signing_algorithm in ["RSASSA_PKCS1_V1_5_SHA_256", "ECDSA_SHA_256"]:
-        return hashes.SHA256()
-    if kms_signing_algorithm == "ECDSA_SHA_384":
-        return hashes.SHA384()
-    if kms_signing_algorithm == "ECDSA_SHA_512":
-        return hashes.SHA512()
-
-    raise ValueError(f"Unsupported key algorithm {kms_signing_algorithm}")
+def crypto_hash_algorithm(kms_key_spec):
+    """Returns hash algorithm in format expected by Python Cryptography library, None for ML-DSA"""
+    try:
+        return _KMS_KEY_SPEC_HASH_NAMES[kms_key_spec]
+    except KeyError as exc:
+        raise ValueError(f"Unsupported key spec {kms_key_spec}") from exc
 
 
-def crypto_kms_ca_cert_signing_request(common_name, kms_key_id, kms_signing_algorithm="RSASSA_PKCS1_V1_5_SHA_256"):
+def crypto_hash_class(kms_key_spec):
+    """Returns hash algorithm instance used to sign certificate, None for ML-DSA"""
+    hash_name = crypto_hash_algorithm(kms_key_spec)
+    if hash_name is None:
+        return None
+
+    return _KMS_KEY_SPEC_HASH_CLASSES[hash_name]()
+
+
+def crypto_kms_ca_cert_signing_request(common_name, kms_key_id, kms_key_spec="RSA_2048"):
     """CA certificate signing request created using private key in AWS KMS"""
-    private_key = crypto_select_class(kms_signing_algorithm)(kms_key_id, crypto_hash_algorithm(kms_signing_algorithm))
+    private_key = crypto_select_class(kms_key_spec)(kms_key_id, crypto_hash_algorithm(kms_key_spec))
 
     return crypto_tls_ca_cert_signing_request(private_key, common_name)
 
@@ -233,10 +265,13 @@ def crypto_revoked_certificate(serial_number, revocation_date):
 
 def crypto_tls_ca_cert_signing_request(private_key, common_name):
     """CA certificate signing request created using private key"""
+    # ML-DSA keys sign without a separate hash algorithm
+    algorithm = None if isinstance(private_key, _ML_DSA_PRIVATE_KEY_TYPES) else hashes.SHA256()
+
     csr = (
         x509.CertificateSigningRequestBuilder()
         .subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common_name)]))
-        .sign(private_key, hashes.SHA256())
+        .sign(private_key, algorithm)
     )
 
     return csr.public_bytes(serialization.Encoding.PEM)
