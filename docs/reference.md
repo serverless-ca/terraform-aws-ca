@@ -75,6 +75,7 @@
 | <a name="input_dynamodb_deletion_protection"></a> [dynamodb\_deletion\_protection](#input\_dynamodb\_deletion\_protection) | Enable deletion protection for the DynamoDB table | `bool` | `false` | no |
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
 | <a name="input_expiry_reminders"></a> [expiry\_reminders](#input\_expiry\_reminders) | List of days before certificate expiry to send reminder notifications, set to empty list to disable expiry reminders | `list(number)` | <pre>[<br/>  30,<br/>  15,<br/>  7,<br/>  1<br/>]</pre> | no |
+| <a name="input_external_s3_bucket_name"></a> [external\_s3\_bucket\_name](#input\_external\_s3\_bucket\_name) | Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record | `string` | `""` | no |
 | <a name="input_filter_pattern"></a> [filter\_pattern](#input\_filter\_pattern) | Filter pattern for CloudWatch logs subscription filter | `string` | `""` | no |
 | <a name="input_hosted_zone_domain"></a> [hosted\_zone\_domain](#input\_hosted\_zone\_domain) | Hosted zone domain, e.g. dev.ca.example.com | `string` | `""` | no |
 | <a name="input_hosted_zone_id"></a> [hosted\_zone\_id](#input\_hosted\_zone\_id) | Hosted zone ID for public zone, e.g. Z0123456XXXXXXXXXXX | `string` | `""` | no |
