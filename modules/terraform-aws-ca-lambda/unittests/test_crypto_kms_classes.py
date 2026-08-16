@@ -9,13 +9,22 @@ the Elliptic Curve key classes, across every ECDSA key size the module supports
 """
 
 import hashlib
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec, padding
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, mldsa, padding
+from cryptography.x509.oid import NameOID, SignatureAlgorithmOID
 
-from utils.certs.crypto_kms_classes import AWSKMSEllipticCurvePrivateKey, AWSKMSRSAPrivateKey
+from utils.certs.crypto_kms_classes import (
+    AWSKMSEllipticCurvePrivateKey,
+    AWSKMSMLDSA44PrivateKey,
+    AWSKMSMLDSA65PrivateKey,
+    AWSKMSMLDSA87PrivateKey,
+    AWSKMSRSAPrivateKey,
+)
 
 # A payload comfortably larger than the 4096-byte KMS RAW limit (the regression case).
 LARGE_PAYLOAD = b"a" * 5000
@@ -91,3 +100,96 @@ def test_ec_sign_rejects_unknown_hash_algorithm(mock_boto3):
 
     with pytest.raises(NotImplementedError):
         private_key.sign(LARGE_PAYLOAD, ec.ECDSA(hashes.SHA256()))
+
+
+# KMS shim class -> local pyca key class and expected X.509 signature algorithm OID,
+# covering all three AWS KMS ML-DSA key specs (ML_DSA_44 / ML_DSA_65 / ML_DSA_87)
+ML_DSA_VARIANTS = {
+    "ML_DSA_44": (AWSKMSMLDSA44PrivateKey, mldsa.MLDSA44PrivateKey, SignatureAlgorithmOID.ML_DSA_44),
+    "ML_DSA_65": (AWSKMSMLDSA65PrivateKey, mldsa.MLDSA65PrivateKey, SignatureAlgorithmOID.ML_DSA_65),
+    "ML_DSA_87": (AWSKMSMLDSA87PrivateKey, mldsa.MLDSA87PrivateKey, SignatureAlgorithmOID.ML_DSA_87),
+}
+
+
+def mock_ml_dsa_kms_client(local_key):
+    """Mock KMS client backed by a locally generated ML-DSA key: GetPublicKey returns its
+    DER SPKI as KMS does, and Sign performs external-mu signing as KMS ML_DSA_SHAKE_256
+    with MessageType=EXTERNAL_MU does, so signatures can be genuinely verified"""
+    mock_client = MagicMock()
+    mock_client.get_public_key.return_value = {
+        "PublicKey": local_key.public_key().public_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+    }
+
+    def kms_sign(**kwargs):
+        assert kwargs["SigningAlgorithm"] == "ML_DSA_SHAKE_256"
+        assert kwargs["MessageType"] == "EXTERNAL_MU"
+        # mu is always the fixed-size 64-byte message representative (FIPS 204)
+        assert len(kwargs["Message"]) == 64
+        return {"Signature": local_key.sign_mu(kwargs["Message"])}
+
+    mock_client.sign.side_effect = kms_sign
+    return mock_client
+
+
+@pytest.mark.parametrize("key_spec,variant", list(ML_DSA_VARIANTS.items()))
+@patch("utils.certs.crypto_kms_classes.boto3")
+def test_ml_dsa_sign_uses_external_mu(mock_boto3, key_spec, variant):  # pylint:disable=unused-argument
+    """ML-DSA sign computes mu locally and signs via KMS EXTERNAL_MU for every key spec,
+    producing a signature identical to pure ML-DSA over the message (RAW equivalence)."""
+    shim_class, local_class, _ = variant
+    local_key = local_class.generate()
+    mock_boto3.client.return_value = mock_ml_dsa_kms_client(local_key)
+
+    private_key = shim_class("test-key-id")
+
+    signature = private_key.sign(LARGE_PAYLOAD)
+
+    _, kwargs = mock_boto3.client.return_value.sign.call_args
+    assert kwargs["KeyId"] == "test-key-id"
+
+    # external-mu signatures are identical to RAW signatures: pure ML-DSA verification
+    # over the original (larger than 4096-byte) message must succeed
+    local_key.public_key().verify(signature, LARGE_PAYLOAD)
+
+
+@pytest.mark.parametrize("key_spec,variant", list(ML_DSA_VARIANTS.items()))
+@patch("utils.certs.crypto_kms_classes.boto3")
+def test_ml_dsa_x509_certificate_signing(mock_boto3, key_spec, variant):
+    """X.509 certificate signing via the KMS shim writes the correct RFC 9881 signature
+    algorithm OID and produces a verifiable certificate for every ML-DSA key spec."""
+    shim_class, local_class, expected_oid = variant
+    local_key = local_class.generate()
+    mock_boto3.client.return_value = mock_ml_dsa_kms_client(local_key)
+
+    private_key = shim_class("test-key-id")
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, f"{key_spec} test CA")])
+
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(timezone.utc))
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=1))
+        .sign(private_key, None)
+    )
+
+    assert cert.signature_algorithm_oid == expected_oid
+    # the certificate must verify with the genuine ML-DSA public key
+    local_key.public_key().verify(cert.signature, cert.tbs_certificate_bytes)
+
+
+@patch("utils.certs.crypto_kms_classes.boto3")
+def test_ml_dsa_sign_rejects_context(mock_boto3):
+    """ML-DSA context strings are not supported by KMS external-mu signing."""
+    local_key = mldsa.MLDSA44PrivateKey.generate()
+    mock_boto3.client.return_value = mock_ml_dsa_kms_client(local_key)
+
+    private_key = AWSKMSMLDSA44PrivateKey("test-key-id")
+
+    with pytest.raises(NotImplementedError):
+        private_key.sign(b"data", b"context")

@@ -1,4 +1,4 @@
-name: Deploy RSA CA with public CRL
+name: Deploy post-quantum ML-DSA CA with public CRL
 on:
   workflow_dispatch:
   push:
@@ -6,10 +6,14 @@ on:
       - "**/*.py"
       - "**/*.tf"
       - "**/*.txt"
-      - ".github/workflows/rsa_public_crl.yml"
+      - ".github/workflows/ml_dsa.yml"
     branches:
       - main
 
+# Deploys examples/ml-dsa (project pqc, ML-DSA-65 root CA, ML-DSA-44 issuing CA) to the
+# same AWS account as the RSA CA deployed by rsa_public_crl.yml, publishing its public
+# CRL to that deployment's external S3 bucket / CloudFront distribution. Uses a -pqc
+# suffixed backend state key to keep state separate, and CA_PROJECT to target pqc resources.
 env:
   TF_VAR_hosted_zone_domain: ${{ secrets.HOSTED_ZONE_DOMAIN }}
   TF_VAR_slack_token: ${{ secrets.SLACK_TOKEN }}
@@ -44,13 +48,13 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Terraform init
-        working-directory: ./examples/rsa-public-crl
+        working-directory: ./examples/ml-dsa
         run: terraform init -get -backend=false
 
       - name: Terraform validate
-        working-directory: ./examples/rsa-public-crl
+        working-directory: ./examples/ml-dsa
         run: terraform validate
-        
+
   secret_scan:
     name: Secret scan
     runs-on: ubuntu-latest
@@ -75,13 +79,14 @@ jobs:
   terraform_plan_apply:
     name: Terraform plan & apply
     runs-on: ubuntu-latest
+    # same AWS account and secrets as the RSA CA with public CRL deployment
     environment: 'rsa'
     needs:
       - terraform_validate
       - secret_scan
     defaults:
       run:
-        working-directory: ./examples/rsa-public-crl
+        working-directory: ./examples/ml-dsa
 
     permissions:
       id-token: write
@@ -122,10 +127,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Terraform initialise
+        # -pqc key suffix keeps this stack's state separate from the RSA CA
+        # deployment, which uses the same state bucket
         run: >
           terraform init
           -backend-config=bucket=${{ secrets.RSA_TERRAFORM_STATE_BUCKET}}
-          -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}}
+          -backend-config=key=${{ secrets.TERRAFORM_STATE_KEY}}-pqc
           -backend-config=region=${{ secrets.TERRAFORM_STATE_REGION}}
 
       - name: cache built python modules
@@ -148,8 +155,7 @@ jobs:
     needs:
       - terraform_plan_apply
     env:
-      # target this deployment's resources, the AWS account is shared with the pqc CA (ml_dsa.yml)
-      CA_PROJECT: serverless
+      CA_PROJECT: pqc
     permissions:
       id-token: write
       contents: read
@@ -193,7 +199,7 @@ jobs:
     needs:
       - delete_dynamo_db_items
     env:
-      CA_PROJECT: serverless
+      CA_PROJECT: pqc
     permissions:
       id-token: write
       contents: read
@@ -236,7 +242,7 @@ jobs:
     environment: 'rsa'
     needs: start_ca
     env:
-      CA_PROJECT: serverless
+      CA_PROJECT: pqc
     permissions:
       id-token: write
       contents: read

@@ -1,8 +1,9 @@
 import hashlib
 import boto3
 from cryptography.hazmat.primitives._asymmetric import AsymmetricPadding
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, mldsa, rsa
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import load_der_public_key
 
 
 class AWSKMSEllipticCurvePrivateKey(ec.EllipticCurvePrivateKey):
@@ -178,6 +179,81 @@ class AWSKMSRSAPrivateKey(rsa.RSAPrivateKey):
         )
 
         return sign_response["Signature"]
+
+
+class AWSKMSMLDSAPrivateKeyMixin:
+    """Shared implementation for AWS KMS ML-DSA (FIPS 204) private keys used with the
+    cryptography library. Concrete subclasses bind the correct parameter set ABC so that
+    X.509 signing writes the matching AlgorithmIdentifier (id-ml-dsa-44/65/87, RFC 9881).
+
+    Signing always uses KMS MessageType=EXTERNAL_MU: the 64-byte message representative
+    mu is computed locally over data of any size, avoiding the 4096-byte KMS RAW message
+    limit (e.g. CRLs with many revoked certificates). Signatures produced via external
+    mu are identical to KMS RAW signatures for the same message and key.
+    """
+
+    def __init__(self, keyid, hash_algorithm=None):
+        # hash_algorithm is accepted for interface compatibility with the EC and RSA
+        # key classes but unused: ML-DSA signs the message directly without a pre-hash
+        self.keyid = keyid
+        self.hash_algorithm = hash_algorithm
+        self._public_key = None
+
+    def __copy__(self):
+        return type(self)(self.keyid)
+
+    def __deepcopy__(self, memo):
+        return type(self)(self.keyid)
+
+    def public_key(self):
+        """Returns the genuine cryptography ML-DSA public key loaded from KMS DER"""
+        if self._public_key is None:
+            client = boto3.client("kms")
+            public_key_der = client.get_public_key(KeyId=self.keyid)["PublicKey"]
+            self._public_key = load_der_public_key(public_key_der)
+
+        return self._public_key
+
+    def sign(self, data: bytes, context=None) -> bytes:
+        # X.509 signing always uses an empty context string
+        if context:
+            raise NotImplementedError("ML-DSA context strings are not supported for KMS signing")
+
+        hasher = mldsa.MLDSAMuHasher(self.public_key())
+        hasher.update(data)
+
+        return self.sign_mu(hasher.finalize())
+
+    def sign_mu(self, mu: bytes) -> bytes:
+        client = boto3.client("kms")
+        sign_response = client.sign(
+            KeyId=self.keyid, SigningAlgorithm="ML_DSA_SHAKE_256", Message=mu, MessageType="EXTERNAL_MU"
+        )
+
+        return sign_response["Signature"]
+
+    def private_bytes(
+        self,
+        encoding,
+        format,  # pylint:disable=redefined-builtin
+        encryption_algorithm,
+    ) -> bytes:
+        raise NotImplementedError("Private Bytes not supported")
+
+    def private_bytes_raw(self) -> bytes:
+        raise NotImplementedError("Private Bytes not supported")
+
+
+class AWSKMSMLDSA44PrivateKey(AWSKMSMLDSAPrivateKeyMixin, mldsa.MLDSA44PrivateKey):
+    """class for AWS KMS ML-DSA-44 Private Key to be used with cryptography library"""
+
+
+class AWSKMSMLDSA65PrivateKey(AWSKMSMLDSAPrivateKeyMixin, mldsa.MLDSA65PrivateKey):
+    """class for AWS KMS ML-DSA-65 Private Key to be used with cryptography library"""
+
+
+class AWSKMSMLDSA87PrivateKey(AWSKMSMLDSAPrivateKeyMixin, mldsa.MLDSA87PrivateKey):
+    """class for AWS KMS ML-DSA-87 Private Key to be used with cryptography library"""
 
 
 class AWSKMSRSAPublicKey(AWSKMSRSAPrivateKey):

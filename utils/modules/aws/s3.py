@@ -1,4 +1,5 @@
 import boto3
+import os
 
 
 def get_s3_bucket(bucket_purpose="internal", session=None):
@@ -12,6 +13,14 @@ def get_s3_bucket(bucket_purpose="internal", session=None):
         s3_client = session.client("s3")
 
     s3_buckets = s3_client.list_buckets()["Buckets"]
+    # optional CA_PROJECT filter to target one of several CA deployments in the same
+    # account; fall back to any match as the external bucket may be shared between
+    # deployments and named after another project
+    project = os.environ.get("CA_PROJECT")
+    if project:
+        project_buckets = [b for b in s3_buckets if f"-{project}-ca-" in b["Name"]]
+        if any(f"-{bucket_purpose}-" in b["Name"] for b in project_buckets):
+            s3_buckets = project_buckets
     return [b["Name"] for b in s3_buckets if f"-{bucket_purpose}-" in b["Name"]][0]
 
 

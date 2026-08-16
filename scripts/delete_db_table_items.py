@@ -1,3 +1,5 @@
+from os import environ
+
 from boto3 import client
 
 
@@ -9,6 +11,12 @@ def get_dynamo_db_table():
     dynamodb_client = client("dynamodb")
 
     tables = dynamodb_client.list_tables()["TableNames"]
+    # optional CA_PROJECT filter to target one of several CA deployments in the same
+    # account, table names are PascalCase, e.g. project pqc, env prod -> PqcCAProd
+    project = environ.get("CA_PROJECT")
+    if project:
+        table_prefix = project.replace("-", " ").title().replace(" ", "")
+        tables = [t for t in tables if t.startswith(table_prefix)]
     table = [t for t in tables if "CA" in t]
 
     return table[0]
