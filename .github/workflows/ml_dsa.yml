@@ -1,4 +1,4 @@
-name: Deploy post-quantum ML-DSA CA with public CRL
+name: Deploy ML-DSA CA with public CRL
 on:
   workflow_dispatch:
   push:
