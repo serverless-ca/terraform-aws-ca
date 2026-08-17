@@ -122,3 +122,31 @@ curl -sO https://ca.celidor.io/pqc-ca-bundle.pem
 openssl x509 -in pqc-ca-bundle.pem -text -noout
 curl -s https://ca.celidor.io/pqc-issuing-ca.crl.pem | openssl crl -text -noout
 ```
+
+## Test ML-DSA Certificate Authority
+
+Issue a fully post-quantum client certificate from an ML-DSA CA deployed using the
+[ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
+with AWS credentials for the CA AWS account:
+
+```bash
+git clone https://github.com/serverless-ca/terraform-aws-ca.git
+cd terraform-aws-ca
+pip install -r utils/requirements.txt
+python utils/client-cert.py --profile <your-aws-profile> --keyalgo ml-dsa-44 --project pqc
+```
+
+* an ML-DSA-44 key pair is generated locally, as AWS KMS `GenerateDataKeyPair` doesn't
+  support ML-DSA - `ml-dsa-65` and `ml-dsa-87` can also be selected
+* the CSR is signed with the local ML-DSA key and submitted to the `tls-cert` Lambda
+  function, which issues the certificate signed by the ML-DSA issuing CA
+* `--project pqc` targets the ML-DSA deployment when more than one CA shares the AWS
+  account, as in the example deployment - omit for an account with a single CA
+* certificate, private key (PKCS8) and CA bundle are written to the `~/certs` directory
+
+Verify the issued certificate with OpenSSL 3.5+:
+
+```bash
+openssl verify -CAfile ~/certs/ca-bundle.pem ~/certs/client-cert.crt
+openssl x509 -in ~/certs/client-cert.crt -text -noout
+```
