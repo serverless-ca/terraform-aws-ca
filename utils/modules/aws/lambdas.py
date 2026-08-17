@@ -2,6 +2,24 @@ import boto3
 import json
 import os
 
+from botocore.config import Config
+
+# A synchronous Lambda invocation is not idempotent, so it must never be retried automatically.
+# The read timeout also needs to exceed the Lambda function's own timeout, so that a slow
+# invocation returns its real response rather than timing out client-side.
+INVOKE_CONFIG = Config(read_timeout=300, retries={"max_attempts": 0})
+
+
+def get_lambda_client(session=None):
+    """
+    Get a Lambda client configured for non-idempotent synchronous invocations
+    """
+
+    if session is None:
+        return boto3.client("lambda", config=INVOKE_CONFIG)
+
+    return session.client("lambda", config=INVOKE_CONFIG)
+
 
 def ca_project():
     """Optional project name filter, set the CA_PROJECT environment variable to target one
@@ -34,10 +52,7 @@ def invoke_lambda(function_name, json_data, session=None):
     Invoke TLS certificate Lambda function
     """
 
-    if session is None:
-        lambda_client = boto3.client("lambda")
-    else:
-        lambda_client = session.client("lambda")
+    lambda_client = get_lambda_client(session)
 
     response = lambda_client.invoke(
         FunctionName=function_name,
