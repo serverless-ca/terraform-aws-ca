@@ -9,7 +9,7 @@ import boto3
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
-from modules.aws.lambdas import get_lambda_name
+from modules.aws.lambdas import get_lambda_client, get_lambda_name
 
 # identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
@@ -162,7 +162,7 @@ def invoke_lambda(session, request_payload_bytes, env_name):
     """
 
     lambda_name = get_lambda_name("tls-cert", env_name, session=session)
-    client = session.client("lambda")
+    client = get_lambda_client(session)
     response = client.invoke(
         FunctionName=lambda_name,
         InvocationType="RequestResponse",
