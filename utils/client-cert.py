@@ -6,7 +6,12 @@ import base64
 import argparse
 import boto3
 from cryptography.hazmat.primitives.serialization import load_der_private_key
-from modules.certs.crypto import create_csr_info, crypto_encode_private_key, crypto_tls_cert_signing_request
+from modules.certs.crypto import (
+    create_csr_info,
+    crypto_encode_private_key,
+    crypto_tls_cert_signing_request,
+    generate_key,
+)
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
 from modules.aws.lambdas import get_lambda_client, get_lambda_name
 
@@ -47,6 +52,19 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", default=None, help="AWS profile described in .aws/config file")
     parser.add_argument("--verbose", action="store_true", help="Output of all generated payload data")
+    parser.add_argument(
+        "--keyalgo",
+        default="ecdsa",
+        choices=["ecdsa", "ml-dsa-44", "ml-dsa-65", "ml-dsa-87"],
+        help="key pair algorithm: ecdsa (default) uses AWS KMS key generation, "
+        "ml-dsa-44/65/87 (FIPS 204 post-quantum) are generated locally as "
+        "AWS KMS GenerateDataKeyPair doesn't support ML-DSA",
+    )
+    parser.add_argument(
+        "--project",
+        default=None,
+        help="CA project name to target, e.g. pqc, needed when more than one CA " "deployment shares the AWS account",
+    )
     arguments = vars(parser.parse_args())
 
     return arguments
@@ -58,6 +76,10 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
     """
 
     args = parse_arguments()
+
+    # scope Lambda and KMS discovery to one of several CA deployments in the account
+    if args["project"]:
+        os.environ["CA_PROJECT"] = args["project"]
 
     # create AWS session
     session = create_session(args["profile"])
@@ -77,13 +99,19 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
     output_path_cert_combined = f"{base_path}/ca-cert-key-bundle.pem"
     key_alias = "serverless-tls-keygen-dev"
 
-    # create key pair using symmetric KMS key to provide entropy
-    key_id = kms_get_kms_key_id(key_alias, session=session)
-    if isinstance(key_id, dict):
-        print(f'Error: {key_id["error"]}')
-        sys.exit(1)
-    kms_response = kms_generate_key_pair(key_id, session=session)
-    private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
+    if args["keyalgo"].startswith("ml-dsa"):
+        # ML-DSA key pairs are generated locally: AWS KMS GenerateDataKeyPair
+        # doesn't support ML-DSA key pair specs
+        print(f'generating {args["keyalgo"]} key pair locally')
+        private_key = generate_key(args["keyalgo"])
+    else:
+        # create key pair using symmetric KMS key to provide entropy
+        key_id = kms_get_kms_key_id(key_alias, session=session)
+        if isinstance(key_id, dict):
+            print(f'Error: {key_id["error"]}')
+            sys.exit(1)
+        kms_response = kms_generate_key_pair(key_id, session=session)
+        private_key = load_der_private_key(kms_response["PrivateKeyPlaintext"], None)
 
     # create CSR
     csr_info = create_csr_info(common_name, country, locality, organization, organizational_unit, state)
