@@ -1,4 +1,4 @@
-# Post Quantum Cryptography
+# Post-quantum Cryptography
 
 The serverless CA supports fully post-quantum CA hierarchies using ML-DSA
 (Module-Lattice Digital Signature Algorithm), NIST's primary post-quantum signature

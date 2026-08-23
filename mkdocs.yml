@@ -56,7 +56,7 @@ nav:
   - FAQs: faq.md
   - Lambda Invocation: lambda-invocation.md
   - Notifications: notifications.md
-  - Post Quantum Cryptography: pqc.md
+  - Post-quantum Cryptography: pqc.md
   - Revocation: revocation.md
   - Security: security.md
   - Slack: slack.md
