@@ -60,7 +60,7 @@ to target the right deployment.
 
 ### How are the CA private keys protected?
 The CA private keys are generated and stored in AWS KMS, and cannot be exported.
-The AWS KMS service is [certified to FIPS 140-2 Level 3](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3).
+The AWS KMS service is [certified to FIPS 140-3 Level 3](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3).
 
 ### What's the default configuration for the CA?
 The default configuration is:

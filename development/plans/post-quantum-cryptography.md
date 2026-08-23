@@ -1,7 +1,9 @@
 # Feasibility Assessment: Post-Quantum Cryptography (ML-DSA) Support
 
-* Status: draft for review
-* Date: 10 August 2026
+* Status: implemented
+* Date of plan: 10 August 2026
+* Date released: 17 August 2026
+* Release version: v4.0.0
 * Scope: supporting AWS KMS ML-DSA key specs (`ML_DSA_44`, `ML_DSA_65`, `ML_DSA_87`) for the
   root CA and issuing CA, e.g. an ML-DSA-65 root CA with an ML-DSA-44 issuing CA
 
