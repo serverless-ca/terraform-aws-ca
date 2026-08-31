@@ -7,6 +7,7 @@
 * Serverless Certificate Authority typically $50 per year
 * [Equivalent cost using AWS Private CA around $10,000 per year](https://serverlessca.com/faq/#how-did-you-work-out-the-cost-comparison-with-aws-private-ca)
 * CA private keys stored in [FIPS 140-3 level 3 certified hardware](https://aws.amazon.com/about-aws/whats-new/2023/05/aws-kms-hsm-fips-security-level-3)
+* Supports [post-quantum cryptography](https://serverlessca.com/pqc/)
 * Published as a public [Terraform registry module](https://registry.terraform.io/modules/serverless-ca/ca/aws/latest)
 * 100% serverless:
 
@@ -42,6 +43,8 @@ Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
 > 📖 [Revoking access to IAM Roles Anywhere using open-source private CA](https://medium.com/@paulschwarzenberger/revoking-access-to-iam-roles-anywhere-using-open-source-private-ca-47667cc92299)
 
 > 📖 [Amazon CloudFront origin mTLS with open-source serverless CA](https://medium.com/@paulschwarzenberger/amazon-cloudfront-origin-mtls-with-open-source-serverless-ca-66878107b1d5)
+
+> 📖 [Open-source post-quantum cryptography serverless CA](https://medium.com/@paulschwarzenberger/open-source-post-quantum-cryptography-serverless-ca-a44504da50ea)
 
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
