@@ -13,8 +13,7 @@ later" adversaries with future quantum computers.
 
 Choose the `ML_DSA_44`, `ML_DSA_65` or `ML_DSA_87` key spec for each CA independently
 via the `root_ca_key_spec` and `issuing_ca_key_spec` Terraform
-[variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf),
-e.g. an `ML_DSA_65` root CA with an `ML_DSA_44` issuing CA:
+[variables](https://github.com/serverless-ca/terraform-aws-ca/blob/main/variables.tf):
 
 | Key spec | NIST security category | Public key | Signature |
 |----------|:----------------------:|:----------:|:---------:|
