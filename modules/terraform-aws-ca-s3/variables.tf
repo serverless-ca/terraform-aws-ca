@@ -47,6 +47,12 @@ variable "bucket_key_enabled" {
   default     = false
 }
 
+variable "blocked_encryption_types" {
+  description = "Server side encryption types to block, currently AWS supports SSE-C only. Set to [] to allow all encryption types"
+  type        = list(string)
+  default     = ["SSE-C"]
+}
+
 variable "acl" {
   description = "access control list"
   default     = "private"
