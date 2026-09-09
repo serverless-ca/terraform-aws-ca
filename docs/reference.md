@@ -3,13 +3,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.22 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.22 |
 
 ## Modules
 
@@ -62,6 +62,7 @@
 | <a name="input_additional_lambda_tags"></a> [additional\_lambda\_tags](#input\_additional\_lambda\_tags) | Tags added to Lambda functions, merged with default tags | `map(string)` | `{}` | no |
 | <a name="input_additional_s3_tags"></a> [additional\_s3\_tags](#input\_additional\_s3\_tags) | Tags added to S3 buckets, merged with default tags | `map(string)` | `{}` | no |
 | <a name="input_aws_principals"></a> [aws\_principals](#input\_aws\_principals) | List of ARNs for AWS principals allowed to assume DynamoDB reader role or execute the tls\_cert lambda | `list(string)` | `[]` | no |
+| <a name="input_blocked_encryption_types"></a> [blocked\_encryption\_types](#input\_blocked\_encryption\_types) | Server side encryption types to block on S3 buckets, currently AWS supports SSE-C only. Set to [] to allow all encryption types | `list(string)` | <pre>[<br/>  "SSE-C"<br/>]</pre> | no |
 | <a name="input_bucket_key_enabled"></a> [bucket\_key\_enabled](#input\_bucket\_key\_enabled) | Whether or not to use Amazon S3 Bucket Keys for SSE-KMS | `bool` | `false` | no |
 | <a name="input_bucket_prefix"></a> [bucket\_prefix](#input\_bucket\_prefix) | First part of s3 bucket name to ensure uniqueness, if left blank a random suffix will be used instead | `string` | `""` | no |
 | <a name="input_cert_info_files"></a> [cert\_info\_files](#input\_cert\_info\_files) | List of file names to be uploaded to internal S3 bucket for processing | `list(string)` | `[]` | no |

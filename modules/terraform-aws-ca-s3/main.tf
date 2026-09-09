@@ -33,7 +33,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "kms" {
       kms_master_key_id = var.default_aws_kms_key ? null : (var.kms_encryption_key_arn != "" ? var.kms_encryption_key_arn : local.kms_key_alias_arn)
       sse_algorithm     = var.sse_algorithm
     }
-    bucket_key_enabled = var.bucket_key_enabled
+    bucket_key_enabled       = var.bucket_key_enabled
+    blocked_encryption_types = var.blocked_encryption_types
   }
 }
 
@@ -46,6 +47,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "s3" {
     apply_server_side_encryption_by_default {
       sse_algorithm = var.sse_algorithm
     }
+    blocked_encryption_types = var.blocked_encryption_types
   }
 }
 

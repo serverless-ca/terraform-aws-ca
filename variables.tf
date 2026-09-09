@@ -207,6 +207,12 @@ variable "bucket_key_enabled" {
   default     = false
 }
 
+variable "blocked_encryption_types" {
+  type        = list(string)
+  description = "Server side encryption types to block on S3 buckets, currently AWS supports SSE-C only. Set to [] to allow all encryption types"
+  default     = ["SSE-C"]
+}
+
 variable "log_bucket" {
   type        = string
   description = "Name of log bucket, if access_logs variable set to true"
