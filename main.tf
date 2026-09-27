@@ -50,12 +50,6 @@ moved {
   to   = module.external_s3[0]
 }
 
-data "aws_s3_bucket" "external" {
-  # existing external bucket shared with another CA deployment in this account
-  count  = var.external_s3_bucket_name == "" ? 0 : 1
-  bucket = var.external_s3_bucket_name
-}
-
 module "external_s3" {
   #checkov:skip=CKV2_AWS_61:Lifecycle configuration not needed for long-lived static content
   # S3 bucket for CRL and CA certificate publication, unless shared with another CA deployment
@@ -499,8 +493,9 @@ module "sns_ca_notifications" {
 }
 
 module "slack_secret" {
+  # not created when sharing the Slack OAuth token secret of another CA deployment
   source = "./modules/terraform-aws-ca-secret"
-  count  = length(var.slack_channels) > 0 ? 1 : 0
+  count  = length(var.slack_channels) > 0 && var.existing_slack_secret_name == "" ? 1 : 0
 
   project                 = var.project
   env                     = var.env
@@ -521,8 +516,8 @@ module "notify_slack_iam" {
   function_name        = "slack"
   lambda_function_name = local.notify_function_name
   policy               = "slack"
-  kms_arn_resource     = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
-  secret_arn           = module.slack_secret[0].secret_arn
+  kms_arn_resource     = coalesce(local.slack_secret_kms_key_arn, var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource)
+  secret_arn           = local.slack_secret_arn
 }
 
 module "notify_lambda" {
@@ -544,7 +539,7 @@ module "notify_lambda" {
   slack_channels                  = var.slack_channels
   slack_bad_emoji                 = var.slack_bad_emoji
   slack_good_emoji                = var.slack_good_emoji
-  slack_secret_arn                = module.slack_secret[0].secret_arn
+  slack_secret_arn                = local.slack_secret_arn
   slack_username                  = var.slack_username
   slack_warning_emoji             = var.slack_warning_emoji
   xray_enabled                    = var.xray_enabled

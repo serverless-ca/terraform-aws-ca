@@ -105,6 +105,12 @@ variable "filter_pattern" {
   default     = ""
 }
 
+variable "existing_slack_secret_name" {
+  type        = string
+  description = "Name of an existing AWS Secrets Manager secret containing the Slack OAuth token, owned by another CA deployment in the same AWS account and region. Secrets Manager secrets are regional and are looked up in the provider region, so a deployment in another region needs its own secret, or a replica of this one. When set, this deployment uses the existing secret and doesn't create its own, so the token only needs to be uploaded once per region"
+  default     = ""
+}
+
 variable "external_s3_bucket_name" {
   type        = string
   description = "Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record"
