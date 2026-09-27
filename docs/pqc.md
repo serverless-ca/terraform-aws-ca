@@ -108,8 +108,7 @@ Relying parties must support ML-DSA certificates:
   ML-DSA signs the message directly without a separate hash algorithm
 * AWS IAM Roles Anywhere
   [supports ML-DSA](https://aws.amazon.com/about-aws/whats-new/2026/03/iam-roles-anywhere-post-quantum-digital-certificates)
-  trust anchors and end-entity certificates (March 2026), in all regions where the
-  service is available
+  trust anchors and end-entity certificates
 * Apple macOS Keychain does not support ML-DSA certificates and errors on import
   (as of Aug 2026)
 * Other AWS managed mTLS services (ALB trust stores, API Gateway mTLS) and browsers
