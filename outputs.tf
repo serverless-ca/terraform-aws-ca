@@ -43,6 +43,11 @@ output "root_ca_crl_s3_location" {
   description = "S3 location of Root CA CRL file"
 }
 
+output "slack_secret_name" {
+  value       = one(module.slack_secret[*].secret_name)
+  description = "Name of AWS Secrets Manager secret holding the Slack OAuth token, for sharing with another CA deployment in the same AWS account. Null when this deployment uses a shared secret, or Slack isn't configured"
+}
+
 output "sns_topic_arn" {
   value       = module.sns_ca_notifications.sns_topic_arn
   description = "SNS topic ARN"

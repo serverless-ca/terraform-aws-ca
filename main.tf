@@ -498,9 +498,17 @@ module "sns_ca_notifications" {
   workload_account_id = var.workload_account_id
 }
 
+data "aws_secretsmanager_secret" "external_slack" {
+  # Slack OAuth token secret owned by another CA deployment in the same AWS account
+  count = length(var.slack_channels) > 0 && var.external_slack_secret_name != "" ? 1 : 0
+
+  name = var.external_slack_secret_name
+}
+
 module "slack_secret" {
+  # not created when sharing the Slack OAuth token secret of another CA deployment
   source = "./modules/terraform-aws-ca-secret"
-  count  = length(var.slack_channels) > 0 ? 1 : 0
+  count  = length(var.slack_channels) > 0 && var.external_slack_secret_name == "" ? 1 : 0
 
   project                 = var.project
   env                     = var.env
@@ -521,8 +529,8 @@ module "notify_slack_iam" {
   function_name        = "slack"
   lambda_function_name = local.notify_function_name
   policy               = "slack"
-  kms_arn_resource     = var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource
-  secret_arn           = module.slack_secret[0].secret_arn
+  kms_arn_resource     = coalesce(local.slack_secret_kms_key_arn, var.kms_arn_resource == "" ? module.kms_tls_keygen.kms_arn : var.kms_arn_resource)
+  secret_arn           = local.slack_secret_arn
 }
 
 module "notify_lambda" {
@@ -544,7 +552,7 @@ module "notify_lambda" {
   slack_channels                  = var.slack_channels
   slack_bad_emoji                 = var.slack_bad_emoji
   slack_good_emoji                = var.slack_good_emoji
-  slack_secret_arn                = module.slack_secret[0].secret_arn
+  slack_secret_arn                = local.slack_secret_arn
   slack_username                  = var.slack_username
   slack_warning_emoji             = var.slack_warning_emoji
   xray_enabled                    = var.xray_enabled

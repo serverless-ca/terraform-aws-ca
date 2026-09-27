@@ -111,6 +111,12 @@ variable "external_s3_bucket_name" {
   default     = ""
 }
 
+variable "external_slack_secret_name" {
+  type        = string
+  description = "Name of an existing AWS Secrets Manager secret containing the Slack OAuth token, owned by another CA deployment in the same AWS account. When set, this deployment uses the shared secret and doesn't create its own, so the token only needs to be uploaded once"
+  default     = ""
+}
+
 variable "hosted_zone_domain" {
   type        = string
   description = "Hosted zone domain, e.g. dev.ca.example.com"

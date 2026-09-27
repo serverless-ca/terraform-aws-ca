@@ -78,6 +78,7 @@
 | <a name="input_env"></a> [env](#input\_env) | Environment name, e.g. dev | `string` | `"dev"` | no |
 | <a name="input_expiry_reminders"></a> [expiry\_reminders](#input\_expiry\_reminders) | List of days before certificate expiry to send reminder notifications, set to empty list to disable expiry reminders | `list(number)` | <pre>[<br/>  30,<br/>  15,<br/>  7,<br/>  1<br/>]</pre> | no |
 | <a name="input_external_s3_bucket_name"></a> [external\_s3\_bucket\_name](#input\_external\_s3\_bucket\_name) | Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record | `string` | `""` | no |
+| <a name="input_external_slack_secret_name"></a> [external\_slack\_secret\_name](#input\_external\_slack\_secret\_name) | Name of an existing AWS Secrets Manager secret containing the Slack OAuth token, owned by another CA deployment in the same AWS account. When set, this deployment uses the shared secret and doesn't create its own, so the token only needs to be uploaded once | `string` | `""` | no |
 | <a name="input_filter_pattern"></a> [filter\_pattern](#input\_filter\_pattern) | Filter pattern for CloudWatch logs subscription filter | `string` | `""` | no |
 | <a name="input_hosted_zone_domain"></a> [hosted\_zone\_domain](#input\_hosted\_zone\_domain) | Hosted zone domain, e.g. dev.ca.example.com | `string` | `""` | no |
 | <a name="input_hosted_zone_id"></a> [hosted\_zone\_id](#input\_hosted\_zone\_id) | Hosted zone ID for public zone, e.g. Z0123456XXXXXXXXXXX | `string` | `""` | no |
@@ -133,5 +134,6 @@
 | <a name="output_issuing_ca_crl_s3_location"></a> [issuing\_ca\_crl\_s3\_location](#output\_issuing\_ca\_crl\_s3\_location) | S3 location of Issuing CA CRL file |
 | <a name="output_root_ca_cert_s3_location"></a> [root\_ca\_cert\_s3\_location](#output\_root\_ca\_cert\_s3\_location) | S3 location of Root CA certificate file |
 | <a name="output_root_ca_crl_s3_location"></a> [root\_ca\_crl\_s3\_location](#output\_root\_ca\_crl\_s3\_location) | S3 location of Root CA CRL file |
+| <a name="output_slack_secret_name"></a> [slack\_secret\_name](#output\_slack\_secret\_name) | Name of AWS Secrets Manager secret holding the Slack OAuth token, for sharing with another CA deployment in the same AWS account. Null when this deployment uses a shared secret, or Slack isn't configured |
 | <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | SNS topic ARN |
 <!-- END_TF_DOCS -->

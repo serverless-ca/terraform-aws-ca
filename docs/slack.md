@@ -93,3 +93,17 @@ The Slack app OAuth token is stored as an AWS Secret. There are two options for 
 * the Notify Lambda function and AWS Secret for Slack will be created
 
 See [Cloud CA](https://github.com/serverless-ca/cloud-ca) example repository and GitHub Actions pipeline.
+
+### 3.3. Sharing the secret between CA deployments
+
+Where more than one CA shares an AWS account and posts to the same Slack workspace, set
+`external_slack_secret_name` on the additional deployments to the name of the first
+deployment's secret, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}`, e.g.
+`serverless-slack-token-prod`. Those deployments then use the existing secret instead of
+creating their own, so the token value is only uploaded once, and their notify Lambda
+functions are granted `kms:Decrypt` on the KMS key encrypting it. The first deployment
+publishes the name as the `slack_secret_name` Terraform output. See the
+[ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
+which shares the Slack secret of the
+[rsa-public-crl](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/rsa-public-crl)
+deployment.

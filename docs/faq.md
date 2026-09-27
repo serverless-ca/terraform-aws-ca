@@ -49,7 +49,10 @@ its CRLs and CA certificates are then published as distinctly named files (e.g.
 CloudFront distribution at the same domain, with no additional CloudFront distribution,
 TLS certificate, DNS record or hosted zone. Note that differing `project` or `env`
 names don't separate Terraform state: keep each stack's state separate using a
-different state key or Terraform workspace. An example is the
+different state key or Terraform workspace. To avoid a second Slack OAuth token secret,
+which would need the same token value uploaded to it, set `external_slack_secret_name` on
+the second stack to the first stack's secret name, e.g. `serverless-slack-token-prod` -
+see [Slack](slack.md). An example is the
 [ml-dsa post-quantum CA](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
 which shares an AWS account and hosted zone with the
 [rsa-public-crl](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/rsa-public-crl)

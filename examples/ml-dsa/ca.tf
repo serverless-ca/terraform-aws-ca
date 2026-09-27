@@ -28,8 +28,12 @@ module "certificate_authority" {
   public_crl      = true
   cert_info_files = ["tls", "revoked", "revoked-root-ca"]
   slack_channels  = ["devsecops"]
-  slack_token     = var.slack_token
   xray_enabled    = false
+
+  # share the rsa-public-crl deployment's Slack OAuth token secret, named
+  # <project>-slack-token-<env>, so the token is only uploaded once for the account. No
+  # secret is created here, and the slack_token variable isn't needed
+  external_slack_secret_name = "serverless-slack-token-prod"
 
   # allowlist a private-enterprise OID so the custom extensions integration test runs
   # against this deployment, as it does against examples/rsa-public-crl
