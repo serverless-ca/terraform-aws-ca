@@ -50,11 +50,13 @@ if [ -f "$FILE" ]; then
   # pip install --platform $platform --target $site_packages --only-binary=:all: --implementation cp --python $runtime -r "$FILE"
   # pip install -r "$FILE"
 
-  # defence in depth: confirm every requirement is present, so that a partial install can
-  # never be packaged or deployed
+  # defence in depth: confirm each pinned requirement is present, so that a partial install
+  # can never be packaged or deployed. Requirements with environment markers, version ranges,
+  # extras or URLs are left to pip, as it may legitimately not install them
   missing=""
-  for requirement in $(sed 's/#.*//' "$FILE" | sed 's/[<>=!~;[].*//' | tr -d '[:blank:]'); do
-    dist_info=$(echo "$requirement" | tr 'A-Z' 'a-z' | tr '-' '_')
+  for requirement in $(sed 's/#.*//' "$FILE" | tr -d '[:blank:]' | grep -E '^[A-Za-z0-9._-]+==[A-Za-z0-9.*+!_-]+$'); do
+    # .dist-info directory names are lower case with . - _ runs replaced by _ (PEP 503, PEP 427)
+    dist_info=$(echo "${requirement%%==*}" | tr 'A-Z' 'a-z' | tr '.-' '__')
     if ! ls -d "$site_packages/$dist_info"-*.dist-info >/dev/null 2>&1; then
       missing="$missing $requirement"
     fi
