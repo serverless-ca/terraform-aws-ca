@@ -16,6 +16,12 @@ from .crypto_kms_classes import (
 )
 
 _ML_DSA_PRIVATE_KEY_TYPES = (mldsa.MLDSA44PrivateKey, mldsa.MLDSA65PrivateKey, mldsa.MLDSA87PrivateKey)
+_ML_DSA_PUBLIC_KEY_TYPES = (mldsa.MLDSA44PublicKey, mldsa.MLDSA65PublicKey, mldsa.MLDSA87PublicKey)
+
+
+def is_ml_dsa_public_key(public_key):
+    """ML-DSA (FIPS 204) keys are signature-only, requiring different keyUsage per RFC 9881"""
+    return isinstance(public_key, _ML_DSA_PUBLIC_KEY_TYPES)
 
 
 def crypto_cert_info(cert, common_name):

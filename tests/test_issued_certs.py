@@ -12,6 +12,7 @@ from cryptography.x509 import (
     RFC822Name,
     UniformResourceIdentifier,
     DirectoryName,
+    load_der_x509_certificate,
     load_pem_x509_certificate,
 )
 from cryptography.x509.oid import ExtensionOID, ExtendedKeyUsageOID, NameOID
@@ -836,6 +837,22 @@ def test_ml_dsa_client_cert_issued():
     issued_cert = load_pem_x509_certificate(cert_data.encode("utf-8"), default_backend())
     log.info("issued certificate", subject=issued_cert.subject.rfc4514_string())
     assert_that(issued_cert.public_key()).is_instance_of(mldsa.MLDSA44PublicKey)
+
+    # keyUsage conforms to RFC 9881: ML-DSA is signature-only, so digitalSignature is
+    # asserted and the encipherment and key agreement bits are not
+    key_usage = issued_cert.extensions.get_extension_for_oid(ExtensionOID.KEY_USAGE).value
+    assert_that(key_usage.digital_signature).is_true()
+    assert_that(key_usage.key_encipherment).is_false()
+    assert_that(key_usage.data_encipherment).is_false()
+    assert_that(key_usage.key_agreement).is_false()
+
+    # the response's CA chain, written to ca-bundle.pem by utils/client-cert.py, holds the
+    # issuing and root CA certificates only - never the end-entity certificate
+    assert_that(ca_chain).is_length(2)
+    chain_certs = [load_der_x509_certificate(der, default_backend()) for der in ca_chain]
+    assert_that([c.subject for c in chain_certs]).does_not_contain(issued_cert.subject)
+    for chain_cert in chain_certs:
+        assert_that(chain_cert.extensions.get_extension_for_oid(ExtensionOID.BASIC_CONSTRAINTS).value.ca).is_true()
 
     # validate certificate chain, purpose and revocation status
     trust_roots = convert_truststore(cert_data)

@@ -129,10 +129,10 @@ The optional IAM Roles Anywhere profile restricts access to a subset of permissi
 * This will create the following files in your home directory:
 
 ```
-certs/client-key.pem
-certs/ca-bundle.pem
-certs/client-cert.crt
-certs/ca-cert-key-bundle.pem
+certs/client-key.pem            # client certificate private key
+certs/ca-bundle.pem             # Issuing CA and Root CA certificates
+certs/client-cert.crt           # client certificate bundled with its CA chain
+certs/ca-cert-key-bundle.pem    # client certificate, CA chain and private key
 ```
 
 ## Test client certificate and key
@@ -148,7 +148,7 @@ certs/ca-cert-key-bundle.pem
 
 ```bash
 ./aws_signing_helper credential-process \
-    --certificate certs/ca-bundle.pem \
+    --certificate certs/client-cert.crt \
     --private-key certs/client-key.pem \
     --trust-anchor-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:trust-anchor/2de9dfa7-9f39-40c2-ae31-aaf843684dc9" \
     --profile-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:profile/86227258-a142-433d-a4bc-6015c99b39b9" \
@@ -176,14 +176,14 @@ Using a text editor such as `vi` edit `~/.aws/config` and insert:
 
 ```
 [profile secops]
-    credential_process = ./aws_signing_helper credential-process --certificate certs/ca-bundle.pem --private-key certs/client-key.pem --trust-anchor-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:trust-anchor/TRUST_ANCHOR_ID --profile-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:profile/PROFILE_ID --role-arn arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
+    credential_process = ./aws_signing_helper credential-process --certificate certs/client-cert.crt --private-key certs/client-key.pem --trust-anchor-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:trust-anchor/TRUST_ANCHOR_ID --profile-arn arn:aws:rolesanywhere:REGION:ACCOUNT_ID:profile/PROFILE_ID --role-arn arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
 ```
 
 * for example:
 
 ```
 [profile secops]
-    credential_process = ./aws_signing_helper credential-process --certificate certs/ca-bundle.pem --private-key certs/client-key.pem --trust-anchor-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:trust-anchor/2de9dfa7-9f39-40c2-ae31-aaf843684dc9" --profile-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:profile/86227258-a142-433d-a4bc-6015c99b39b9" --role-arn "arn:aws:iam::992382525818:role/roles-anywhere-s3-full-access"
+    credential_process = ./aws_signing_helper credential-process --certificate certs/client-cert.crt --private-key certs/client-key.pem --trust-anchor-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:trust-anchor/2de9dfa7-9f39-40c2-ae31-aaf843684dc9" --profile-arn "arn:aws:rolesanywhere:eu-west-2:992382525818:profile/86227258-a142-433d-a4bc-6015c99b39b9" --role-arn "arn:aws:iam::992382525818:role/roles-anywhere-s3-full-access"
 ```
 
 * substitute your ARNs
