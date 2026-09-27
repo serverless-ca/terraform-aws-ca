@@ -146,9 +146,10 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
     if args["verbose"]:
         print(payload_data)
 
-    # Extract certificate and private key from response
+    # Extract certificate, CA bundle and private key from response
     base64_cert_data = payload_data["Base64Certificate"]
     cert_data = base64.b64decode(base64_cert_data)
+    ca_bundle_data = base64.b64decode(payload_data["Base64CaChain"])
     key_data = crypto_encode_private_key(private_key)
 
     # Write certificate and private key to files
@@ -159,8 +160,8 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
 
     if output_path_cert_pem:
         with open(output_path_cert_pem, "w", encoding="utf-8") as f:
-            f.write(cert_data.decode("utf-8"))
-            print(f"Combined client certificate and CA bundle written to {output_path_cert_pem}")
+            f.write(ca_bundle_data.decode("utf-8"))
+            print(f"CA bundle (Issuing CA and Root CA certificates) written to {output_path_cert_pem}")
 
     if output_path_cert_crt:
         with open(output_path_cert_crt, "w", encoding="utf-8") as f:

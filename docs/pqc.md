@@ -106,10 +106,14 @@ Relying parties must support ML-DSA certificates:
 * Microsoft Windows 11 (2025 updates onwards) imports and displays ML-DSA
   certificates - the signature hash algorithm is shown as `NoHash`, expected as pure
   ML-DSA signs the message directly without a separate hash algorithm
+* AWS IAM Roles Anywhere
+  [supports ML-DSA](https://aws.amazon.com/about-aws/whats-new/2026/03/iam-roles-anywhere-post-quantum-digital-certificates)
+  trust anchors and end-entity certificates (March 2026), in all regions where the
+  service is available
 * Apple macOS Keychain does not support ML-DSA certificates and errors on import
   (as of Aug 2026)
-* Most AWS managed mTLS services (ALB trust stores, API Gateway mTLS, IAM Roles
-  Anywhere) and browsers do not accept ML-DSA certificates (as of Aug 2026)
+* Other AWS managed mTLS services (ALB trust stores, API Gateway mTLS) and browsers
+  do not accept ML-DSA certificates (as of Sep 2026)
 
 ML-DSA is opt-in per CA deployment, so a classical hierarchy can run in parallel, as
 in the example deployment above.

@@ -103,10 +103,14 @@ def _make_leaf_certificate(  # pylint:disable=too-many-arguments,too-many-positi
     issuer_cert,
     issuer_key,
     purposes=("client_auth", "server_auth"),
-    key_encipherment=True,
+    key_encipherment=None,
     crl_dp_url=None,
     lifetime=timedelta(days=1),
 ):
+    if key_encipherment is None:
+        # conformant default: RFC 9881 forbids keyEncipherment for signature-only ML-DSA keys
+        key_encipherment = not isinstance(key.public_key(), certs_crypto._ML_DSA_PUBLIC_KEY_TYPES)
+
     builder = (
         x509.CertificateBuilder()
         .subject_name(_subject(common_name))
@@ -216,6 +220,27 @@ def test_certificate_validated_mixed_ml_dsa_chain():
     trust_roots = convert_truststore(bundle_pem)
 
     assert_that(certificate_validated(bundle_pem, trust_roots, check_crl=False)).is_true()
+
+
+@requires_ml_dsa
+def test_ml_dsa_certificate_with_key_encipherment_rejected():
+    """RFC 9881: keyUsage of an ML-DSA certificate must not assert keyEncipherment"""
+    bundle_pem, _, _, _ = _make_chain("ml-dsa-44", key_encipherment=True)
+    trust_roots = convert_truststore(bundle_pem)
+
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        bundle_pem, trust_roots, check_crl=False
+    ).is_equal_to("The X.509 certificate provided asserts key usage not permitted for ML-DSA per RFC 9881")
+
+
+def test_classical_certificate_without_key_encipherment_rejected():
+    """Classical certificates still require both digital signature and key encipherment"""
+    bundle_pem, _, _, _ = _make_chain("ecdsa", key_encipherment=False)
+    trust_roots = convert_truststore(bundle_pem)
+
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        bundle_pem, trust_roots, check_crl=False
+    ).is_equal_to("The X.509 certificate provided is not valid for the purpose of digital signature, key encipherment")
 
 
 @pytest.mark.parametrize("algorithm", CHAIN_ALGORITHMS)
