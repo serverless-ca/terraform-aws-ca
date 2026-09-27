@@ -58,7 +58,9 @@ reuse resources owned by the first, instead of creating their own:
   stack's secret name, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}` (e.g.
   `serverless-slack-token-prod`), available as its `slack_secret_name` Terraform output.
   The second stack creates no secret of its own, and its notify Lambda function is granted
-  `kms:Decrypt` on the KMS key encrypting the shared secret. See [Slack](slack.md).
+  `kms:Decrypt` on the KMS key encrypting the shared secret. Secrets Manager secrets are
+  regional, so both stacks must use the same region, or the secret needs a replica in the
+  second stack's region. See [Slack](slack.md).
 
 Each stack still creates its own KMS keys, DynamoDB table, internal S3 bucket, Lambda
 functions and step function, as these are specific to the CA hierarchy. An example is the

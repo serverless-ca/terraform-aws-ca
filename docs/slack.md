@@ -96,13 +96,19 @@ See [Cloud CA](https://github.com/serverless-ca/cloud-ca) example repository and
 
 ### 3.3. Sharing the secret between CA deployments
 
-Where more than one CA shares an AWS account and posts to the same Slack workspace, set
-`existing_slack_secret_name` on the additional deployments to the name of the first
-deployment's secret, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}`, e.g.
+Where more than one CA shares an AWS account and region, and posts to the same Slack
+workspace, set `existing_slack_secret_name` on the additional deployments to the name of
+the first deployment's secret, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}`, e.g.
 `serverless-slack-token-prod`. Those deployments then use the existing secret instead of
-creating their own, so the token value is only uploaded once, and their notify Lambda
-functions are granted `kms:Decrypt` on the KMS key encrypting it. The first deployment
-publishes the name as the `slack_secret_name` Terraform output. See the
+creating their own, so the token value is only uploaded once per region, and their notify
+Lambda functions are granted `kms:Decrypt` on the KMS key encrypting it. The name is
+published as the `slack_secret_name` Terraform output, whether the secret was created by
+that deployment or shared with it.
+
+Secrets Manager secrets are regional, and the name is looked up in the provider region, so
+a CA deployed to another region needs its own secret, or a
+[replica](https://docs.aws.amazon.com/secretsmanager/latest/userguide/create-manage-multi-region-secrets.html)
+of the shared one in that region. See the
 [ml-dsa example](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
 which shares the Slack secret of the
 [rsa-public-crl](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/rsa-public-crl)

@@ -24,8 +24,9 @@ additional CloudFront distribution, TLS certificate, DNS record or hosted zone.
 
 Via `existing_slack_secret_name`, it also shares that deployment's Slack OAuth token
 secret (`serverless-slack-token-prod`), so no second secret is created and the token only
-needs to be uploaded once for the account. The notify Lambda is granted `kms:Decrypt` on
-the KMS key encrypting the shared secret.
+needs to be uploaded once. Secrets Manager secrets are regional, so this works because
+both deployments use the same provider region, `eu-west-2`. The notify Lambda is granted
+`kms:Decrypt` on the KMS key encrypting the shared secret.
 
 Each deployment here is a separate Terraform configuration with its own state, so the
 rsa-public-crl deployment must be applied first: the shared bucket and secret have to

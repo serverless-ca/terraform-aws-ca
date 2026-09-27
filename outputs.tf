@@ -44,8 +44,8 @@ output "root_ca_crl_s3_location" {
 }
 
 output "slack_secret_name" {
-  value       = one(module.slack_secret[*].secret_name)
-  description = "Name of AWS Secrets Manager secret holding the Slack OAuth token, for sharing with another CA deployment in the same AWS account. Null when this deployment uses a shared secret, or Slack isn't configured"
+  value       = local.slack_secret_name
+  description = "Name of AWS Secrets Manager secret holding the Slack OAuth token, whether created by this deployment or shared with it, for reuse by another CA deployment in the same AWS account and region. Null when Slack isn't configured"
 }
 
 output "sns_topic_arn" {

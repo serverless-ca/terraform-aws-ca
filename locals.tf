@@ -8,8 +8,9 @@ locals {
   external_s3_bucket_domain_name = var.external_s3_bucket_name == "" ? module.external_s3[0].s3_bucket_domain_name : data.aws_s3_bucket.external[0].bucket_domain_name
 
   # Slack OAuth token secret: either created by this deployment, or an existing secret shared
-  # with another CA deployment in the same AWS account
-  slack_secret_arn = var.existing_slack_secret_name == "" ? one(module.slack_secret[*].secret_arn) : one(data.aws_secretsmanager_secret.shared_slack[*].arn)
+  # with another CA deployment in the same AWS account and region
+  slack_secret_arn  = var.existing_slack_secret_name == "" ? one(module.slack_secret[*].secret_arn) : one(data.aws_secretsmanager_secret.shared_slack[*].arn)
+  slack_secret_name = var.existing_slack_secret_name == "" ? one(module.slack_secret[*].secret_name) : var.existing_slack_secret_name
 
   # KMS key encrypting a shared Slack secret, which the notify Lambda needs to decrypt it.
   # Null for a secret created by this deployment, or one encrypted with an AWS managed key

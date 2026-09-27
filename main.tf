@@ -499,7 +499,7 @@ module "sns_ca_notifications" {
 }
 
 data "aws_secretsmanager_secret" "shared_slack" {
-  # Slack OAuth token secret owned by another CA deployment in the same AWS account
+  # Slack OAuth token secret owned by another CA deployment in the same AWS account and region
   count = length(var.slack_channels) > 0 && var.existing_slack_secret_name != "" ? 1 : 0
 
   name = var.existing_slack_secret_name
