@@ -22,7 +22,7 @@ the public CRL and CA certificates are published as `pqc`-prefixed files (e.g.
 S3 bucket, served by its existing CloudFront distribution at the same domain - no
 additional CloudFront distribution, TLS certificate, DNS record or hosted zone.
 
-Via `external_slack_secret_name`, it also shares that deployment's Slack OAuth token
+Via `existing_slack_secret_name`, it also shares that deployment's Slack OAuth token
 secret (`serverless-slack-token-prod`), so no second secret is created and the token only
 needs to be uploaded once for the account. The notify Lambda is granted `kms:Decrypt` on
 the KMS key encrypting the shared secret.

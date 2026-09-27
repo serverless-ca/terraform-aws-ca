@@ -97,7 +97,7 @@ See [Cloud CA](https://github.com/serverless-ca/cloud-ca) example repository and
 ### 3.3. Sharing the secret between CA deployments
 
 Where more than one CA shares an AWS account and posts to the same Slack workspace, set
-`external_slack_secret_name` on the additional deployments to the name of the first
+`existing_slack_secret_name` on the additional deployments to the name of the first
 deployment's secret, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}`, e.g.
 `serverless-slack-token-prod`. Those deployments then use the existing secret instead of
 creating their own, so the token value is only uploaded once, and their notify Lambda

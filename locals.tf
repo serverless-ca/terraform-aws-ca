@@ -9,11 +9,11 @@ locals {
 
   # Slack OAuth token secret: either created by this deployment, or an existing secret shared
   # with another CA deployment in the same AWS account
-  slack_secret_arn = var.external_slack_secret_name == "" ? one(module.slack_secret[*].secret_arn) : one(data.aws_secretsmanager_secret.external_slack[*].arn)
+  slack_secret_arn = var.existing_slack_secret_name == "" ? one(module.slack_secret[*].secret_arn) : one(data.aws_secretsmanager_secret.shared_slack[*].arn)
 
   # KMS key encrypting a shared Slack secret, which the notify Lambda needs to decrypt it.
   # Null for a secret created by this deployment, or one encrypted with an AWS managed key
-  slack_secret_kms_key_arn = var.external_slack_secret_name == "" ? null : one(data.aws_secretsmanager_secret.external_slack[*].kms_key_id)
+  slack_secret_kms_key_arn = var.existing_slack_secret_name == "" ? null : one(data.aws_secretsmanager_secret.shared_slack[*].kms_key_id)
 
   create_root_ca_function_name    = "create-root-ca"
   create_issuing_ca_function_name = "create-issuing-ca"

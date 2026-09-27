@@ -42,17 +42,26 @@ validate the certificates, and ML-DSA key specs must be
 ### Can two serverless CA stacks be installed to a single AWS account and use the same Route53 Hosted zone?
 Yes, give each stack a distinct `project` name (e.g. `serverless` and `pqc`), or a
 distinct environment name via `env` (e.g. `dev` and `prod`), so all resource names,
-CA names and published file names differ. For public CRLs, set
-`external_s3_bucket_name` on the second stack to the first stack's external S3 bucket:
-its CRLs and CA certificates are then published as distinctly named files (e.g.
-`http://ca.example.com/pqc-issuing-ca.crl`) served by the first stack's existing
-CloudFront distribution at the same domain, with no additional CloudFront distribution,
-TLS certificate, DNS record or hosted zone. Note that differing `project` or `env`
-names don't separate Terraform state: keep each stack's state separate using a
-different state key or Terraform workspace. To avoid a second Slack OAuth token secret,
-which would need the same token value uploaded to it, set `external_slack_secret_name` on
-the second stack to the first stack's secret name, e.g. `serverless-slack-token-prod` -
-see [Slack](slack.md). An example is the
+CA names and published file names differ. Two variables then let the additional stacks
+reuse resources owned by the first, instead of creating their own:
+
+* **External S3 bucket** - for public CRLs, set `external_s3_bucket_name` on the second
+  stack to the name of the first stack's external S3 bucket, available as its
+  `external_s3_bucket_name` Terraform output. The second stack's CRLs and CA certificates
+  are then published to that bucket as distinctly named files (e.g.
+  `http://ca.example.com/pqc-issuing-ca.crl`), served by the first stack's existing
+  CloudFront distribution at the same domain, with no additional CloudFront distribution,
+  TLS certificate, DNS record or hosted zone, so `hosted_zone_id` isn't needed. See
+  [CA Certificate locations](locations.md).
+* **Slack OAuth token secret** - to avoid a second secret, which would need the same token
+  value uploaded to it, set `existing_slack_secret_name` on the second stack to the first
+  stack's secret name, `{PROJECT_NAME}-slack-token-{ENVIRONMENT_NAME}` (e.g.
+  `serverless-slack-token-prod`), available as its `slack_secret_name` Terraform output.
+  The second stack creates no secret of its own, and its notify Lambda function is granted
+  `kms:Decrypt` on the KMS key encrypting the shared secret. See [Slack](slack.md).
+
+Each stack still creates its own KMS keys, DynamoDB table, internal S3 bucket, Lambda
+functions and step function, as these are specific to the CA hierarchy. An example is the
 [ml-dsa post-quantum CA](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/ml-dsa),
 which shares an AWS account and hosted zone with the
 [rsa-public-crl](https://github.com/serverless-ca/terraform-aws-ca/tree/main/examples/rsa-public-crl)

@@ -498,17 +498,17 @@ module "sns_ca_notifications" {
   workload_account_id = var.workload_account_id
 }
 
-data "aws_secretsmanager_secret" "external_slack" {
+data "aws_secretsmanager_secret" "shared_slack" {
   # Slack OAuth token secret owned by another CA deployment in the same AWS account
-  count = length(var.slack_channels) > 0 && var.external_slack_secret_name != "" ? 1 : 0
+  count = length(var.slack_channels) > 0 && var.existing_slack_secret_name != "" ? 1 : 0
 
-  name = var.external_slack_secret_name
+  name = var.existing_slack_secret_name
 }
 
 module "slack_secret" {
   # not created when sharing the Slack OAuth token secret of another CA deployment
   source = "./modules/terraform-aws-ca-secret"
-  count  = length(var.slack_channels) > 0 && var.external_slack_secret_name == "" ? 1 : 0
+  count  = length(var.slack_channels) > 0 && var.existing_slack_secret_name == "" ? 1 : 0
 
   project                 = var.project
   env                     = var.env

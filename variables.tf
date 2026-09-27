@@ -105,15 +105,15 @@ variable "filter_pattern" {
   default     = ""
 }
 
-variable "external_s3_bucket_name" {
+variable "existing_slack_secret_name" {
   type        = string
-  description = "Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record"
+  description = "Name of an existing AWS Secrets Manager secret containing the Slack OAuth token, owned by another CA deployment in the same AWS account. When set, this deployment uses the shared secret and doesn't create its own, so the token only needs to be uploaded once"
   default     = ""
 }
 
-variable "external_slack_secret_name" {
+variable "external_s3_bucket_name" {
   type        = string
-  description = "Name of an existing AWS Secrets Manager secret containing the Slack OAuth token, owned by another CA deployment in the same AWS account. When set, this deployment uses the shared secret and doesn't create its own, so the token only needs to be uploaded once"
+  description = "Name of an existing external S3 bucket for CRL and CA certificate publication, owned by another CA deployment in the same AWS account. When set, this deployment publishes its (project-prefixed) CRL and certificate files to the shared bucket and does not create its own external S3 bucket, CloudFront distribution, TLS certificate or DNS record"
   default     = ""
 }
 
