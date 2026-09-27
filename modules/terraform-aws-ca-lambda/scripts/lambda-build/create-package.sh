@@ -36,14 +36,34 @@ fi
 
 # Installing python dependencies...
 FILE=$path_cwd/lambda_code/$function_name/requirements.txt
-
+site_packages=$path_cwd/build/env_$function_name/lib/$runtime/site-packages
 
 if [ -f "$FILE" ]; then
   echo "Installing dependencies..."
   echo "From: requirements.txt file exists..."
-  pip install --platform $platform --target $path_cwd/build/env_$function_name/lib/$runtime/site-packages --only-binary=:all: --implementation cp -r "$FILE"
-  # pip install --platform $platform --target $path_cwd/build/env_$function_name/lib/$runtime/site-packages --only-binary=:all: --implementation cp --python $runtime -r "$FILE"
+  # a failed install must fail the build, otherwise a deployment package without dependencies
+  # is created and the Lambda function fails at runtime with Runtime.ImportModuleError
+  if ! pip install --platform $platform --target $site_packages --only-binary=:all: --implementation cp --retries 3 --timeout 30 -r "$FILE"; then
+    echo "Error: installation of Python dependencies failed"
+    exit 1
+  fi
+  # pip install --platform $platform --target $site_packages --only-binary=:all: --implementation cp --python $runtime -r "$FILE"
   # pip install -r "$FILE"
+
+  # defence in depth: confirm every requirement is present, so that a partial install can
+  # never be packaged or deployed
+  missing=""
+  for requirement in $(sed 's/#.*//' "$FILE" | sed 's/[<>=!~;[].*//' | tr -d '[:blank:]'); do
+    dist_info=$(echo "$requirement" | tr 'A-Z' 'a-z' | tr '-' '_')
+    if ! ls -d "$site_packages/$dist_info"-*.dist-info >/dev/null 2>&1; then
+      missing="$missing $requirement"
+    fi
+  done
+  if [ -n "$missing" ]; then
+    echo "Error: Python dependencies missing from build:$missing"
+    exit 1
+  fi
+  echo "Dependencies installed"
 
 else
   echo "Error: requirements.txt does not exist!"
@@ -54,7 +74,7 @@ deactivate
 
 # Create deployment package...
 echo "Creating deployment package..."
-cp -r $path_cwd/build/env_$function_name/lib/$runtime/site-packages/. $path_cwd/build/$dir_name
+cp -r $site_packages/. $path_cwd/build/$dir_name
 cp -r $path_cwd/lambda_code/$function_name/. $path_cwd/build/$dir_name
 cp -r $path_cwd/utils $path_cwd/build/$dir_name
 
