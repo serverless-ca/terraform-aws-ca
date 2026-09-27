@@ -50,12 +50,6 @@ moved {
   to   = module.external_s3[0]
 }
 
-data "aws_s3_bucket" "external" {
-  # existing external bucket shared with another CA deployment in this account
-  count  = var.external_s3_bucket_name == "" ? 0 : 1
-  bucket = var.external_s3_bucket_name
-}
-
 module "external_s3" {
   #checkov:skip=CKV2_AWS_61:Lifecycle configuration not needed for long-lived static content
   # S3 bucket for CRL and CA certificate publication, unless shared with another CA deployment
@@ -496,13 +490,6 @@ module "sns_ca_notifications" {
   sns_policy          = var.sns_policy
   sns_policy_template = var.sns_policy_template
   workload_account_id = var.workload_account_id
-}
-
-data "aws_secretsmanager_secret" "shared_slack" {
-  # Slack OAuth token secret owned by another CA deployment in the same AWS account and region
-  count = length(var.slack_channels) > 0 && var.existing_slack_secret_name != "" ? 1 : 0
-
-  name = var.existing_slack_secret_name
 }
 
 module "slack_secret" {
