@@ -186,10 +186,6 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
             if oid not in extended_key_usage_oids:
                 extended_key_usage_oids.append(oid)
 
-    # keyEncipherment is asserted for classical subject keys only: ML-DSA (FIPS 204) is
-    # signature-only, and RFC 9881 requires that keyUsage doesn't include keyEncipherment
-    key_encipherment = not is_ml_dsa_public_key(csr_cert.public_key())
-
     cert_builder = (
         x509.CertificateBuilder()
         .subject_name(x509_subject)
@@ -204,7 +200,9 @@ def ca_build_cert(csr_cert, ca_cert, lifetime, delta, cert_request_info):
                 key_cert_sign=False,
                 crl_sign=False,
                 content_commitment=False,
-                key_encipherment=key_encipherment,
+                # asserted for classical subject keys only: ML-DSA (FIPS 204) is signature-only,
+                # and RFC 9881 requires that keyUsage doesn't include keyEncipherment
+                key_encipherment=not is_ml_dsa_public_key(csr_cert.public_key()),
                 data_encipherment=False,
                 key_agreement=False,
                 encipher_only=False,
