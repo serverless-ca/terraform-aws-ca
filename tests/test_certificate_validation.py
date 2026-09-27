@@ -104,12 +104,26 @@ def _make_leaf_certificate(  # pylint:disable=too-many-arguments,too-many-positi
     issuer_key,
     purposes=("client_auth", "server_auth"),
     key_encipherment=None,
+    key_usage=None,
     crl_dp_url=None,
     lifetime=timedelta(days=1),
 ):
     if key_encipherment is None:
         # conformant default: RFC 9881 forbids keyEncipherment for signature-only ML-DSA keys
         key_encipherment = not isinstance(key.public_key(), certs_crypto._ML_DSA_PUBLIC_KEY_TYPES)
+
+    if key_usage is None:
+        key_usage = x509.KeyUsage(
+            digital_signature=True,
+            key_cert_sign=False,
+            crl_sign=False,
+            content_commitment=False,
+            key_encipherment=key_encipherment,
+            data_encipherment=False,
+            key_agreement=False,
+            encipher_only=False,
+            decipher_only=False,
+        )
 
     builder = (
         x509.CertificateBuilder()
@@ -119,20 +133,7 @@ def _make_leaf_certificate(  # pylint:disable=too-many-arguments,too-many-positi
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.now(timezone.utc) - timedelta(minutes=5))
         .not_valid_after(datetime.now(timezone.utc) - timedelta(minutes=5) + lifetime)
-        .add_extension(
-            x509.KeyUsage(
-                digital_signature=True,
-                key_cert_sign=False,
-                crl_sign=False,
-                content_commitment=False,
-                key_encipherment=key_encipherment,
-                data_encipherment=False,
-                key_agreement=False,
-                encipher_only=False,
-                decipher_only=False,
-            ),
-            critical=True,
-        )
+        .add_extension(key_usage, critical=True)
         .add_extension(x509.ExtendedKeyUsage([PURPOSE_EKU_OIDS[p] for p in purposes]), critical=False)
         .add_extension(x509.SubjectAlternativeName([x509.DNSName("test.example.com")]), critical=False)
         .add_extension(x509.SubjectKeyIdentifier.from_public_key(key.public_key()), critical=False)
@@ -231,6 +232,44 @@ def test_ml_dsa_certificate_with_key_encipherment_rejected():
     assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
         bundle_pem, trust_roots, check_crl=False
     ).is_equal_to("The X.509 certificate provided asserts key usage not permitted for ML-DSA per RFC 9881")
+
+
+@requires_ml_dsa
+def test_ml_dsa_certificate_with_key_agreement_rejected():
+    """RFC 9881 forbids keyAgreement, and with it the conditional encipherOnly and
+    decipherOnly bits, which RFC 5280 only defines alongside keyAgreement"""
+    key_usage = x509.KeyUsage(
+        digital_signature=True,
+        key_cert_sign=False,
+        crl_sign=False,
+        content_commitment=False,
+        key_encipherment=False,
+        data_encipherment=False,
+        key_agreement=True,
+        encipher_only=True,
+        decipher_only=False,
+    )
+    bundle_pem, _, _, _ = _make_chain("ml-dsa-44", key_usage=key_usage)
+    trust_roots = convert_truststore(bundle_pem)
+
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        bundle_pem, trust_roots, check_crl=False
+    ).is_equal_to("The X.509 certificate provided asserts key usage not permitted for ML-DSA per RFC 9881")
+
+
+@requires_ml_dsa
+def test_ml_dsa_certificate_with_encoded_encipher_only_rejected():
+    """A keyUsage extension encoding encipherOnly without keyAgreement can't be built with
+    x509.KeyUsage, so the leaf carries the raw DER: BIT STRING with digitalSignature (bit 0)
+    and encipherOnly (bit 7) set. pyca/cryptography refuses to parse it, and the validator
+    reports the certificate as invalid rather than accepting it unchecked"""
+    raw_key_usage = x509.UnrecognizedExtension(x509.oid.ExtensionOID.KEY_USAGE, bytes([0x03, 0x02, 0x00, 0x81]))
+    bundle_pem, _, _, _ = _make_chain("ml-dsa-44", key_usage=raw_key_usage)
+    trust_roots = convert_truststore(bundle_pem)
+
+    assert_that(certificate_validated).raises(InvalidCertificateError).when_called_with(
+        bundle_pem, trust_roots, check_crl=False
+    ).contains("The X.509 certificate provided has an invalid keyUsage extension")
 
 
 def test_classical_certificate_without_key_encipherment_rejected():

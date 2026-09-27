@@ -64,12 +64,20 @@ def _validate_key_usage(certificate):
         key_usage = certificate.extensions.get_extension_for_oid(ExtensionOID.KEY_USAGE).value
     except x509.ExtensionNotFound as e:
         raise InvalidCertificateError("The X.509 certificate provided has no keyUsage extension") from e
+    except ValueError as e:
+        # pyca/cryptography refuses to parse a keyUsage extension encoding encipherOnly or
+        # decipherOnly without keyAgreement, so a certificate asserting either bit on its own
+        # is rejected here rather than accepted unchecked
+        raise InvalidCertificateError(f"The X.509 certificate provided has an invalid keyUsage extension: {e}") from e
 
     if isinstance(certificate.public_key(), _ML_DSA_PUBLIC_KEY_TYPES):
         if not key_usage.digital_signature:
             raise InvalidCertificateError(
                 "The X.509 certificate provided is not valid for the purpose of digital signature"
             )
+        # this covers all five bits RFC 9881 forbids: encipherOnly and decipherOnly are only
+        # defined alongside keyAgreement (RFC 5280), which is rejected here, and a certificate
+        # encoding them without keyAgreement fails keyUsage extension parsing above
         if key_usage.key_encipherment or key_usage.data_encipherment or key_usage.key_agreement:
             raise InvalidCertificateError(
                 "The X.509 certificate provided asserts key usage not permitted for ML-DSA per RFC 9881"
