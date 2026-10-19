@@ -1,9 +1,9 @@
 -r requirements-docs.txt
-aiohttp==3.14.3
+aiohttp==3.14.5
 assertpy==1.1
 bandit==1.9.4
-black==26.10.0
-boto3==1.43.108
+black==26.10.1
+boto3==1.43.111
 cryptography==50.0.2
 dataclasses-json==0.6.7
 prospector==1.19.1
@@ -11,4 +11,4 @@ pytest==9.1.1
 requests==2.34.2
 slack-sdk==3.45.0
 structlog==26.1.0
-validators==0.35.0
+validators==0.36.0
