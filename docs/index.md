@@ -46,6 +46,8 @@ Talk and demo on [YouTube](https://youtu.be/JJD2GrZxLq4)
 
 > 📖 [Open-source post-quantum cryptography serverless CA](https://medium.com/@paulschwarzenberger/open-source-post-quantum-cryptography-serverless-ca-a44504da50ea)
 
+> 📖 [IAM Roles Anywhere with post-quantum cryptography](https://medium.com/@paulschwarzenberger/iam-roles-anywhere-with-post-quantum-cryptography-45bd392e8e22)
+
 ## Sponsors
 This project is supported by [Q-Solution](https://www.q-solution.co.uk)
 
