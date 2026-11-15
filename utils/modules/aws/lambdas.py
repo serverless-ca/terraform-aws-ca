@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import sys
 
 from botocore.config import Config
 
@@ -25,6 +26,56 @@ def ca_project():
     """Optional project name filter, set the CA_PROJECT environment variable to target one
     of several CA deployments (e.g. serverless, pqc) sharing the same AWS account"""
     return os.environ.get("CA_PROJECT")
+
+
+def list_ca_projects(session=None):
+    """
+    List project names of CA deployments in the account, based on TLS certificate Lambda function
+    names of the form <project>-tls-cert-<env>
+    """
+    if session is None:
+        lambda_client = boto3.client("lambda")
+    else:
+        lambda_client = session.client("lambda")
+
+    projects = set()
+    for page in lambda_client.get_paginator("list_functions").paginate():
+        for la in page["Functions"]:
+            if "-tls-cert-" in la["FunctionName"]:
+                projects.add(la["FunctionName"].split("-tls-cert-")[0])
+
+    return sorted(projects)
+
+
+def select_ca_project(session=None):
+    """
+    Set CA_PROJECT to target one CA deployment, prompting the user to choose if several share
+    the AWS account and no project has been specified
+    """
+    if ca_project():
+        return
+
+    projects = list_ca_projects(session=session)
+    if len(projects) < 2:
+        return
+
+    if not sys.stdin.isatty():
+        print(f"Error: multiple CA deployments found ({', '.join(projects)}), specify one with --project")
+        sys.exit(1)
+
+    print("Multiple CA deployments found in this AWS account:")
+    for number, project in enumerate(projects, start=1):
+        print(f"  {number}. {project}")
+
+    while True:
+        choice = input(f"Select CA project [1-{len(projects)}]: ").strip()
+        if choice.isdigit() and 1 <= int(choice) <= len(projects):
+            choice = projects[int(choice) - 1]
+        if choice in projects:
+            os.environ["CA_PROJECT"] = choice
+            print(f"Using CA project: {choice}")
+            return
+        print("Invalid selection, please try again")
 
 
 def get_lambda_name(lambda_purpose, env_name=None, session=None):

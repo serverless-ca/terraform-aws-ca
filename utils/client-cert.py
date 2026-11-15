@@ -13,7 +13,7 @@ from modules.certs.crypto import (
     generate_key,
 )
 from modules.certs.kms import kms_generate_key_pair, kms_get_kms_key_id
-from modules.aws.lambdas import get_lambda_client, get_lambda_name
+from modules.aws.lambdas import get_lambda_client, get_lambda_name, select_ca_project
 
 # identify home directory and create certs subdirectory if needed
 homedir = os.path.expanduser("~")
@@ -83,6 +83,9 @@ def main():  # pylint:disable=too-many-locals,too-many-statements
 
     # create AWS session
     session = create_session(args["profile"])
+
+    # ask which CA to use if several deployments share the account and none was specified
+    select_ca_project(session)
 
     # set variables
     lifetime = 90
