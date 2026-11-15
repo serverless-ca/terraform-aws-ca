@@ -1,6 +1,6 @@
 -r requirements-docs.txt
 aiohttp==3.14.5
-assertpy==1.1
+assertpy==2.36.0
 bandit==1.9.4
 black==26.10.1
 boto3==1.43.123
